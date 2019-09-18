@@ -14,7 +14,10 @@ import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,18 +32,20 @@ class ClassOnePageBase {
     private List <View> mClassSecondPageViewList;//该一级页面下的二级页面视图List
     private int mCurrentClassSecendPage = 0;//默认显示的二级页面
     private Bundle mClassSecondPages;//该一级页面下的二级页面Bundle
+    private ArrayList <Object> mClassSecondControllerList;  //存放各二级页面控制器的List
 
     /***
      * 构造方法
      * @param context
      * @param view
      */
-    ClassOnePageBase(AppCompatActivity context, View view,String currentPageName) {
+    ClassOnePageBase(AppCompatActivity context, View view, String currentPageName) {
         mContext = context;
         mView = view;
         mCurrentPageName = currentPageName;
         mMainContainer = (LinearLayout) mContext.findViewById (R.id.main_container);
         mParams = new LinearLayout.LayoutParams (LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+        mClassSecondControllerList = new ArrayList <Object> ( );
         onInitiation ( );
     }
 
@@ -61,7 +66,7 @@ class ClassOnePageBase {
      * 用于加载二级页面
      * @param classSecondPage
      */
-    public void loadClassSecondPage(Bundle classSecondPage) {
+    public void loadClassSecondPage(Bundle classSecondPage) throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
         mNavItemList = new ArrayList <View> ( );
         mClassSecondPages = classSecondPage;
         final int resId = getResId (mCurrentPageName + "_viewpager", R.id.class);//根据当前一级页面名称生成id字符串，并利用该字符串获取viewpager视图
@@ -73,7 +78,35 @@ class ClassOnePageBase {
         int index = 0;
         for (String pagename : getPageOrder ( )) { //getPageOrder获取页面的排列顺序
             View view = View.inflate (mContext, (int) mClassSecondPages.get (pagename), null);
+            String[] currentClassNamaList = this.getClass ( ).getName ( ).split ("\\.");
+
+            /**
+             *  实列化二级页面控制器，如果对应类存在则实列化，若不存在这实列化基类
+             */
+            String className = "" + Character.toUpperCase (pagename.charAt (0)) + pagename.substring (1);//布局文件名首字母大写以对应控制器类
+            Class instance;
+            try {
+                /*
+                 * 当前文件完整类名换成需要调用的类名
+                 */
+                currentClassNamaList[currentClassNamaList.length - 1] = currentClassNamaList[currentClassNamaList.length - 1] + className;
+                instance = Class.forName (String.join (".", currentClassNamaList));
+            } catch (ClassNotFoundException e) {
+                /*
+                 * 当一级页面对用控制器类不存在时调用基类
+                 */
+                currentClassNamaList[currentClassNamaList.length - 1] = "ClassSecondPageBase";
+                instance = Class.forName (String.join (".", currentClassNamaList));
+            }
+            /*
+             * 动态实例化控制器类
+             */
+            Constructor constructor = instance.getDeclaredConstructor (AppCompatActivity.class, View.class, String.class);
+            Object controller = constructor.newInstance (mContext, view, pagename);
+
             mClassSecondPageViewList.add (view);//向二级页面视图容器内添加视图
+            mClassSecondControllerList.add (controller);//向二级页面控制器容器内添加视图
+
             View nav_item = newNavItem (getNavText (pagename));
             final int finalIndex = index;
             nav_item.setOnClickListener (new View.OnClickListener ( ) {
@@ -91,6 +124,7 @@ class ClassOnePageBase {
 
         ((TextView) mNavItemList.get (mCurrentClassSecendPage)).setTextColor (ContextCompat.getColor (mContext, R.color.colorPrimary));
     }
+
     /*
      * 获取页面加载顺序，默认为文件布局文件排列顺序，如需更改可以重载此方法
      */
@@ -103,6 +137,7 @@ class ClassOnePageBase {
         }
         return strings;
     }
+
     /*
      * 获取二级页面导航栏按钮文字显示，默认为布局文件名，如需加载其他文字可以重载该方法
      */
@@ -147,7 +182,18 @@ class ClassOnePageBase {
             @NonNull
             @Override
             public Object instantiateItem(@NonNull ViewGroup container, int position) {
-                container.addView (mClassSecondPageViewList.get (position));
+                container.addView (mClassSecondPageViewList.get (position)); //获取二级当前页面视图
+                Object controller = mClassSecondControllerList.get (position); //获取当前二级页面控制器
+
+                /**
+                 * 调用控制器二级内页面加载完毕后方法
+                 */
+                try {
+                    Method method = controller.getClass ( ).getDeclaredMethod ("onShow");
+                    method.invoke (controller);
+                } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                    e.printStackTrace ( );
+                }
                 return mClassSecondPageViewList.get (position);
             }
 
