@@ -5,9 +5,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import java.lang.reflect.InvocationTargetException;
+
 public class ClassSecondPageBase {
-    private final AppCompatActivity mContext; //主Activity实列
-    public final View mView;//当前控制器对应一级页面视图
+    protected final AppCompatActivity mContext; //主Activity实列
+    protected final View mView;//当前控制器对应一级页面视图
     private final String mCurrentPageName;
 
     ClassSecondPageBase(AppCompatActivity context, View view, String currentPageName) {
@@ -25,7 +27,13 @@ public class ClassSecondPageBase {
      * 二级页面添加到Activity后执行该函数
      */
 
-    protected void onShow(){
+    protected void onShow() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        mView.setOnClickListener (new View.OnClickListener ( ) {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText (mContext,"It's OK",Toast.LENGTH_SHORT);
+            }
+        });
         Button btn = (Button) mContext.findViewById (R.id.button);
         btn.setOnClickListener (new View.OnClickListener ( ) {
             @Override

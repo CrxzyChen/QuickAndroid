@@ -16,7 +16,7 @@
             android:text="@string/class_one_picture"
             android:gravity="center"
             android:textSize="20sp"
-            android:textColor="@color/write"/>
+            android:textColor="@color/white"/>
     </Toolbar>
     <android.support.v4.view.ViewPager
         android:id="@+id/picture_viewpager"

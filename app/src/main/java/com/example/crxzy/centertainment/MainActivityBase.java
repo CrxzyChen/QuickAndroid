@@ -273,7 +273,7 @@ public class MainActivityBase extends AppCompatActivity {
              *  根布局文件：[布局文件根命名]
              *      一级页面：[布局文件根命名]_[一级页面名]
              *      二级页面:[布局文件根命名]_[一级页面名]_[二级页面名]
-             *  根据以上柜子找到所有的一级布局文件和二级布局文件
+             *  根据以上规则找到所有的一级布局文件和二级布局文件
              */
             R.layout layout = new R.layout ( );
             Field[] fields = R.layout.class.getDeclaredFields ( );

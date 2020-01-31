@@ -22,14 +22,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 class ClassOnePageBase {
-    private final AppCompatActivity mContext; //主Activity实列
-    public final View mView;//当前控制器对应一级页面视图
+    protected final AppCompatActivity mContext; //主Activity实列
+    protected final View mView;//当前控制器对应一级页面视图
+    protected List <View> mClassSecondPageViewList;//该一级页面下的二级页面视图List
+
     private final LinearLayout mMainContainer;//主视图中的一级页面容器
     private final LinearLayout.LayoutParams mParams;//主视图中的一级页面容器的布局文件
     private final String mCurrentPageName;
     private ArrayList <View> mNavItemList;//顶部导航栏List
     private ViewPager mViewPager;//一级页面中ViewPager视图
-    private List <View> mClassSecondPageViewList;//该一级页面下的二级页面视图List
     private int mCurrentClassSecendPage = 0;//默认显示的二级页面
     private Bundle mClassSecondPages;//该一级页面下的二级页面Bundle
     private ArrayList <Object> mClassSecondControllerList;  //存放各二级页面控制器的List
@@ -212,7 +213,7 @@ class ClassOnePageBase {
     private LinearLayout createNavBar() {
         int index = ((ViewGroup) mView).indexOfChild (mViewPager);
         HorizontalScrollView horizontalScrollView = new HorizontalScrollView (mContext);
-        HorizontalScrollView.LayoutParams HSV_params = new HorizontalScrollView.LayoutParams (HorizontalScrollView.LayoutParams.MATCH_PARENT, dip2px (mContext, 40));
+        HorizontalScrollView.LayoutParams HSV_params = new HorizontalScrollView.LayoutParams (HorizontalScrollView.LayoutParams.MATCH_PARENT, Tool.dip2px (mContext, 40));
         horizontalScrollView.setBackgroundColor (ContextCompat.getColor (mContext, R.color.colorBackground));
         LinearLayout linearLayout = new LinearLayout (mContext);
         LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams (LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.MATCH_PARENT);
@@ -230,7 +231,7 @@ class ClassOnePageBase {
     @NonNull
     private TextView newNavItem(String text) {
         TextView textView = new TextView (mContext);
-        textView.setHeight (dip2px (mContext, 40));
+        textView.setHeight (Tool.dip2px (mContext, 40));
 
         textView.setTextSize (16);
         textView.setPadding (20, 8, 20, 8);
@@ -247,15 +248,5 @@ class ClassOnePageBase {
             e.printStackTrace ( );
             return -1;
         }
-    }
-
-    private static int dip2px(Context context, float dpValue) {
-        final float scale = context.getResources ( ).getDisplayMetrics ( ).density;
-        return (int) (dpValue * scale + 0.5f);
-    }
-
-    private static int px2dip(Context context, float pxValue) {
-        final float scale = context.getResources ( ).getDisplayMetrics ( ).density;
-        return (int) (pxValue / scale + 0.5f);
     }
 }

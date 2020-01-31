@@ -3,7 +3,9 @@
     <color name="colorPrimary">#ffafc9</color>
     <color name="colorPrimaryDark">#f45a8d</color>
     <color name="colorText">#222222</color>
-    <color name="write">#ffffff</color>
+    <color name="white">#ffffff</color>
     <color name="class_one_title">#ffffff</color>
     <color name="colorBackground">#eee</color>
+    <color name="gray">#666666</color>
+    <color name="green">#00ff00</color>
 </resources>

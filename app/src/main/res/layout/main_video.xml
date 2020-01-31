@@ -14,7 +14,7 @@
             android:text="@string/class_one_video"
             android:gravity="center"
             android:textSize="20sp"
-            android:textColor="@color/write"/>
+            android:textColor="@color/white"/>
     </Toolbar>
     <android.support.v4.view.ViewPager
         android:id="@+id/video_viewpager"
