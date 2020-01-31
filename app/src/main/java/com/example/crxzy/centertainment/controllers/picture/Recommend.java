@@ -1,15 +1,16 @@
-package com.example.crxzy.centertainment;
+package com.example.crxzy.centertainment.controllers.picture;
 
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.LinearLayout;
+
+import com.example.crxzy.centertainment.system.ItemsBox;
+import com.example.crxzy.centertainment.R;
+import com.example.crxzy.centertainment.system.ClassSecondPageBase;
 
 import java.lang.reflect.InvocationTargetException;
 
-public class PictureRecommend extends ClassSecondPageBase {
-    PictureRecommend(AppCompatActivity context, View view, String currentPageName) {
+public class Recommend extends ClassSecondPageBase {
+    public Recommend(AppCompatActivity context, View view, String currentPageName) {
         super (context, view, currentPageName);
     }
 

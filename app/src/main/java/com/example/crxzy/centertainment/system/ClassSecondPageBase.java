@@ -1,9 +1,11 @@
-package com.example.crxzy.centertainment;
+package com.example.crxzy.centertainment.system;
 
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
+
+import com.example.crxzy.centertainment.R;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -12,7 +14,7 @@ public class ClassSecondPageBase {
     protected final View mView;//当前控制器对应一级页面视图
     private final String mCurrentPageName;
 
-    ClassSecondPageBase(AppCompatActivity context, View view, String currentPageName) {
+    public ClassSecondPageBase(AppCompatActivity context, View view, String currentPageName) {
         mContext = context;
         mView = view;
         mCurrentPageName = currentPageName;

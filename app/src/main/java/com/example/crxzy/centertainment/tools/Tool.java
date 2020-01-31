@@ -1,4 +1,4 @@
-package com.example.crxzy.centertainment;
+package com.example.crxzy.centertainment.tools;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -10,6 +10,8 @@ import android.graphics.RectF;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+
+import com.example.crxzy.centertainment.R;
 
 public class Tool {
     public static int dip2px(Context context, float dpValue) {

@@ -2,6 +2,8 @@ package com.example.crxzy.centertainment;
 
 import android.os.Bundle;
 
+import com.example.crxzy.centertainment.system.MainActivityBase;
+
 public class MainActivity extends MainActivityBase {
     public Bundle mPageNameToText = new Bundle ( );
 

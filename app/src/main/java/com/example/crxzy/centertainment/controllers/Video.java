@@ -1,17 +1,15 @@
-package com.example.crxzy.centertainment;
+package com.example.crxzy.centertainment.controllers;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.Toast;
 
-public class Picture extends ClassOnePageBase {
-    public Picture(AppCompatActivity context, View view, String currentPageName) {
-        super (context, view, currentPageName);
+import com.example.crxzy.centertainment.system.ClassOnePageBase;
+
+public class Video extends ClassOnePageBase {
+
+    public Video(AppCompatActivity context, View view,String currentPageName) {
+        super (context, view,currentPageName);
     }
 
     private Bundle mPagenameToText;

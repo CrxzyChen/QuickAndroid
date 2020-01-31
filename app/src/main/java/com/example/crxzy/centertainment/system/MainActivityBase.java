@@ -1,4 +1,4 @@
-package com.example.crxzy.centertainment;
+package com.example.crxzy.centertainment.system;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -9,13 +9,13 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import java.lang.reflect.Array;
+import com.example.crxzy.centertainment.R;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class MainActivityBase extends AppCompatActivity {
 
@@ -132,12 +132,14 @@ public class MainActivityBase extends AppCompatActivity {
             method.invoke (controller, classOnePageToClassSecondPage.get (classOnePagename));
         }
     }
+
     /*
      * 获取索引Index对应的mClassOneControllerList中一级页面控制器
      */
     private Object getClassOneControllerByName(String name) {
         return mClassOneControllerList.get ((int) mNameToID.get (name));
     }
+
     /*
      * 切换页面方法
      */
@@ -146,6 +148,7 @@ public class MainActivityBase extends AppCompatActivity {
         method.invoke (mClassOneControllerList.get (index));
         onClassOneChange (index);
     }
+
     /*
      * 一级页面切换后的回调方法
      */
@@ -240,8 +243,13 @@ public class MainActivityBase extends AppCompatActivity {
             /*
              * 当前文件完整类名换成需要调用的类名
              */
-            currentClassNamaList[currentClassNamaList.length - 1] = className.toString ( );
-            instance = Class.forName (String.join (".", currentClassNamaList));
+            String[] targetClassNameList = new String[currentClassNamaList.length + 1];
+            for (int index = 0; index < currentClassNamaList.length; index++) {
+                targetClassNameList[index] = currentClassNamaList[index];
+            }
+            targetClassNameList[currentClassNamaList.length - 1] = "controllers";
+            targetClassNameList[currentClassNamaList.length] = className.toString ( );
+            instance = Class.forName (String.join (".", targetClassNameList));
         } catch (ClassNotFoundException e) {
             /*
              * 当一级页面对用控制器类不存在时调用基类
@@ -252,10 +260,11 @@ public class MainActivityBase extends AppCompatActivity {
         /*
          * 动态实例化控制器类
          */
-        Constructor constructor = instance.getDeclaredConstructor (AppCompatActivity.class, View.class,String.class);
+        Constructor constructor = instance.getDeclaredConstructor (AppCompatActivity.class, View.class, String.class);
         Object controller = constructor.newInstance (this, view, pagename);
         mClassOneControllerList.add (controller);
     }
+
     /*
      * 用于查询布局文件的内部类
      */

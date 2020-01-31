@@ -1,6 +1,5 @@
-package com.example.crxzy.centertainment;
+package com.example.crxzy.centertainment.system;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
@@ -14,6 +13,9 @@ import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.example.crxzy.centertainment.R;
+import com.example.crxzy.centertainment.tools.Tool;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -21,7 +23,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-class ClassOnePageBase {
+public class ClassOnePageBase {
     protected final AppCompatActivity mContext; //主Activity实列
     protected final View mView;//当前控制器对应一级页面视图
     protected List <View> mClassSecondPageViewList;//该一级页面下的二级页面视图List
@@ -40,7 +42,7 @@ class ClassOnePageBase {
      * @param context
      * @param view
      */
-    ClassOnePageBase(AppCompatActivity context, View view, String currentPageName) {
+    public ClassOnePageBase(AppCompatActivity context, View view, String currentPageName) {
         mContext = context;
         mView = view;
         mCurrentPageName = currentPageName;
@@ -53,7 +55,8 @@ class ClassOnePageBase {
     /***
      * 初始化方法，可有子类重构用于初始化
      */
-    protected void onInitiation() { }
+    protected void onInitiation() {
+    }
 
     /***
      * 显示当前主视图
@@ -90,12 +93,19 @@ class ClassOnePageBase {
                 /*
                  * 当前文件完整类名换成需要调用的类名
                  */
-                currentClassNamaList[currentClassNamaList.length - 1] = currentClassNamaList[currentClassNamaList.length - 1] + className;
-                instance = Class.forName (String.join (".", currentClassNamaList));
+                String[] targetClassNameList = new String[currentClassNamaList.length + 1];
+                currentClassNamaList[currentClassNamaList.length - 1] = currentClassNamaList[currentClassNamaList.length - 1].toLowerCase ( );
+                for (int i = 0; i < currentClassNamaList.length; i++) {
+                    targetClassNameList[i] = currentClassNamaList[i];
+                }
+                targetClassNameList[currentClassNamaList.length] = className.toString ( );
+
+                instance = Class.forName (String.join (".", targetClassNameList));
             } catch (ClassNotFoundException e) {
                 /*
                  * 当一级页面对用控制器类不存在时调用基类
                  */
+                currentClassNamaList[currentClassNamaList.length - 2] = "system";
                 currentClassNamaList[currentClassNamaList.length - 1] = "ClassSecondPageBase";
                 instance = Class.forName (String.join (".", currentClassNamaList));
             }

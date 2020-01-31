@@ -1,4 +1,4 @@
-package com.example.crxzy.centertainment;
+package com.example.crxzy.centertainment.system;
 
 import android.content.Context;
 import android.content.Intent;
@@ -9,6 +9,10 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.example.crxzy.centertainment.R;
+import com.example.crxzy.centertainment.PictureActivity;
+import com.example.crxzy.centertainment.tools.Tool;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -181,7 +185,7 @@ public class ItemsBox extends LinearLayout {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent();
-                intent.setClass(mContext,PictureActivity.class);
+                intent.setClass(mContext, PictureActivity.class);
                 mContext.startActivity (intent);
             }
         });

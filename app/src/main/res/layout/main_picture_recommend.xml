@@ -3,12 +3,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.example.crxzy.centertainment.ItemsBox
+    <com.example.crxzy.centertainment.system.ItemsBox
         android:id="@+id/picture_recommend_itemsbox"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:paddingLeft="5dp"
         android:paddingTop="5dp"
-        android:paddingRight="5dp"></com.example.crxzy.centertainment.ItemsBox>
+        android:paddingRight="5dp"></com.example.crxzy.centertainment.system.ItemsBox>
 </ScrollView>
