@@ -169,7 +169,8 @@ public class ItemsBoxView extends LinearLayout {
             //Title
             LinearLayout.LayoutParams textViewLayoutParams = new LinearLayout.LayoutParams (LinearLayout.LayoutParams.MATCH_PARENT, Tool.dip2px (context, 40));
             this.title = new TextView (context);
-            this.title.setBackgroundColor (context.getColor (R.color.colorBackground));
+            this.title.setTextColor (R.color.black);
+            this.title.setBackgroundColor (context.getColor (R.color.white));
             this.title.setPadding (Tool.dip2px (context, 3), Tool.dip2px (context, 3), Tool.dip2px (context, 3), Tool.dip2px (context, 3));
             this.title.setTextSize (TypedValue.COMPLEX_UNIT_SP, 12);
             this.title.setEllipsize (TextUtils.TruncateAt.END);
@@ -189,16 +190,19 @@ public class ItemsBoxView extends LinearLayout {
     public ItemsBoxView(Context context) {
         super (context);
         this.mContext = context;
+        this.setBackgroundColor (context.getColor (R.color.colorBackground));
     }
 
     public ItemsBoxView(Context context, AttributeSet attrs, int defStyle) {
         super (context, attrs, defStyle);
         this.mContext = context;
+        this.setBackgroundColor (context.getColor (R.color.colorBackground));
     }
 
     public ItemsBoxView(Context context, AttributeSet attrs) {
         super (context, attrs);
         this.mContext = context;
+        this.setBackgroundColor (context.getColor (R.color.colorBackground));
     }
 
     public void addItem(View item) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
