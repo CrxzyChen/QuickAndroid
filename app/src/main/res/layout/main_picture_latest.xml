@@ -4,7 +4,7 @@
     android:layout_height="match_parent">
 
     <com.example.crxzy.centertainment.views.ItemsBoxView
-        android:id="@+id/picture_recommend_itemsbox"
+        android:id="@+id/picture_latest_itemsbox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"

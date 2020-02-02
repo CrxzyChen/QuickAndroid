@@ -17,15 +17,15 @@ public class Picture extends ClassOnePageBase {
     protected void onInitiation() {
         super.onInitiation ( );
         mPagenameToText = new Bundle ( );
+        mPagenameToText.putString ("latest", "最新");
         mPagenameToText.putString ("recommend", "推荐");
-        mPagenameToText.putString ("lasted", "最新");
     }
 
     @Override
     public String[] getPageOrder() {
         return new String[]{
+                "latest",
                 "recommend",
-                "lasted"
         };
     }
 
