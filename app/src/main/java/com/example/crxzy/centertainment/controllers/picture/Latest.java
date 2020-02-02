@@ -37,13 +37,13 @@ public class Latest extends ClassSecondPageBase {
     public void success(Network.Response response) {
         Message message = Message.obtain ( );
         message.obj = response;
-        message.what = PictureLatestHandler.ADD_ITEM;
+        message.what = PictureLatestHandler.INTI_ITEMS_BOX;
         this.mHandler.sendMessage (message);
     }
 
     private static class PictureLatestHandler extends Handler {
 
-        static final int ADD_ITEM = 100;
+        static final int INTI_ITEMS_BOX = 100;
         WeakReference <Latest> outerClass;
 
         PictureLatestHandler(Latest activity) {
@@ -53,11 +53,12 @@ public class Latest extends ClassSecondPageBase {
         @Override
         public void handleMessage(Message msg) {
             Latest latest = outerClass.get ( );
-            if (msg.what == ADD_ITEM) {
+            if (msg.what == INTI_ITEMS_BOX) {
+                ItemsBoxView.LinearBlockItem linearBlockItem = new ItemsBoxView.LinearBlockItem (latest.mContext);
                 JSONArray json = ((JSONArray) ((Network.Response) msg.obj).content);
                 latest.mItemBox = latest.mContext.findViewById (R.id.picture_latest_itemsbox);
-                for (int index = 0; index < json.length ( ); index++) {
-                    try {
+                try {
+                    for (int index = 0; index < json.length ( ); index++) {
                         JSONObject item = json.getJSONObject (index);
                         JSONObject info = item.getJSONObject ("info");
                         JSONObject thumb = item.getJSONObject ("thumb");
@@ -73,12 +74,15 @@ public class Latest extends ClassSecondPageBase {
                         normalItem.pageCount.setText (info.getString ("page"));
                         normalItem.image.setImageURL ("http://10.0.0.2:4396/gallery/" + thumb.getString ("thumb_id") + "/" + image_names.get (0));
                         latest.mItemBox.addItem (normalItem);
-                    } catch (JSONException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-                        e.printStackTrace ( );
                     }
+                    latest.mItemBox.addItem (linearBlockItem);
+                } catch (JSONException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+                    e.printStackTrace ( );
                 }
             }
+
         }
+
 
         private String getLanguage(JSONArray languages) throws JSONException {
             String language = null;

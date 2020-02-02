@@ -30,7 +30,7 @@ public class ItemsBoxView extends LinearLayout {
     }
 
     private abstract static class ItemBase extends FrameLayout {
-        public LinearLayout.LayoutParams mItemLayoutParams = new LinearLayout.LayoutParams (0, 0);
+        public FrameLayout.LayoutParams mItemLayoutParams = new FrameLayout.LayoutParams (0, 0);
         public Context mContext;
 
         ItemBase(Context context) {
@@ -78,20 +78,15 @@ public class ItemsBoxView extends LinearLayout {
     }
 
     public static class LinearBlockItem extends ItemBase {
-        public Context mContext;
-        public RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams (0, 0);
-
         public LinearBlockItem(Context context) {
             super (context);
-            mContext = context;
-            initLayoutParams ( );
         }
 
         public void initLayoutParams() {
             setBackgroundColor (mContext.getColor (R.color.colorPrimary));
-            layoutParams.height = 400;
-            layoutParams.setMargins (Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5));
-            setLayoutParams (layoutParams);
+            mItemLayoutParams.height = 400;
+            mItemLayoutParams.setMargins (Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5));
+            setLayoutParams (mItemLayoutParams);
         }
 
         @Override
@@ -126,7 +121,7 @@ public class ItemsBoxView extends LinearLayout {
             //Image
             image = new RoundedImageView (context);
             image.setCornerSize (Tool.dip2px (context, 5));
-            image.setImageResource (R.drawable.test);
+            image.setImageResource (R.drawable.ic_launcher_foreground);
             image.setScaleType (ImageView.ScaleType.FIT_XY);
             image.setBackgroundColor (context.getColor (R.color.class_one_title));
             RelativeLayout.LayoutParams imageAreaLayoutParams = new RelativeLayout.LayoutParams (RelativeLayout.LayoutParams.MATCH_PARENT, Tool.dip2px (context, 225));
