@@ -66,6 +66,8 @@ public class Latest extends ClassSecondPageBase {
                         String name = (!"null".equals (info.getString ("original_name"))) ? info.getString ("original_name") : info.getString ("name");
                         ItemsBoxView.NormalItem normalItem = new ItemsBoxView.NormalItem (latest.mContext);
                         normalItem.title.setText (name);
+                        normalItem.clickTime.setText ("233");
+                        normalItem.pageCount.setText (info.getString ("page"));
                         normalItem.image.setImageURL ("http://10.0.0.2:4396/gallery/" + thumb.getString ("thumb_id") + "/" + image_names.get (0));
                         latest.mItemBox.addItem (normalItem);
                     } catch (JSONException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {

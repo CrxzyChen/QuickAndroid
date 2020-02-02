@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -15,7 +16,6 @@ import android.widget.TextView;
 import com.example.crxzy.centertainment.PictureActivity;
 import com.example.crxzy.centertainment.R;
 import com.example.crxzy.centertainment.tools.Tool;
-import com.example.crxzy.centertainment.views.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -25,7 +25,7 @@ public class ItemsBoxView extends LinearLayout {
     private boolean mBlackSpace = false;
 
     public enum LayoutStyle {
-        block, linearblock;
+        block, linearBlock;
     }
 
     private abstract static class ItemBase extends LinearLayout {
@@ -95,14 +95,16 @@ public class ItemsBoxView extends LinearLayout {
 
         @Override
         public LayoutStyle getLayoutStyle() {
-            return LayoutStyle.linearblock;
+            return LayoutStyle.linearBlock;
         }
     }
 
     public static class NormalItem extends ItemBase {
         public RoundedImageView image;
-        public TextView imageInfo;
+        public LinearLayout imageInfo;
         public TextView title;
+        public TextView clickTime;
+        public TextView pageCount;
 
         public NormalItem(Context context) {
             super (context);
@@ -110,7 +112,7 @@ public class ItemsBoxView extends LinearLayout {
             RelativeLayout imageInfoBox = new RelativeLayout (context);
             RelativeLayout.LayoutParams imageInfoBoxLayoutParams = new RelativeLayout.LayoutParams (RelativeLayout.LayoutParams.MATCH_PARENT, Tool.dip2px (context, 225));
             imageInfoBox.setLayoutParams (imageInfoBoxLayoutParams);
-            //image
+            //Image
             this.image = new RoundedImageView (context);
             this.image.setCornerSize (Tool.dip2px (context, 5));
             this.image.setImageResource (R.drawable.test);
@@ -118,23 +120,60 @@ public class ItemsBoxView extends LinearLayout {
             this.image.setBackgroundColor (context.getColor (R.color.class_one_title));
             RelativeLayout.LayoutParams imageAreaLayoutParams = new RelativeLayout.LayoutParams (RelativeLayout.LayoutParams.MATCH_PARENT, Tool.dip2px (context, 225));
             this.image.setLayoutParams (imageAreaLayoutParams);
-            //image_info
-            this.imageInfo = new TextView (context);
-            this.imageInfo.setBackgroundColor (context.getColor (R.color.colorText));
+
+            //ImageInfo
+            this.imageInfo = new LinearLayout (context);
+            this.imageInfo.setOrientation (LinearLayout.HORIZONTAL);
+
+            LinearLayout leftImageInfo = new LinearLayout (context);
+            LinearLayout.LayoutParams leftImageInfoParams = new LinearLayout.LayoutParams (0, LayoutParams.MATCH_PARENT);
+            leftImageInfoParams.weight = 2;
+            LinearLayout rightImageInfo = new LinearLayout (context);
+            LinearLayout.LayoutParams rightImageInfoParams = new LinearLayout.LayoutParams (0, LayoutParams.MATCH_PARENT);
+            rightImageInfoParams.weight = 1;
+
+            //LeftImageInfo
+            TextView clicked = new TextView (context);
+            clicked.setText (context.getString (R.string.hot));
+            clicked.setPadding (10, 0, 10, 0);
+            clicked.setTextColor (context.getColor (R.color.white));
+            clickTime = new TextView (context);
+            clickTime.setTextColor (context.getColor (R.color.white));
+            leftImageInfo.setGravity (Gravity.START);
+            leftImageInfo.addView (clicked);
+            leftImageInfo.addView (clickTime);
+            leftImageInfo.setLayoutParams (leftImageInfoParams);
+
+            //RightImageInfo
+            TextView counter = new TextView (context);
+            counter.setText (context.getText (R.string.counter));
+            counter.setTextColor (context.getColor (R.color.white));
+            pageCount = new TextView (context);
+            pageCount.setTextColor (context.getColor (R.color.white));
+            pageCount.setPadding (10, 0, 10, 0);
+            rightImageInfo.setGravity (Gravity.END);
+            rightImageInfo.addView (counter);
+            rightImageInfo.addView (pageCount);
+            rightImageInfo.setLayoutParams (rightImageInfoParams);
+
+            //Merge left and right to ImageInfo
             RelativeLayout.LayoutParams imageInfoLayoutParams = new RelativeLayout.LayoutParams (RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
             imageInfoLayoutParams.addRule (RelativeLayout.ALIGN_PARENT_BOTTOM);
+            this.imageInfo.addView (leftImageInfo);
+            this.imageInfo.addView (rightImageInfo);
+            this.imageInfo.setBackgroundColor (context.getColor (R.color.colorText));
             this.imageInfo.setLayoutParams (imageInfoLayoutParams);
-
             imageInfoBox.addView (image);
             imageInfoBox.addView (imageInfo);
-            //title
+
+            //Title
+            LinearLayout.LayoutParams textViewLayoutParams = new LinearLayout.LayoutParams (LinearLayout.LayoutParams.MATCH_PARENT, Tool.dip2px (context, 40));
             this.title = new TextView (context);
             this.title.setBackgroundColor (context.getColor (R.color.colorBackground));
             this.title.setPadding (Tool.dip2px (context, 3), Tool.dip2px (context, 3), Tool.dip2px (context, 3), Tool.dip2px (context, 3));
             this.title.setTextSize (TypedValue.COMPLEX_UNIT_SP, 12);
             this.title.setEllipsize (TextUtils.TruncateAt.END);
             this.title.setMaxLines (2);
-            LinearLayout.LayoutParams textViewLayoutParams = new LinearLayout.LayoutParams (LinearLayout.LayoutParams.MATCH_PARENT, Tool.dip2px (context, 40));
             this.title.setLayoutParams (textViewLayoutParams);
 
             this.addView (imageInfoBox);
@@ -175,21 +214,21 @@ public class ItemsBoxView extends LinearLayout {
                 width = Tool.getScreenWidth (mContext) / 2 - Tool.dip2px (mContext, 15);
                 setWidth.invoke (item, width);
                 if (mBlackSpace) {
-                    int childCount = ((ViewGroup) this).getChildCount ( );
-                    ((ViewGroup) ((ViewGroup) this).getChildAt (childCount - 1)).addView (item);
+                    int childCount = this.getChildCount ( );
+                    ((ViewGroup) this.getChildAt (childCount - 1)).addView (item);
                     mBlackSpace = false;
                 } else {
                     LinearLayout linearLayout = new LinearLayout (mContext);
                     linearLayout.addView (item);
                     LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams (LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-                    ((ViewGroup) this).addView (linearLayout, layoutParams);
+                    this.addView (linearLayout, layoutParams);
                     mBlackSpace = true;
                 }
                 break;
-            case linearblock:
+            case linearBlock:
                 width = Tool.getScreenWidth (mContext) - Tool.dip2px (mContext, 20);
                 setWidth.invoke (item, width);
-                ((ViewGroup) this).addView (item);
+                this.addView (item);
                 mBlackSpace = false;
                 break;
         }
