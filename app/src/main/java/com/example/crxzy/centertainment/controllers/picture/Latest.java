@@ -57,16 +57,19 @@ public class Latest extends ClassSecondPageBase {
                 JSONArray json = ((JSONArray) ((Network.Response) msg.obj).content);
                 latest.mItemBox = latest.mContext.findViewById (R.id.picture_latest_itemsbox);
                 for (int index = 0; index < json.length ( ); index++) {
-                    JSONObject item = null;
                     try {
-                        item = json.getJSONObject (index);
+                        JSONObject item = json.getJSONObject (index);
                         JSONObject info = item.getJSONObject ("info");
                         JSONObject thumb = item.getJSONObject ("thumb");
                         JSONArray image_names = thumb.getJSONArray ("image_names");
                         String name = (!"null".equals (info.getString ("original_name"))) ? info.getString ("original_name") : info.getString ("name");
                         ItemsBoxView.NormalItem normalItem = new ItemsBoxView.NormalItem (latest.mContext);
                         normalItem.title.setText (name);
+                        JSONArray languages = info.getJSONArray ("languages");
+                        String language = getLanguage (languages);
                         normalItem.clickTime.setText ("233");
+                        final String tagsString = item.getString ("source") + "." + language;
+                        normalItem.sourceTag.setText (tagsString);
                         normalItem.pageCount.setText (info.getString ("page"));
                         normalItem.image.setImageURL ("http://10.0.0.2:4396/gallery/" + thumb.getString ("thumb_id") + "/" + image_names.get (0));
                         latest.mItemBox.addItem (normalItem);
@@ -75,6 +78,17 @@ public class Latest extends ClassSecondPageBase {
                     }
                 }
             }
+        }
+
+        private String getLanguage(JSONArray languages) throws JSONException {
+            String language = null;
+            for (int index_2 = 0; index_2 < languages.length ( ); index_2++) {
+                language = (String) languages.get (index_2);
+                if (!language.equals ("translated")) {
+                    break;
+                }
+            }
+            return language;
         }
     }
 }

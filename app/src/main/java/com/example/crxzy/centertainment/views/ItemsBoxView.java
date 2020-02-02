@@ -8,6 +8,7 @@ import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -28,36 +29,36 @@ public class ItemsBoxView extends LinearLayout {
         block, linearBlock;
     }
 
-    private abstract static class ItemBase extends LinearLayout {
+    private abstract static class ItemBase extends FrameLayout {
         public LinearLayout.LayoutParams mItemLayoutParams = new LinearLayout.LayoutParams (0, 0);
         public Context mContext;
 
         ItemBase(Context context) {
             super (context);
-            this.mContext = context;
+            mContext = context;
             initLayoutParams ( );
         }
 
         public void initLayoutParams() {
-            this.setBackgroundColor (this.mContext.getColor (R.color.colorPrimary));
-            this.setBackground (this.mContext.getDrawable (R.drawable.roundrect_image));//设置圆角
-            this.setElevation (Tool.dip2px (mContext, 2));//设置阴影
-            this.mItemLayoutParams.height = Tool.dip2px (mContext, 300);
-            this.mItemLayoutParams.setMargins (Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5));
-            this.setOrientation (VERTICAL);
-            this.setLayoutParams (this.mItemLayoutParams);
+            setBackgroundColor (mContext.getColor (R.color.colorPrimary));
+            setBackground (mContext.getDrawable (R.drawable.roundrect_image));//设置圆角
+            setElevation (Tool.dip2px (mContext, 2));//设置阴影
+            mItemLayoutParams.height = Tool.dip2px (mContext, 300);
+            mItemLayoutParams.setMargins (Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5));
+//            setOrientation (VERTICAL);
+            setLayoutParams (mItemLayoutParams);
         }
 
         abstract public LayoutStyle getLayoutStyle();
 
         public void setWidth(int width) {
-            this.mItemLayoutParams.width = width;
-            this.setLayoutParams (this.mItemLayoutParams);
+            mItemLayoutParams.width = width;
+            setLayoutParams (mItemLayoutParams);
         }
 
         public void setHeight(int height) {
-            this.mItemLayoutParams.height = height;
-            this.setLayoutParams (this.mItemLayoutParams);
+            mItemLayoutParams.height = height;
+            setLayoutParams (mItemLayoutParams);
         }
     }
 
@@ -66,7 +67,7 @@ public class ItemsBoxView extends LinearLayout {
 
         public BlockItem(Context context) {
             super (context);
-            this.mContext = context;
+            mContext = context;
             initLayoutParams ( );
         }
 
@@ -82,15 +83,15 @@ public class ItemsBoxView extends LinearLayout {
 
         public LinearBlockItem(Context context) {
             super (context);
-            this.mContext = context;
+            mContext = context;
             initLayoutParams ( );
         }
 
         public void initLayoutParams() {
-            this.setBackgroundColor (this.mContext.getColor (R.color.colorPrimary));
-            this.layoutParams.height = 400;
-            this.layoutParams.setMargins (Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5));
-            this.setLayoutParams (this.layoutParams);
+            setBackgroundColor (mContext.getColor (R.color.colorPrimary));
+            layoutParams.height = 400;
+            layoutParams.setMargins (Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5));
+            setLayoutParams (layoutParams);
         }
 
         @Override
@@ -101,29 +102,39 @@ public class ItemsBoxView extends LinearLayout {
 
     public static class NormalItem extends ItemBase {
         public RoundedImageView image;
-        public LinearLayout imageInfo;
         public TextView title;
         public TextView clickTime;
         public TextView pageCount;
+        public TextView sourceTag;
 
         public NormalItem(Context context) {
             super (context);
+            LinearLayout mainLinerLayout = new LinearLayout (context);
+            LinearLayout.LayoutParams mainLinerLayoutParams = new LinearLayout.LayoutParams (FrameLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+            mainLinerLayout.setLayoutParams (mainLinerLayoutParams);
+            mainLinerLayout.setBackground (context.getDrawable (R.drawable.items_box));
+            mainLinerLayout.setOrientation (LinearLayout.VERTICAL);
+
+            FrameLayout coverLayout = new FrameLayout (context);
+            FrameLayout.LayoutParams coverLayoutParams = new FrameLayout.LayoutParams (FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
+            coverLayout.setLayoutParams (coverLayoutParams);
+            coverLayout.setBackground (context.getDrawable (R.drawable.items_box));
 
             RelativeLayout imageInfoBox = new RelativeLayout (context);
             RelativeLayout.LayoutParams imageInfoBoxLayoutParams = new RelativeLayout.LayoutParams (RelativeLayout.LayoutParams.MATCH_PARENT, Tool.dip2px (context, 225));
             imageInfoBox.setLayoutParams (imageInfoBoxLayoutParams);
             //Image
-            this.image = new RoundedImageView (context);
-            this.image.setCornerSize (Tool.dip2px (context, 5));
-            this.image.setImageResource (R.drawable.test);
-            this.image.setScaleType (ImageView.ScaleType.FIT_XY);
-            this.image.setBackgroundColor (context.getColor (R.color.class_one_title));
+            image = new RoundedImageView (context);
+            image.setCornerSize (Tool.dip2px (context, 5));
+            image.setImageResource (R.drawable.test);
+            image.setScaleType (ImageView.ScaleType.FIT_XY);
+            image.setBackgroundColor (context.getColor (R.color.class_one_title));
             RelativeLayout.LayoutParams imageAreaLayoutParams = new RelativeLayout.LayoutParams (RelativeLayout.LayoutParams.MATCH_PARENT, Tool.dip2px (context, 225));
-            this.image.setLayoutParams (imageAreaLayoutParams);
+            image.setLayoutParams (imageAreaLayoutParams);
 
             //ImageInfo
-            this.imageInfo = new LinearLayout (context);
-            this.imageInfo.setOrientation (LinearLayout.HORIZONTAL);
+            LinearLayout imageInfo = new LinearLayout (context);
+            imageInfo.setOrientation (LinearLayout.HORIZONTAL);
 
             LinearLayout leftImageInfo = new LinearLayout (context);
             LinearLayout.LayoutParams leftImageInfoParams = new LinearLayout.LayoutParams (0, LayoutParams.MATCH_PARENT);
@@ -159,26 +170,40 @@ public class ItemsBoxView extends LinearLayout {
             //Merge left and right to ImageInfo
             RelativeLayout.LayoutParams imageInfoLayoutParams = new RelativeLayout.LayoutParams (RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
             imageInfoLayoutParams.addRule (RelativeLayout.ALIGN_PARENT_BOTTOM);
-            this.imageInfo.addView (leftImageInfo);
-            this.imageInfo.addView (rightImageInfo);
-            this.imageInfo.setBackgroundColor (context.getColor (R.color.colorText));
-            this.imageInfo.setLayoutParams (imageInfoLayoutParams);
+            imageInfo.addView (leftImageInfo);
+            imageInfo.addView (rightImageInfo);
+            imageInfo.setBackgroundColor (context.getColor (R.color.colorText));
+            imageInfo.setLayoutParams (imageInfoLayoutParams);
             imageInfoBox.addView (image);
             imageInfoBox.addView (imageInfo);
 
             //Title
-            LinearLayout.LayoutParams textViewLayoutParams = new LinearLayout.LayoutParams (LinearLayout.LayoutParams.MATCH_PARENT, Tool.dip2px (context, 40));
-            this.title = new TextView (context);
-            this.title.setTextColor (R.color.black);
-            this.title.setBackgroundColor (context.getColor (R.color.white));
-            this.title.setPadding (Tool.dip2px (context, 3), Tool.dip2px (context, 3), Tool.dip2px (context, 3), Tool.dip2px (context, 3));
-            this.title.setTextSize (TypedValue.COMPLEX_UNIT_SP, 12);
-            this.title.setEllipsize (TextUtils.TruncateAt.END);
-            this.title.setMaxLines (2);
-            this.title.setLayoutParams (textViewLayoutParams);
+            LinearLayout.LayoutParams textViewLayoutParams = new LinearLayout.LayoutParams (LinearLayout.LayoutParams.MATCH_PARENT, Tool.dip2px (context, 45));
+            title = new TextView (context);
+            title.setTextColor (context.getColor (R.color.black));
+            title.setBackgroundColor (context.getColor (R.color.white));
+            title.setPadding (Tool.dip2px (context, 10), Tool.dip2px (context, 10), Tool.dip2px (context, 10), Tool.dip2px (context, 0));
+            title.setTextSize (TypedValue.COMPLEX_UNIT_SP, 12);
+            title.setEllipsize (TextUtils.TruncateAt.END);
+            title.setMaxLines (2);
+            title.setLayoutParams (textViewLayoutParams);
 
-            this.addView (imageInfoBox);
-            this.addView (this.title);
+            LinearLayout tagsArea = new LinearLayout (context);
+            LinearLayout.LayoutParams tagsAreaParams = new LinearLayout.LayoutParams (LayoutParams.MATCH_PARENT, Tool.dip2px (context, 30));
+            tagsArea.setBackgroundColor (context.getColor (R.color.white));
+            tagsArea.setBackground (mContext.getDrawable (R.drawable.items_box_tags_area));
+            tagsArea.setLayoutParams (tagsAreaParams);
+            sourceTag = new TextView (context);
+            sourceTag.setTextColor (context.getColor (R.color.colorText));
+            sourceTag.setTextSize (TypedValue.COMPLEX_UNIT_SP, 12);
+            sourceTag.setPadding (Tool.dip2px (context, 10), Tool.dip2px (context, 6), Tool.dip2px (context, 10), Tool.dip2px (context, 6));
+            tagsArea.addView (sourceTag);
+
+            mainLinerLayout.addView (imageInfoBox);
+            mainLinerLayout.addView (title);
+            mainLinerLayout.addView (tagsArea);
+            addView (mainLinerLayout);
+            addView (coverLayout);
         }
 
         @Override
@@ -189,20 +214,20 @@ public class ItemsBoxView extends LinearLayout {
 
     public ItemsBoxView(Context context) {
         super (context);
-        this.mContext = context;
-        this.setBackgroundColor (context.getColor (R.color.colorBackground));
+        mContext = context;
+        setBackgroundColor (context.getColor (R.color.colorBackground));
     }
 
     public ItemsBoxView(Context context, AttributeSet attrs, int defStyle) {
         super (context, attrs, defStyle);
-        this.mContext = context;
-        this.setBackgroundColor (context.getColor (R.color.colorBackground));
+        mContext = context;
+        setBackgroundColor (context.getColor (R.color.colorBackground));
     }
 
     public ItemsBoxView(Context context, AttributeSet attrs) {
         super (context, attrs);
-        this.mContext = context;
-        this.setBackgroundColor (context.getColor (R.color.colorBackground));
+        mContext = context;
+        setBackgroundColor (context.getColor (R.color.colorBackground));
     }
 
     public void addItem(View item) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
@@ -218,21 +243,21 @@ public class ItemsBoxView extends LinearLayout {
                 width = Tool.getScreenWidth (mContext) / 2 - Tool.dip2px (mContext, 15);
                 setWidth.invoke (item, width);
                 if (mBlackSpace) {
-                    int childCount = this.getChildCount ( );
-                    ((ViewGroup) this.getChildAt (childCount - 1)).addView (item);
+                    int childCount = getChildCount ( );
+                    ((ViewGroup) getChildAt (childCount - 1)).addView (item);
                     mBlackSpace = false;
                 } else {
                     LinearLayout linearLayout = new LinearLayout (mContext);
                     linearLayout.addView (item);
                     LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams (LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-                    this.addView (linearLayout, layoutParams);
+                    addView (linearLayout, layoutParams);
                     mBlackSpace = true;
                 }
                 break;
             case linearBlock:
                 width = Tool.getScreenWidth (mContext) - Tool.dip2px (mContext, 20);
                 setWidth.invoke (item, width);
-                this.addView (item);
+                addView (item);
                 mBlackSpace = false;
                 break;
         }
