@@ -46,9 +46,9 @@ public class ClassOnePageBase {
         mContext = context;
         mView = view;
         mCurrentPageName = currentPageName;
-        mMainContainer = (LinearLayout) mContext.findViewById (R.id.main_container);
+        mMainContainer = mContext.findViewById (R.id.main_container);
         mParams = new LinearLayout.LayoutParams (LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
-        mClassSecondControllerList = new ArrayList <Object> ( );
+        mClassSecondControllerList = new ArrayList <> ( );
         onInitiation ( );
     }
 
