@@ -1,64 +1,24 @@
 package com.example.crxzy.centertainment.views;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
-import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 
 import com.example.crxzy.centertainment.R;
-import com.example.crxzy.centertainment.tools.Network;
 
-import java.lang.ref.WeakReference;
-import java.lang.reflect.Method;
-
-public class RoundedImageView extends android.support.v7.widget.AppCompatImageView {
+public class RoundedImageView extends ImageView {
     private int mCornerSize = 30;
     private Paint mPaint;
-    private Handler mHandler;
-
-    public static class RoundedImageViewHandler extends Handler {
-        static final int IMAGE_DOWNLOAD_SUCCESS = 100;
-        WeakReference <RoundedImageView> outerClass;
-
-        RoundedImageViewHandler(RoundedImageView view) {
-            outerClass = new WeakReference <RoundedImageView> (view);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            RoundedImageView roundedImageView = outerClass.get ( );
-            if (msg.what == IMAGE_DOWNLOAD_SUCCESS) {
-                roundedImageView.setImageBitmap ((Bitmap) ((Network.Response) msg.obj).content);
-            }
-        }
-    }
 
     public RoundedImageView(Context context) {
         super (context);
         mPaint = new Paint ( );
         mPaint.setColor (context.getColor (R.color.colorBackground));
         mPaint.setAntiAlias (true);//消除锯齿
-        mHandler = new RoundedImageViewHandler (this);
-    }
-
-    public void setImageURL(String url) {
-        Network network = new Network ( );
-        Network.Request request = network.InstanceRequest (url);
-        request.setSuccess (this, "loadImageSuccess");
-        network.send (request);
-    }
-
-    public void loadImageSuccess(Network.Response response) {
-        Message message = Message.obtain ( );
-        message.obj = response;
-        message.what = RoundedImageViewHandler.IMAGE_DOWNLOAD_SUCCESS;
-        mHandler.sendMessage (message);
     }
 
     public RoundedImageView(Context context, @Nullable AttributeSet attrs) {

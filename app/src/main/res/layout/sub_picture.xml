@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -9,113 +11,193 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical" >
+            android:orientation="vertical">
 
-            <android.support.v4.view.ViewPager
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="400dp"
-                android:background="@color/colorBackground">
-            </android.support.v4.view.ViewPager>
+                android:layout_height="wrap_content">
+
+                <android.support.v4.view.ViewPager
+                    android:id="@+id/sub_picture_browser"
+                    android:layout_width="match_parent"
+                    android:layout_height="545dp"
+                    android:background="@color/colorBackground" />
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <RelativeLayout
+                        android:layout_width="80dp"
+                        android:layout_height="match_parent"
+                        android:layout_alignParentEnd="true"
+                        android:layout_alignParentBottom="true">
+
+                        <Button
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:layout_alignParentEnd="true"
+                            android:layout_alignParentBottom="true"
+                            android:layout_marginEnd="18dp"
+                            android:layout_marginBottom="319dp"
+                            android:background="@drawable/round_button"
+                            android:text="📂" />
+
+                        <Button
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:layout_alignParentEnd="true"
+                            android:layout_alignParentBottom="true"
+                            android:layout_marginEnd="18dp"
+                            android:layout_marginBottom="259dp"
+                            android:background="@drawable/round_button"
+                            android:text="💔" />
+
+
+                        <Button
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:layout_alignParentEnd="true"
+                            android:layout_alignParentBottom="true"
+                            android:layout_marginEnd="18dp"
+                            android:layout_marginBottom="199dp"
+                            android:background="@drawable/round_button"
+                            android:text="📥"
+                            android:textSize="20sp" />
+
+                        <Button
+                            android:layout_width="50dp"
+                            android:layout_height="50dp"
+                            android:layout_alignParentEnd="true"
+                            android:layout_alignParentBottom="true"
+                            android:layout_marginEnd="18dp"
+                            android:layout_marginBottom="134dp"
+                            android:background="@drawable/round_button"
+                            android:text="『』"
+                            android:textSize="20sp" />
+                    </RelativeLayout>
+                </RelativeLayout>
+            </FrameLayout>
+
+
             <LinearLayout
-                android:orientation="horizontal"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"
-                android:background="@color/colorPrimary">
-                <ImageView
+                android:layout_height="120dp"
+                android:orientation="horizontal">
+
+                <com.example.crxzy.centertainment.views.ImageView
+                    android:id="@+id/sub_picture_cover"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:background="@color/gray"
-                    android:layout_weight="1">
-                </ImageView>
+                    android:layout_weight="1" />
+
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:layout_weight="3">
+                    android:layout_weight="3"
+                    android:background="@color/white"
+                    android:orientation="vertical">
+
                     <TextView
+                        android:id="@+id/sub_picture_title"
                         android:layout_width="match_parent"
-                        android:layout_height="60dp"
+                        android:layout_height="75dp"
+                        android:ellipsize="end"
+                        android:maxLines="3"
+                        android:padding="5dp"
                         android:text="@string/app_name"
-                        android:background="@color/green">
-                    </TextView>
+                        android:textColor="@color/black"
+                        android:textSize="16sp" />
+
                     <TextView
+                        android:id="@+id/sub_picture_artists"
                         android:layout_width="match_parent"
-                        android:layout_height="40dp"
-                        android:background="@color/colorPrimaryDark"
-                        android:text="@string/app_name"></TextView>
+                        android:layout_height="45dp"
+                        android:padding="5dp"
+                        android:text="@string/app_name"
+                        android:textColor="@color/gray" />
                 </LinearLayout>
             </LinearLayout>
+
             <TextView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="2020-01-06 100 readed 200marked"></TextView>
+                android:layout_height="30dp"
+                android:background="@color/colorPrimary"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp"
+                android:text="@string/tags"
+                android:textAlignment="viewStart"
+                android:textColor="@color/white"
+                android:textSize="20sp" />
+
             <TextView
+                android:id="@+id/sub_picture_tags"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa">
-            </TextView>
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa">
-            </TextView>
+                android:background="@color/white"
+                android:padding="5dp"
+                android:textColor="@color/gray" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
-                android:orientation="vertical"
-                android:background="@color/gray">
+                android:background="@color/gray"
+                android:orientation="vertical">
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:background="@color/colorPrimaryDark">
+
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="50dp"
-                        android:text="Artist"
-                        android:layout_weight="4"></TextView>
+                        android:layout_weight="4" />
+
                     <Button
                         android:layout_width="0dp"
                         android:layout_height="50dp"
-                        android:layout_weight="1">
-                    </Button>
+                        android:layout_weight="1" />
                 </LinearLayout>
+
                 <ScrollView
                     android:layout_width="match_parent"
                     android:layout_height="150dp">
+
                     <LinearLayout
                         android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
+                        android:layout_height="wrap_content"
                         android:orientation="horizontal">
+
                         <ImageView
                             android:layout_width="100dp"
                             android:layout_height="140dp"
                             android:layout_margin="5dp"
-                            android:background="@color/white">
-                        </ImageView>
+                            android:background="@color/white" />
+
                         <ImageView
                             android:layout_width="100dp"
                             android:layout_height="140dp"
                             android:layout_margin="5dp"
-                            android:background="@color/white">
-                        </ImageView>
+                            android:background="@color/white" />
+
                         <ImageView
                             android:layout_width="100dp"
                             android:layout_height="140dp"
                             android:layout_margin="5dp"
-                            android:background="@color/white">
-                        </ImageView>
+                            android:background="@color/white" />
+
                         <ImageView
                             android:layout_width="100dp"
                             android:layout_height="140dp"
                             android:layout_margin="5dp"
-                            android:background="@color/white">
-                        </ImageView>
+                            android:background="@color/white" />
+
                         <ImageView
                             android:layout_width="100dp"
                             android:layout_height="140dp"
                             android:layout_margin="5dp"
-                            android:background="@color/white">
-                        </ImageView>
+                            android:background="@color/white" />
                     </LinearLayout>
                 </ScrollView>
             </LinearLayout>

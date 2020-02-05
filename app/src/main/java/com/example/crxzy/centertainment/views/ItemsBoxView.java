@@ -1,7 +1,6 @@
 package com.example.crxzy.centertainment.views;
 
 import android.content.Context;
-import android.content.Intent;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.TypedValue;
@@ -14,7 +13,6 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.example.crxzy.centertainment.PictureActivity;
 import com.example.crxzy.centertainment.R;
 import com.example.crxzy.centertainment.tools.Tool;
 
@@ -25,8 +23,12 @@ public class ItemsBoxView extends LinearLayout {
     public Context mContext;
     private boolean mBlackSpace = false;
 
+    public void deleteItem(View view) {
+        removeView (view);
+    }
+
     public enum LayoutStyle {
-        block, linearBlock;
+        block, linearBlock
     }
 
     private abstract static class ItemBase extends FrameLayout {
@@ -231,7 +233,7 @@ public class ItemsBoxView extends LinearLayout {
 
         Object layoutStyle = getLayoutStyle.invoke (item);
 
-        int width = 0;
+        int width;
 
         switch ((LayoutStyle) layoutStyle) {
             case block:
@@ -256,13 +258,5 @@ public class ItemsBoxView extends LinearLayout {
                 mBlackSpace = false;
                 break;
         }
-        item.setOnClickListener (new OnClickListener ( ) {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent ( );
-                intent.setClass (mContext, PictureActivity.class);
-                mContext.startActivity (intent);
-            }
-        });
     }
 }

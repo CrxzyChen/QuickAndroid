@@ -1,8 +1,6 @@
 package com.example.crxzy.centertainment.tools;
 
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.util.Base64;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -15,14 +13,11 @@ import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
-import static android.graphics.BitmapFactory.decodeByteArray;
 
 public class Network {
     public void send(final Request request) {
@@ -115,14 +110,14 @@ public class Network {
         }
     }
 
-    public class Request {
+    public static class Request {
         String url;
         String method = "GET";
         private Object mInstance;
         private String mSuccess;
         private String mError;
 
-        Request(String url) {
+        public Request(String url) {
             this.url = url;
         }
 
