@@ -1,12 +1,16 @@
 package com.example.crxzy.centertainment.system;
 
 import android.os.Bundle;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.example.crxzy.centertainment.R;
@@ -26,6 +30,8 @@ public class MainActivityBase extends AppCompatActivity {
     private Bundle mNameToID; //存放各一级页面控制器在mClassOneControllerList中的位置
     private LinearLayout mMainTab;//底部导航栏View
     private LayoutDirectory ld;//布局文件结构类类实例
+    private DrawerLayout mMainLayout;
+    private Toolbar mToolbar;
     public final String mMainLayoutName = "main";//布局文件根命名
 
     @Override
@@ -39,11 +45,47 @@ public class MainActivityBase extends AppCompatActivity {
     public void onInitiation() {
         try {
             ld = new LayoutDirectory ( );//初始化布局文件结构类
+            loadMainWindow ( );
             loadClassOnePage ( );//加载一级页面
             loadClassSecondPage ( );//加载二级页面
         } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             e.printStackTrace ( );
         }
+    }
+
+    private void loadMainWindow() {
+        mMainLayout = this.findViewById (R.id.main_layout);
+        mToolbar = this.findViewById (R.id.main_toolbar);
+        mToolbar.setTitle ("Test Title");
+        mToolbar.setSubtitle ("This is substitle");
+        //toolbar.setLogo(R.drawable.ic_launcher); 可以在 Navigation后 设置一个 logo
+        mToolbar.setSubtitleTextColor (this.getColor (R.color.white)); //设置二级标题的颜色
+        mToolbar.setTitleTextColor (this.getColor (R.color.white)); //设置标题的颜色
+        setSupportActionBar (mToolbar);
+        mToolbar.setNavigationIcon (R.drawable.ic_launcher_foreground);   //setNavigationIcon 需要放在 setSupportActionBar 之后才会生效。
+        mToolbar.setNavigationOnClickListener (new View.OnClickListener ( ) {
+            @Override
+            public void onClick(View v) {
+                mMainLayout.openDrawer (Gravity.START);
+            }
+        });
+
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            RelativeLayout relativeLayout = findViewById (R.id.main_layout_window);
+            if (relativeLayout.getVisibility ( ) == View.VISIBLE) {
+                //当左边的菜单栏是可见的，则关闭
+                mMainLayout.closeDrawer (relativeLayout);
+            } else {
+                finish ( );
+            }
+            return true;
+        }
+        return super.onKeyDown (keyCode, event);
     }
 
     /*
@@ -167,11 +209,11 @@ public class MainActivityBase extends AppCompatActivity {
 
     /***
      * 生成底部导航栏按钮
-     * @param pagename
+     * @param pageName
      * @param imageResource
      * @param index
      */
-    private void initTabButton(String pagename, int imageResource, final int index) {
+    private void initTabButton(String pageName, int imageResource, final int index) {
         /*
          * 添加外层线性布局
          */
@@ -191,7 +233,7 @@ public class MainActivityBase extends AppCompatActivity {
          */
         final TextView tabText = (TextView) new TextView (this);
         LinearLayout.LayoutParams tabTextParams = new LinearLayout.LayoutParams (ViewGroup.LayoutParams.MATCH_PARENT, 0, 1);
-        tabText.setText (pagename);
+        tabText.setText (pageName);
         tabText.setGravity (Gravity.CENTER);
         /*
          * 将文字域和图片域放入外层线性布局并将外层线性布局加入底部导航栏容器
@@ -202,7 +244,7 @@ public class MainActivityBase extends AppCompatActivity {
         /*
          * 添加底部导航栏点击事件
          */
-        tabIcon.setOnClickListener (new View.OnClickListener ( ) {
+        tabLayout.setOnClickListener (new View.OnClickListener ( ) {
             @Override
             public void onClick(View v) {
                 try {
@@ -216,24 +258,24 @@ public class MainActivityBase extends AppCompatActivity {
 
     /***
      * 初始化页面控制器
-     * @param pagename
+     * @param pageName
      * @throws NoSuchMethodException
      * @throws IllegalAccessException
      * @throws InstantiationException
      * @throws InvocationTargetException
      * @throws ClassNotFoundException
      */
-    private void initPageController(String pagename) throws NoSuchMethodException, IllegalAccessException, InstantiationException, InvocationTargetException, ClassNotFoundException {
+    private void initPageController(String pageName) throws NoSuchMethodException, IllegalAccessException, InstantiationException, InvocationTargetException, ClassNotFoundException {
         StringBuilder className = new StringBuilder ( );//拼接字符出用StringBuilder
         /*
          * 将一级页面布局文件名转换成对应控制器名
          */
-        for (String subPagename : pagename.split ("_")) {
+        for (String subPagename : pageName.split ("_")) {
             subPagename = "" + Character.toUpperCase (subPagename.charAt (0)) + subPagename.substring (1);//布局文件名首字母大写以对应控制器类
             className.append (subPagename);
         }
         //创建一级页面控制器
-        View view = View.inflate (this, (int) mClassOnePages.get (pagename), null);//找到一级页面布局文件
+        View view = View.inflate (this, (int) mClassOnePages.get (pageName), null);//找到一级页面布局文件
         /*
          * 获取项目文件的命名空间，之后动态初始化类需要完整的类名包含命名空间名
          */
@@ -261,7 +303,7 @@ public class MainActivityBase extends AppCompatActivity {
          * 动态实例化控制器类
          */
         Constructor constructor = instance.getDeclaredConstructor (AppCompatActivity.class, View.class, String.class);
-        Object controller = constructor.newInstance (this, view, pagename);
+        Object controller = constructor.newInstance (this, view, pageName);
         mClassOneControllerList.add (controller);
     }
 

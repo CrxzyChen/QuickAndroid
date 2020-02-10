@@ -9,4 +9,8 @@
     <string name="hot">♨</string>
     <string name="counter">№</string>
     <string name="tags">〓Tags</string>
+    <string name="setting">⎔设置</string>
+    <string name="theme">❐主题</string>
+    <string name="night_theme">◑夜间</string>
+    <string name="loading">loading...</string>
 </resources>

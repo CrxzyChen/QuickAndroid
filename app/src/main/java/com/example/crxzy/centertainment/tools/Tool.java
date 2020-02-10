@@ -7,9 +7,12 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
+import android.os.Build;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AppCompatActivity;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.view.View;
 
 import com.example.crxzy.centertainment.R;
 
@@ -25,23 +28,45 @@ public class Tool {
     }
 
     public static int getScreenWidth(Context context) {
-        int width = getDisplayMetrics (context).widthPixels;
-        return width;
+        return getDisplayMetrics (context).widthPixels;
     }
 
     public static int getScreenHeight(Context context) {
-        int height = getDisplayMetrics (context).heightPixels;
-        return height;
+        return getDisplayMetrics (context).heightPixels;
     }
 
     public static float getScreenDensity(Context context) {
-        float density = getDisplayMetrics (context).density;
-        return density;
+        return getDisplayMetrics (context).density;
     }
 
     private static DisplayMetrics getDisplayMetrics(Context context) {
-        Resources resources = context.getResources ( );
-        DisplayMetrics dm = resources.getDisplayMetrics ( );
-        return dm;
+        return context.getResources ( ).getDisplayMetrics ( );
+    }
+
+    public static void setFullWindow(AppCompatActivity context) {
+        //隐藏虚拟按键，并且全屏
+        if (Build.VERSION.SDK_INT > 11 && Build.VERSION.SDK_INT < 19) { // lower api
+            View v = context.getWindow ( ).getDecorView ( );
+            v.setSystemUiVisibility (View.GONE);
+        } else if (Build.VERSION.SDK_INT >= 19) {
+            //for new api versions.
+            View decorView = context.getWindow ( ).getDecorView ( );
+            int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY | View.SYSTEM_UI_FLAG_FULLSCREEN;
+            decorView.setSystemUiVisibility (uiOptions);
+        }
+    }
+
+    public static void setNormalWindow(AppCompatActivity context) {
+        //恢复普通状态
+        if (Build.VERSION.SDK_INT > 11 && Build.VERSION.SDK_INT < 19) { // lower api
+            View v = context.getWindow ( ).getDecorView ( );
+            v.setSystemUiVisibility (View.VISIBLE);
+        } else if (Build.VERSION.SDK_INT >= 19) {
+            //for new api versions.
+            View decorView = context.getWindow ( ).getDecorView ( );
+            int uiOptions = View.SCREEN_STATE_OFF;
+            decorView.setSystemUiVisibility (uiOptions);
+        }
     }
 }

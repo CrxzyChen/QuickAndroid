@@ -1,7 +1,6 @@
 package com.example.crxzy.centertainment.tools;
 
 import android.graphics.BitmapFactory;
-import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -31,9 +30,9 @@ public class Network {
                     httpURLConnection.connect ( );
                     int status = httpURLConnection.getResponseCode ( );
                     if (status == HttpURLConnection.HTTP_OK) {
-                        request.callSuccess (new Response (httpURLConnection));
+                        request.callSuccess (new Response (request, httpURLConnection));
                     } else {
-                        request.callError (new Response (httpURLConnection));
+                        request.callError (new Response (request, httpURLConnection));
                     }
                 } catch (IOException e) {
                     e.printStackTrace ( );
@@ -43,14 +42,16 @@ public class Network {
     }
 
     public class Response {
+        public Request request;
+        public Object content;
         int code;
         String raw;
         Map <String, List <String>> headers;
-        public Object content;
 
 
-        Response(HttpURLConnection httpURLConnection) {
+        Response(Request request, HttpURLConnection httpURLConnection) {
             try {
+                this.request = request;
                 this.code = httpURLConnection.getResponseCode ( );
                 this.headers = httpURLConnection.getHeaderFields ( );
 
@@ -113,11 +114,13 @@ public class Network {
     public static class Request {
         String url;
         String method = "GET";
+        Map <String, Object> meta;
         private Object mInstance;
         private String mSuccess;
         private String mError;
 
         public Request(String url) {
+            this.meta = new HashMap <> ( );
             this.url = url;
         }
 
@@ -133,6 +136,14 @@ public class Network {
                 this.mInstance = instance;
             }
             this.mError = error;
+        }
+
+        public void setMeta(String key, Object object) {
+            this.meta.put (key, object);
+        }
+
+        public Object getMeta(String key) {
+            return this.meta.get (key);
         }
 
         public void setMethod(String method) {

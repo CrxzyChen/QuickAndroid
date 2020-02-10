@@ -1,14 +1,17 @@
 package com.example.crxzy.centertainment;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.crxzy.centertainment.views.ImageView;
 
@@ -20,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PictureActivity extends AppCompatActivity {
+    PictureActivity mContext;
     JSONObject mResource;
     JSONObject mThumb;
     JSONObject mInfo;
@@ -29,10 +33,14 @@ public class PictureActivity extends AppCompatActivity {
     List <String> mTags;
     String mThumbId;
     String mTitle;
+    int mLoadedViewIndex = 0;
+    final int mLoadViewBatchSize = 3;
+    SubPicturePagerAdapter mAdapter;
     TextView mTagsArea;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        mContext = this;
         super.onCreate (savedInstanceState);
         setContentView (R.layout.sub_picture);
 
@@ -82,15 +90,29 @@ public class PictureActivity extends AppCompatActivity {
 
     private void initImageBrowser() {
         mImageBrowser = findViewById (R.id.sub_picture_browser);
+        List <View> viewLists = getViews ( );
+        mAdapter = new SubPicturePagerAdapter (viewLists);
+        mImageBrowser.setAdapter (mAdapter);
+        //Auto load other images
+//        SubPageChangeListener mPageListener = new SubPageChangeListener ( );
+//        mImageBrowser.addOnPageChangeListener (mPageListener);
+    }
+
+    @NonNull
+    private List <View> getViews() {
         List <View> viewLists = new ArrayList <> ( );
-        for (int index = 0; index < (mImageNames.size ( ) < 3 ? mImageNames.size ( ) : 3); index++) {
+        int endIndex = (mImageNames.size ( ) < mLoadedViewIndex + mLoadViewBatchSize) ? mImageNames.size ( ) : mLoadedViewIndex + mLoadViewBatchSize;
+        for (int index = mLoadedViewIndex; index < endIndex; index++) {
             ImageView imageView = new ImageView (this);
+            imageView.setTag (index);
+            SubPictureClickListener clickListener = new SubPictureClickListener ( );
+            imageView.setOnClickListener (clickListener);
             imageView.setScaleType (android.widget.ImageView.ScaleType.FIT_CENTER);
             imageView.setImageURL ("http://10.0.0.2:4396/gallery/" + mThumbId + "/" + mImageNames.get (index));
             viewLists.add (imageView);
         }
-        SubPicturePagerAdapter mAdapter = new SubPicturePagerAdapter (viewLists);
-        mImageBrowser.setAdapter (mAdapter);
+        mLoadedViewIndex = endIndex;
+        return viewLists;
     }
 
     private void initAuthorInfo() {
@@ -103,13 +125,29 @@ public class PictureActivity extends AppCompatActivity {
         cover.setScaleType (android.widget.ImageView.ScaleType.FIT_XY);
     }
 
+    public class SubPictureClickListener implements View.OnClickListener {
+        @Override
+        public void onClick(View v) {
+            Intent intent = new Intent ( );
+            intent.setClass (mContext, PicturePlayerActivity.class);
+            intent.putExtra ("imageNames", String.join (",", mImageNames));
+            intent.putExtra ("thumbId", mThumbId);
+            mContext.startActivity (intent);
+        }
+    }
+
     public class SubPicturePagerAdapter extends PagerAdapter {
         List <View> viewLists;
 
 
-        public SubPicturePagerAdapter(List <View> viewLists) {
+        SubPicturePagerAdapter(List <View> viewLists) {
             super ( );
             this.viewLists = viewLists;
+        }
+
+        void addView(List <View> viewLists) {
+            this.viewLists.addAll (viewLists);
+            this.notifyDataSetChanged ( );
         }
 
         @Override
@@ -132,6 +170,26 @@ public class PictureActivity extends AppCompatActivity {
         @Override
         public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
             container.removeView (viewLists.get (position));
+        }
+    }
+
+    public class SubPageChangeListener implements ViewPager.OnPageChangeListener {
+        static final int LOAD_DISTANCE = 2;
+
+        @Override
+        public void onPageScrolled(int i, float v, int i1) {
+        }
+
+        @Override
+        public void onPageSelected(int i) {
+            if (i + LOAD_DISTANCE == mAdapter.viewLists.size ( )) {
+                mAdapter.addView (mContext.getViews ( ));
+            }
+        }
+
+        @Override
+        public void onPageScrollStateChanged(int i) {
+
         }
     }
 }
