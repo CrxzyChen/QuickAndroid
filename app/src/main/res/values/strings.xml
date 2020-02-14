@@ -13,4 +13,7 @@
     <string name="theme">❐主题</string>
     <string name="night_theme">◑夜间</string>
     <string name="loading">loading...</string>
+    <string name="like">💘</string>
+    <string name="subscribe">📫</string>
+    <string name="unlike">💔</string>
 </resources>

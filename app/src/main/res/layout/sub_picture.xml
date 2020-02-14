@@ -34,16 +34,7 @@
                         android:layout_alignParentBottom="true">
 
                         <Button
-                            android:layout_width="50dp"
-                            android:layout_height="50dp"
-                            android:layout_alignParentEnd="true"
-                            android:layout_alignParentBottom="true"
-                            android:layout_marginEnd="18dp"
-                            android:layout_marginBottom="319dp"
-                            android:background="@drawable/round_button"
-                            android:text="📂" />
-
-                        <Button
+                            android:id="@+id/sub_picture_button_like"
                             android:layout_width="50dp"
                             android:layout_height="50dp"
                             android:layout_alignParentEnd="true"
@@ -51,10 +42,12 @@
                             android:layout_marginEnd="18dp"
                             android:layout_marginBottom="259dp"
                             android:background="@drawable/round_button"
-                            android:text="💔" />
+                            android:text="@string/unlike"
+                            android:textSize="20sp" />
 
 
                         <Button
+                            android:id="@+id/sub_picture_button_subscribe"
                             android:layout_width="50dp"
                             android:layout_height="50dp"
                             android:layout_alignParentEnd="true"
@@ -62,19 +55,9 @@
                             android:layout_marginEnd="18dp"
                             android:layout_marginBottom="199dp"
                             android:background="@drawable/round_button"
-                            android:text="📥"
+                            android:text="@string/subscribe"
                             android:textSize="20sp" />
 
-                        <Button
-                            android:layout_width="50dp"
-                            android:layout_height="50dp"
-                            android:layout_alignParentEnd="true"
-                            android:layout_alignParentBottom="true"
-                            android:layout_marginEnd="18dp"
-                            android:layout_marginBottom="134dp"
-                            android:background="@drawable/round_button"
-                            android:text="『』"
-                            android:textSize="20sp" />
                     </RelativeLayout>
                 </RelativeLayout>
             </FrameLayout>

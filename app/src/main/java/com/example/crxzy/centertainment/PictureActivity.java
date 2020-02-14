@@ -1,29 +1,32 @@
 package com.example.crxzy.centertainment;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.crxzy.centertainment.tools.Network;
 import com.example.crxzy.centertainment.views.ImageView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
 public class PictureActivity extends AppCompatActivity {
-    PictureActivity mContext;
+    PictureActivity mContext = this;
     JSONObject mResource;
     JSONObject mThumb;
     JSONObject mInfo;
@@ -37,19 +40,21 @@ public class PictureActivity extends AppCompatActivity {
     final int mLoadViewBatchSize = 3;
     SubPicturePagerAdapter mAdapter;
     TextView mTagsArea;
+    Button mBrowserButtonLike;
+    Button mBrowserButtonSubScribe;
+    boolean isLike = false;
+    Network mNetwork;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        mContext = this;
         super.onCreate (savedInstanceState);
         setContentView (R.layout.sub_picture);
-
-        Intent intent = getIntent ( );
-        String infoString = intent.getStringExtra ("info");
-        onInitiation (infoString);
+        onInitiation ( );
     }
 
-    private void loadsInfo(String infoString) {
+    private void loadsInfo() {
+        Intent intent = getIntent ( );
+        String infoString = intent.getStringExtra ("info");
         try {
             mImageNames = new ArrayList <> ( );
             mArtists = new ArrayList <> ( );
@@ -76,8 +81,9 @@ public class PictureActivity extends AppCompatActivity {
         }
     }
 
-    private void onInitiation(String infoString) {
-        loadsInfo (infoString);
+    private void onInitiation() {
+        mNetwork = new Network ();
+        loadsInfo ( );
         initImageBrowser ( );
         initAuthorInfo ( );
         initTagsArea ( );
@@ -93,12 +99,22 @@ public class PictureActivity extends AppCompatActivity {
         List <View> viewLists = getViews ( );
         mAdapter = new SubPicturePagerAdapter (viewLists);
         mImageBrowser.setAdapter (mAdapter);
+        mBrowserButtonLike = findViewById (R.id.sub_picture_button_like);
+        mBrowserButtonSubScribe = findViewById (R.id.sub_picture_button_subscribe);
+        mBrowserButtonLike.setOnClickListener (new View.OnClickListener ( ) {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText (mContext, "Clicked", Toast.LENGTH_SHORT).show ( );
+            }
+        });
+
+        Network.Request request = new Network.Request ("http://");
+
         //Auto load other images
 //        SubPageChangeListener mPageListener = new SubPageChangeListener ( );
 //        mImageBrowser.addOnPageChangeListener (mPageListener);
     }
 
-    @NonNull
     private List <View> getViews() {
         List <View> viewLists = new ArrayList <> ( );
         int endIndex = (mImageNames.size ( ) < mLoadedViewIndex + mLoadViewBatchSize) ? mImageNames.size ( ) : mLoadedViewIndex + mLoadViewBatchSize;
@@ -190,6 +206,19 @@ public class PictureActivity extends AppCompatActivity {
         @Override
         public void onPageScrollStateChanged(int i) {
 
+        }
+    }
+
+    static class SubPictureHandler extends Handler {
+        WeakReference <PictureActivity> mOuterClass;
+
+        SubPictureHandler(PictureActivity pictureActivity) {
+            mOuterClass = new WeakReference <> (pictureActivity);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            PictureActivity pictureActivity = mOuterClass.get ( );
         }
     }
 }
