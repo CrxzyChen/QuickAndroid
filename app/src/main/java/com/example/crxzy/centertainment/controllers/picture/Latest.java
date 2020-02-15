@@ -1,5 +1,6 @@
 package com.example.crxzy.centertainment.controllers.picture;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
@@ -8,8 +9,10 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ScrollView;
 
+import com.example.crxzy.centertainment.MainApplication;
 import com.example.crxzy.centertainment.PictureActivity;
 import com.example.crxzy.centertainment.R;
+import com.example.crxzy.centertainment.models.NetApi;
 import com.example.crxzy.centertainment.system.ClassSecondPageBase;
 import com.example.crxzy.centertainment.views.*;
 import com.example.crxzy.centertainment.tools.Network;
@@ -26,10 +29,10 @@ public class Latest extends ClassSecondPageBase {
     private PictureLatestHandler mHandler;
     private ScrollView mScrollView;
     private Boolean mTouchBottomLock = false;
-    private Network mNetwork;
     private ItemsBoxView.LinearBlockItem mLoadingItem;
     private int mSkip;
     private int mLimit = 10;
+    private MainApplication mApp;
 
     public Latest(AppCompatActivity context, View view, String currentPageName) {
         super (context, view, currentPageName);
@@ -39,11 +42,10 @@ public class Latest extends ClassSecondPageBase {
     public void onShow() {
         mItemBox = mContext.findViewById (R.id.picture_latest_items_box);
         mScrollView = mContext.findViewById (R.id.picture_latest_scroll_view);
+        mApp = (MainApplication) mContext.getApplication ( );
+
         mLoadingItem = new ItemsBoxView.LinearBlockItem (mContext);
-        mNetwork = new Network ( );
-        Network.Request request = mNetwork.InstanceRequest ("http://10.0.0.2/CEntertainment/Manga/Latest.json?limit=" + mLimit);
-        request.setSuccess (this, "initRequestSuccess");
-        mNetwork.send (request);
+        NetApi.getLatest (mLimit, 0, this, "initRequestSuccess");
         this.mHandler = new PictureLatestHandler (this);
     }
 
@@ -77,70 +79,52 @@ public class Latest extends ClassSecondPageBase {
             final Latest latest = outerClass.get ( );
             switch (msg.what) {
                 case INIT_ITEMS_BOX: {
-                    try {
-                        addItems (msg, latest);
-                        latest.mScrollView.setOnScrollChangeListener (new View.OnScrollChangeListener ( ) {
-                            @Override
-                            public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-                                int itemBoxHeight = latest.mItemBox.getHeight ( );
-                                int scrollViewHeight = latest.mScrollView.getHeight ( );
-                                int threshold = 400;
-                                if ((itemBoxHeight - scrollViewHeight - scrollY <= threshold) && !latest.mTouchBottomLock) {
-                                    latest.mTouchBottomLock = true;
-                                    Network.Request request = new Network.Request ("http://10.0.0.2/CEntertainment/Manga/Latest.json?limit=" + latest.mLimit + "&skip=" + latest.mSkip);
-                                    request.setSuccess (latest, "addRequestSuccess");
-                                    latest.mNetwork.send (request);
-                                }
-                            }
-                        });
-                    } catch (JSONException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-                        e.printStackTrace ( );
-                    }
+                    addItems (msg, latest);
+                    ItemsBoxOnScrollChangeListener itemsBoxOnScrollChangeListener = new ItemsBoxOnScrollChangeListener (latest);
+                    latest.mScrollView.setOnScrollChangeListener (itemsBoxOnScrollChangeListener);
                 }
                 break;
                 case ADD_ITEMS: {
-                    try {
-                        addItems (msg, latest);
-                        latest.mTouchBottomLock = false;
-                    } catch (JSONException | NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-                        e.printStackTrace ( );
-                    }
+                    addItems (msg, latest);
+                    latest.mTouchBottomLock = false;
                 }
                 break;
             }
         }
 
-        private void addItems(Message msg, final Latest latest) throws JSONException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-            JSONArray json = ((JSONArray) ((Network.Response) msg.obj).content);
-            for (int index = 0; index < json.length ( ); index++) {
-                final JSONObject item = json.getJSONObject (index);
-                JSONObject info = item.getJSONObject ("info");
-                JSONObject thumb = item.getJSONObject ("thumb");
-                JSONArray image_names = thumb.getJSONArray ("image_names");
-                String name = (!"null".equals (info.getString ("original_name"))) ? info.getString ("original_name") : info.getString ("name");
-                ItemsBoxView.NormalItem normalItem = new ItemsBoxView.NormalItem (latest.mContext);
-                normalItem.title.setText (name);
-                JSONArray languages = info.getJSONArray ("languages");
-                String language = getLanguage (languages);
-                normalItem.clickTime.setText ("233");
-                final String tagsString = item.getString ("source") + "." + language;
-                normalItem.sourceTag.setText (tagsString);
-                normalItem.pageCount.setText (info.getString ("page"));
-                normalItem.image.setImageURL ("http://10.0.0.2:4396/gallery/" + thumb.getString ("thumb_id") + "/" + image_names.get (0));
-                latest.mItemBox.addItem (normalItem);
-                normalItem.setOnClickListener (new View.OnClickListener ( ) {
-                    @Override
-                    public void onClick(View v) {
-                        Intent intent = new Intent ( );
-                        intent.setClass (latest.mContext, PictureActivity.class);
-                        intent.putExtra ("info", item.toString ( ));
-                        latest.mContext.startActivity (intent);
+        private void addItems(Message msg, final Latest latest) {
+            try {
+                final JSONArray json = ((JSONArray) ((Network.Response) msg.obj).content);
+                for (int index = 0; index < json.length ( ); index++) {
+                    final JSONObject item = json.getJSONObject (index);
+                    int clickedTimes = 0;
+                    if (item.has ("clicked")) {
+                        clickedTimes = item.getInt ("clicked");
                     }
-                });
+                    JSONObject info = item.getJSONObject ("info");
+                    JSONObject thumb = item.getJSONObject ("thumb");
+                    JSONArray image_names = thumb.getJSONArray ("image_names");
+                    String name = (!"null".equals (info.getString ("original_name"))) ? info.getString ("original_name") : info.getString ("name");
+                    final ItemsBoxView.NormalItem normalItem = new ItemsBoxView.NormalItem (latest.mContext);
+                    normalItem.title.setText (name);
+                    JSONArray languages = info.getJSONArray ("languages");
+                    String language = getLanguage (languages);
+                    normalItem.clickTime.setText ((String) Integer.toString (clickedTimes));
+                    final String tagsString = item.getString ("source") + "." + language;
+                    normalItem.sourceTag.setText (tagsString);
+                    normalItem.pageCount.setText (info.getString ("page"));
+                    normalItem.image.setImageURL ("http://10.0.0.2:4396/gallery/" + thumb.getString ("thumb_id") + "/" + image_names.get (0));
+                    latest.mItemBox.addItem (normalItem);
+                    ItemOnClickListener itemOnClickListener = new ItemOnClickListener (latest, item, normalItem);
+                    normalItem.setOnClickListener (itemOnClickListener);
+                }
+                latest.mItemBox.deleteItem (latest.mLoadingItem);
+                latest.mItemBox.addItem (latest.mLoadingItem);
+                latest.mSkip += latest.mLimit;
+            } catch (JSONException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                e.printStackTrace ( );
             }
-            latest.mItemBox.deleteItem (latest.mLoadingItem);
-            latest.mItemBox.addItem (latest.mLoadingItem);
-            latest.mSkip += latest.mLimit;
+
         }
 
         private String getLanguage(JSONArray languages) throws JSONException {
@@ -152,6 +136,56 @@ public class Latest extends ClassSecondPageBase {
                 }
             }
             return language;
+        }
+
+        class ItemOnClickListener implements View.OnClickListener {
+            Latest mContext;
+            JSONObject mItem;
+            ItemsBoxView.NormalItem mNormalItem;
+
+            ItemOnClickListener(Latest context, JSONObject item, ItemsBoxView.NormalItem normalItem) {
+                mContext = context;
+                mItem = item;
+                mNormalItem = normalItem;
+            }
+
+            @Override
+            public void onClick(View v) {
+                try {
+                    int uid = mContext.mApp.mUser.mUid;
+                    String resource_id = mItem.getJSONObject ("_id").getString ("$oid");
+                    NetApi.addHistory(uid,resource_id);
+                    NetApi.upClickedCount(resource_id);
+                    int clickedTimes = Integer.parseInt ((String) mNormalItem.clickTime.getText ( )) + 1;
+                    mNormalItem.clickTime.setText ((String) Integer.toString (clickedTimes));
+
+                    Intent intent = new Intent ( );
+                    intent.setClass (mContext.mContext, PictureActivity.class);
+                    intent.putExtra ("info", mItem.toString ( ));
+                    mContext.mContext.startActivity (intent);
+                } catch (JSONException e) {
+                    e.printStackTrace ( );
+                }
+            }
+        }
+
+        class ItemsBoxOnScrollChangeListener implements View.OnScrollChangeListener {
+            Latest mContext;
+
+            ItemsBoxOnScrollChangeListener(Latest latest) {
+                mContext = latest;
+            }
+
+            @Override
+            public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
+                int itemBoxHeight = mContext.mItemBox.getHeight ( );
+                int scrollViewHeight = mContext.mScrollView.getHeight ( );
+                int threshold = 400;
+                if ((itemBoxHeight - scrollViewHeight - scrollY <= threshold) && !mContext.mTouchBottomLock) {
+                    mContext.mTouchBottomLock = true;
+                    NetApi.getLatest (mContext.mLimit, mContext.mSkip, mContext, "addRequestSuccess");
+                }
+            }
         }
     }
 }

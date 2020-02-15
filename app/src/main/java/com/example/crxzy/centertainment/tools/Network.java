@@ -174,4 +174,8 @@ public class Network {
     public Request InstanceRequest(String url) {
         return new Request (url);
     }
+
+    public Request createRequest(String url) {
+        return new Request (url);
+    }
 }
