@@ -1,7 +1,5 @@
 package com.example.crxzy.centertainment;
 
-import android.os.Bundle;
-
 import com.example.crxzy.centertainment.system.ActivityBase;
 
 import java.util.Map;
