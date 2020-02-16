@@ -55,7 +55,7 @@ public class PicturePlayerActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         mContext = this;
         super.onCreate (savedInstanceState);
-        setContentView (R.layout.image_player);
+        setContentView (R.layout.independ_image_player);
         onInitiation ( );
     }
 

@@ -111,7 +111,7 @@ public class ItemsBoxView extends LinearLayout {
             mainLinerLayout.setLayoutParams (mainLinerLayoutParams);
             mainLinerLayout.setBackground (context.getDrawable (R.drawable.items_box));
             mainLinerLayout.setOrientation (LinearLayout.VERTICAL);
-
+            //cover
             FrameLayout coverLayout = new FrameLayout (context);
             FrameLayout.LayoutParams coverLayoutParams = new FrameLayout.LayoutParams (FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT);
             coverLayout.setLayoutParams (coverLayoutParams);

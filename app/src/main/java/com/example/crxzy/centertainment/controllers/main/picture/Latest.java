@@ -1,11 +1,9 @@
-package com.example.crxzy.centertainment.controllers.picture;
+package com.example.crxzy.centertainment.controllers.main.picture;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.ScrollView;
 
@@ -13,7 +11,8 @@ import com.example.crxzy.centertainment.MainApplication;
 import com.example.crxzy.centertainment.PictureActivity;
 import com.example.crxzy.centertainment.R;
 import com.example.crxzy.centertainment.models.NetApi;
-import com.example.crxzy.centertainment.system.ClassSecondPageBase;
+import com.example.crxzy.centertainment.system.QuickPageModel;
+import com.example.crxzy.centertainment.system.ThirdPageBase;
 import com.example.crxzy.centertainment.views.*;
 import com.example.crxzy.centertainment.tools.Network;
 
@@ -24,7 +23,7 @@ import org.json.JSONObject;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 
-public class Latest extends ClassSecondPageBase {
+public class Latest extends ThirdPageBase {
     private ItemsBoxView mItemBox;
     private PictureLatestHandler mHandler;
     private ScrollView mScrollView;
@@ -34,9 +33,10 @@ public class Latest extends ClassSecondPageBase {
     private int mLimit = 10;
     private MainApplication mApp;
 
-    public Latest(AppCompatActivity context, View view, String currentPageName) {
-        super (context, view, currentPageName);
+    public Latest(AppCompatActivity context, View view, QuickPageModel.Page pageModel) {
+        super (context, view, pageModel);
     }
+
 
     @Override
     public void onShow() {
@@ -139,12 +139,12 @@ public class Latest extends ClassSecondPageBase {
         }
 
         class ItemOnClickListener implements View.OnClickListener {
-            Latest mContext;
+            Latest mLatest;
             JSONObject mItem;
             ItemsBoxView.NormalItem mNormalItem;
 
             ItemOnClickListener(Latest context, JSONObject item, ItemsBoxView.NormalItem normalItem) {
-                mContext = context;
+                mLatest = context;
                 mItem = item;
                 mNormalItem = normalItem;
             }
@@ -152,7 +152,7 @@ public class Latest extends ClassSecondPageBase {
             @Override
             public void onClick(View v) {
                 try {
-                    int uid = mContext.mApp.mUser.mUid;
+                    int uid = mLatest.mApp.mUser.mUid;
                     String resource_id = mItem.getJSONObject ("_id").getString ("$oid");
                     NetApi.addHistory(uid,resource_id);
                     NetApi.upClickedCount(resource_id);
@@ -160,9 +160,9 @@ public class Latest extends ClassSecondPageBase {
                     mNormalItem.clickTime.setText ((String) Integer.toString (clickedTimes));
 
                     Intent intent = new Intent ( );
-                    intent.setClass (mContext.mContext, PictureActivity.class);
+                    intent.setClass (mLatest.mContext, PictureActivity.class);
                     intent.putExtra ("info", mItem.toString ( ));
-                    mContext.mContext.startActivity (intent);
+                    mLatest.mContext.startActivity (intent);
                 } catch (JSONException e) {
                     e.printStackTrace ( );
                 }

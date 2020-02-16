@@ -3,10 +3,21 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
-    <android.support.v4.view.ViewPager
-        android:background="@color/colorBackground"
-        android:id="@+id/picture_viewpager"
+
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-    </android.support.v4.view.ViewPager>
+        android:layout_height="40dp">
+
+        <LinearLayout
+            android:id="@+id/main_picture_nav_area"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" />
+    </ScrollView>
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/main_picture_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorBackground" />
 </LinearLayout>

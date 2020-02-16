@@ -1,8 +1,6 @@
 package com.example.crxzy.centertainment.models;
 
-import android.content.Context;
-
-import com.example.crxzy.centertainment.controllers.picture.Latest;
+import com.example.crxzy.centertainment.controllers.main.picture.Latest;
 import com.example.crxzy.centertainment.tools.Network;
 
 public class NetApi {
