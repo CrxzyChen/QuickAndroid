@@ -14,6 +14,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.crxzy.centertainment.models.NetApi;
 import com.example.crxzy.centertainment.tools.Network;
 import com.example.crxzy.centertainment.views.ImageView;
 
@@ -36,6 +37,7 @@ public class PictureActivity extends AppCompatActivity {
     List <String> mTags;
     String mThumbId;
     String mTitle;
+    String mResourceId;
     int mLoadedViewIndex = 0;
     final int mLoadViewBatchSize = 3;
     SubPicturePagerAdapter mAdapter;
@@ -44,6 +46,8 @@ public class PictureActivity extends AppCompatActivity {
     Button mBrowserButtonSubScribe;
     boolean isLike = false;
     Network mNetwork;
+    MainApplication mApp;
+    SubPictureHandler mHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +64,7 @@ public class PictureActivity extends AppCompatActivity {
             mArtists = new ArrayList <> ( );
             mTags = new ArrayList <> ( );
             mResource = new JSONObject (infoString);
+            mResourceId = mResource.getJSONObject ("_id").getString ("$oid");
             mThumb = mResource.getJSONObject ("thumb");
             mInfo = mResource.getJSONObject ("info");
             mTitle = !mInfo.getString ("original_name").equals ("null") ? mInfo.getString ("original_name") : mInfo.getString ("name");
@@ -82,7 +87,9 @@ public class PictureActivity extends AppCompatActivity {
     }
 
     private void onInitiation() {
+        mApp = (MainApplication) mContext.getApplication ( );
         mNetwork = new Network ( );
+        mHandler = new SubPictureHandler (this);
         loadsInfo ( );
         initImageBrowser ( );
         initAuthorInfo ( );
@@ -92,6 +99,36 @@ public class PictureActivity extends AppCompatActivity {
     private void initTagsArea() {
         mTagsArea = findViewById (R.id.sub_picture_tags);
         mTagsArea.setText (String.join (", ", mTags));
+    }
+
+    public void successLike(Network.Response response) {
+        if ("true".equals (response.content)) {
+            Message message = mHandler.obtainMessage ( );
+            message.what = SubPictureHandler.CHANGE_LIKE_BUTTON_STATUS;
+            message.obj = true;
+            mHandler.sendMessage (message);
+        }
+    }
+
+    public void successRemoveLike(Network.Response response) {
+        if ("true".equals (response.content)) {
+            Message message = mHandler.obtainMessage ( );
+            message.what = SubPictureHandler.CHANGE_LIKE_BUTTON_STATUS;
+            message.obj = false;
+            mHandler.sendMessage (message);
+        }
+    }
+
+    public void successIsLike(Network.Response response) {
+        Message message = mHandler.obtainMessage ( );
+        message.what = SubPictureHandler.CHANGE_LIKE_BUTTON_STATUS;
+        if ("true".equals (response.content)) {
+            message.obj = true;
+            mHandler.sendMessage (message);
+        } else if ("false".equals (response.content)) {
+            message.obj = false;
+            mHandler.sendMessage (message);
+        }
     }
 
     private void initImageBrowser() {
@@ -104,12 +141,15 @@ public class PictureActivity extends AppCompatActivity {
         mBrowserButtonLike.setOnClickListener (new View.OnClickListener ( ) {
             @Override
             public void onClick(View v) {
-                Toast.makeText (mContext, "Clicked", Toast.LENGTH_SHORT).show ( );
+                if (!isLike) {
+                    NetApi.addLike (mApp.mUser.mUid, mResourceId, mContext, "successLike");
+                } else {
+                    NetApi.removeLike (mApp.mUser.mUid, mResourceId, mContext, "successRemoveLike");
+                }
             }
         });
 
-        Network.Request request = new Network.Request ("http://");
-
+        NetApi.isLike (mApp.mUser.mUid, mResourceId, mContext, "successIsLike");
         //Auto load other images
 //        SubPageChangeListener mPageListener = new SubPageChangeListener ( );
 //        mImageBrowser.addOnPageChangeListener (mPageListener);
@@ -144,7 +184,6 @@ public class PictureActivity extends AppCompatActivity {
     public class SubPictureClickListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
-            mNetwork.createRequest ("http://10.0.0.2/CEntertainment/User/addHistory.json?uid=1&resource_id=5e28f1d2725c9bafad0b553b");
             Intent intent = new Intent ( );
             intent.setClass (mContext, PicturePlayerActivity.class);
             intent.putExtra ("imageNames", String.join (",", mImageNames));
@@ -211,6 +250,7 @@ public class PictureActivity extends AppCompatActivity {
     }
 
     static class SubPictureHandler extends Handler {
+        public static final int CHANGE_LIKE_BUTTON_STATUS = 100;
         WeakReference <PictureActivity> mOuterClass;
 
         SubPictureHandler(PictureActivity pictureActivity) {
@@ -220,6 +260,16 @@ public class PictureActivity extends AppCompatActivity {
         @Override
         public void handleMessage(Message msg) {
             PictureActivity pictureActivity = mOuterClass.get ( );
+
+            if (msg.what == CHANGE_LIKE_BUTTON_STATUS) {
+                if ((boolean) msg.obj) {
+                    pictureActivity.isLike = true;
+                    pictureActivity.mBrowserButtonLike.setText (R.string.like);
+                } else {
+                    pictureActivity.isLike = false;
+                    pictureActivity.mBrowserButtonLike.setText (R.string.unlike);
+                }
+            }
         }
     }
 }

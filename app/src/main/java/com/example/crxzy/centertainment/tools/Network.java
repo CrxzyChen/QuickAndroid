@@ -63,6 +63,7 @@ public class Network {
                     } else if (Objects.equals (contentType.get ("type"), "image")) {
                         this.content = BitmapFactory.decodeStream (httpURLConnection.getInputStream ( ));
                     } else {
+                        this.raw = BaseToString (httpURLConnection.getInputStream ( ), contentType);
                         this.content = this.raw;
                     }
                 }

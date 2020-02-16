@@ -31,7 +31,6 @@ public class Latest extends ThirdPageBase {
     private ItemsBoxView.LinearBlockItem mLoadingItem;
     private int mSkip;
     private int mLimit = 10;
-    private MainApplication mApp;
 
     public Latest(AppCompatActivity context, View view, QuickPageModel.Page pageModel) {
         super (context, view, pageModel);
@@ -42,7 +41,6 @@ public class Latest extends ThirdPageBase {
     public void onShow() {
         mItemBox = mContext.findViewById (R.id.picture_latest_items_box);
         mScrollView = mContext.findViewById (R.id.picture_latest_scroll_view);
-        mApp = (MainApplication) mContext.getApplication ( );
 
         mLoadingItem = new ItemsBoxView.LinearBlockItem (mContext);
         NetApi.getLatest (mLimit, 0, this, "initRequestSuccess");
