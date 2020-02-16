@@ -35,7 +35,7 @@ public class SecondPageBase extends PageBase {
     private ViewPager mViewPager;//一级页面中ViewPager视图
     private Map <String, String[]> mThirdPageMap = new LinkedHashMap <> ( );
     private ViewGroup mTopNavArea;
-
+    private int mCurrentSelectedPageIndex = 0;
 
     public SecondPageBase(AppCompatActivity context, View view, QuickPageModel.Page pageModel) {
         super (context, view, pageModel);
@@ -48,7 +48,7 @@ public class SecondPageBase extends PageBase {
         if (mPageModel.mChildPages.size ( ) != 0) {
             loadTopNav ( );
             loadViewPager ( );
-
+            selectPage (mCurrentSelectedPageIndex);
         }
     }
 
@@ -63,6 +63,7 @@ public class SecondPageBase extends PageBase {
             mSecondPageViewList.add (mPageModel.getChild (key).mView);
         }
         mViewPager.setAdapter (new SecondPagerAdapter ( ));
+        mViewPager.addOnPageChangeListener (new SecondPagerChangeListener ( ));
     }
 
     class SecondPagerAdapter extends android.support.v4.view.PagerAdapter {
@@ -99,6 +100,23 @@ public class SecondPageBase extends PageBase {
 
     }
 
+    class SecondPagerChangeListener implements ViewPager.OnPageChangeListener {
+        @Override
+        public void onPageScrolled(int i, float v, int i1) {
+
+        }
+
+        @Override
+        public void onPageSelected(int i) {
+            selectPage (i);
+        }
+
+        @Override
+        public void onPageScrollStateChanged(int i) {
+
+        }
+    }
+
     private void loadTopNav() {
         mTopNavArea = mView.findViewById (Tool.getResId (mPageModel.mFileName + "_nav_area", R.id.class));//获取主页面底部导航栏容器
         int index = 0;
@@ -118,16 +136,27 @@ public class SecondPageBase extends PageBase {
         textView.setGravity (Gravity.CENTER);
         textView.setText (topNavItemContent[0]);
         textView.setTag (key);
+        textView.setTextColor (mContext.getColor (R.color.colorText));
         mTopNavArea.addView (textView);
 
         textView.setOnClickListener (new TopNavItemClickListener ( ));
     }
 
+    private void selectPage(int index) {
+        mViewPager.setCurrentItem (index);
+
+        TextView currentSelectItem = (TextView) mTopNavArea.getChildAt (mCurrentSelectedPageIndex);
+        currentSelectItem.setTextColor (mContext.getColor (R.color.colorText));
+
+        TextView targetItem = (TextView) mTopNavArea.getChildAt (index);
+        targetItem.setTextColor (mContext.getColor (R.color.colorPrimaryDark));
+        mCurrentSelectedPageIndex = index;
+    }
 
     class TopNavItemClickListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
-            Toast.makeText (mContext, Integer.toString ((int) v.getTag ( )), Toast.LENGTH_SHORT).show ( );
+            selectPage ((int) v.getTag ( ));
         }
     }
 

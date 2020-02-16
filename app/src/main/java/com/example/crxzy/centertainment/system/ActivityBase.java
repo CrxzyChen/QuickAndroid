@@ -8,6 +8,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -18,24 +19,29 @@ import com.example.crxzy.centertainment.tools.Tool;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 abstract public class ActivityBase extends AppCompatActivity {
+    public Map <String, Integer> mKey2Index = new LinkedHashMap <> ( );
     public Context mContext;
     private DrawerLayout mMainLayout;
-    private Toolbar mToolbar;
     public QuickPageModel mQuickPageModel;
     public QuickPageModel.Page mQuickPageModelRoot;
     public Map <String, String[]> mFirstPageMap = new LinkedHashMap <> ( );
+    public Set <String> mAlreadyInitiation = new HashSet <> ( );
+    public int mCurrentSelectedPageIndex = 0;
     LinearLayout mLeftNavArea;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate (savedInstanceState);
         setContentView (R.layout.root);
-        onInitiation ( );//调用子类初始化方法
+        onInitiation ( );
     }
 
     public void onInitiation() {
@@ -52,13 +58,28 @@ abstract public class ActivityBase extends AppCompatActivity {
         selectPage (firstPageName);
     }
 
-    private void selectPage(String pageName) {
+    private void selectPage(String key) {
         try {
-            Object controller = Objects.requireNonNull (mQuickPageModelRoot.mChildPages.get (pageName)).mController;
-            Method method = controller.getClass ( ).getMethod ("onInitiation");
-            method.invoke (controller);
+            if (!mAlreadyInitiation.contains (key)) {
+                Object controller = Objects.requireNonNull (mQuickPageModelRoot.mChildPages.get (key)).mController;
+                Method method = controller.getClass ( ).getMethod ("onInitiation");
+                method.invoke (controller);
+                mAlreadyInitiation.add (key);
+            }
+
             RelativeLayout relativeLayout = findViewById (R.id.root_container);
-            relativeLayout.addView (Objects.requireNonNull (mQuickPageModelRoot.mChildPages.get (pageName)).mView);
+            relativeLayout.removeAllViews ( );
+            relativeLayout.addView (Objects.requireNonNull (mQuickPageModelRoot.mChildPages.get (key)).mView);
+
+            ViewGroup currentSelectItem = (ViewGroup) mLeftNavArea.getChildAt (mCurrentSelectedPageIndex);
+            ((TextView) currentSelectItem.getChildAt (0)).setTextColor (mContext.getColor (R.color.black));
+            ((TextView) currentSelectItem.getChildAt (1)).setTextColor (mContext.getColor (R.color.black));
+
+            ViewGroup targetItem = (ViewGroup) mLeftNavArea.getChildAt (Objects.requireNonNull (mKey2Index.get (key)));
+            ((TextView) targetItem.getChildAt (0)).setTextColor (mContext.getColor (R.color.colorPrimaryDark));
+            ((TextView) targetItem.getChildAt (1)).setTextColor (mContext.getColor (R.color.colorPrimaryDark));
+            mCurrentSelectedPageIndex = Objects.requireNonNull (mKey2Index.get (key));
+
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace ( );
         }
@@ -66,8 +87,9 @@ abstract public class ActivityBase extends AppCompatActivity {
 
     private void loadLeftNavItem() {
         mLeftNavArea = findViewById (R.id.root_layout_left_nav_area);
-
+        int index = 0;
         for (String key : mFirstPageMap.keySet ( )) {
+            mKey2Index.put (key, index++);
             addSubPageNav (key, Objects.requireNonNull (mFirstPageMap.get (key)));
         }
     }
@@ -77,7 +99,6 @@ abstract public class ActivityBase extends AppCompatActivity {
         item.setOrientation (LinearLayout.HORIZONTAL);
         LinearLayout.LayoutParams itemLayoutParam = new LinearLayout.LayoutParams (LinearLayout.LayoutParams.MATCH_PARENT, Tool.dip2px (mContext, 50));
         item.setBackground (mContext.getDrawable (R.drawable.drawer_item));
-        item.setClickable (true);
         item.setLayoutParams (itemLayoutParam);
         item.setTag (key);
 
@@ -96,7 +117,6 @@ abstract public class ActivityBase extends AppCompatActivity {
         text.setLayoutParams (textLayoutParam);
         text.setTextColor (mContext.getColor (R.color.black));
         item.addView (text);
-
         mLeftNavArea.addView (item);
         item.setOnClickListener (new LeftNavItemClickListener ( ));
     }
@@ -104,7 +124,7 @@ abstract public class ActivityBase extends AppCompatActivity {
     class LeftNavItemClickListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
-            Toast.makeText (mContext, (String) v.getTag ( ), Toast.LENGTH_SHORT).show ( );
+            selectPage ((String) v.getTag ( ));
         }
     }
 
@@ -113,7 +133,7 @@ abstract public class ActivityBase extends AppCompatActivity {
 
     private void loadMainWindow() {
         mMainLayout = this.findViewById (R.id.root_layout);
-        mToolbar = this.findViewById (R.id.root_toolbar);
+        Toolbar mToolbar = this.findViewById (R.id.root_toolbar);
         mToolbar.setTitle ("Test Title");
         mToolbar.setSubtitle ("This is substitle");
         //toolbar.setLogo(R.drawable.ic_launcher); 可以在 Navigation后 设置一个 logo

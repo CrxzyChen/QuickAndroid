@@ -13,13 +13,19 @@ import com.example.crxzy.centertainment.tools.Tool;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 public class FirstPageBase extends PageBase {
     private LinearLayout mBottomNavArea;
+    private Map <String, Integer> mKey2Index = new HashMap <> ( );
     private Map <String, String[]> mSecondPageMap = new LinkedHashMap <> ( );
+    private Set <String> mAlreadyInitiation = new HashSet <> ( );
+    private int mCurrentSelectedPageIndex = 0;
 
     public FirstPageBase(AppCompatActivity context, View view, QuickPageModel.Page pageModel) {
         super (context, view, pageModel);
@@ -28,9 +34,11 @@ public class FirstPageBase extends PageBase {
     @Override
     public void onInitiation() {
         initSecondPageMap (mSecondPageMap);
-        loadBottomNav ( );
-        String firstPageName = mSecondPageMap.keySet ( ).iterator ( ).next ( );
-        selectPage (firstPageName);
+        if (mPageModel.mChildPages.size ( ) != 0) {
+            loadBottomNav ( );
+            String firstPageName = mSecondPageMap.keySet ( ).iterator ( ).next ( );
+            selectPage (firstPageName);
+        }
     }
 
     @Override
@@ -39,13 +47,25 @@ public class FirstPageBase extends PageBase {
     }
 
     private void selectPage(String key) {
-        Object controller = Objects.requireNonNull (mPageModel.mChildPages.get (key)).mController;
-        Method method = null;
         try {
-            method = controller.getClass ( ).getMethod ("onInitiation");
-            method.invoke (controller);
+            if (!mAlreadyInitiation.contains (key)) {
+                Object controller = Objects.requireNonNull (mPageModel.mChildPages.get (key)).mController;
+                Method method = controller.getClass ( ).getMethod ("onInitiation");
+                method.invoke (controller);
+                mAlreadyInitiation.add (key);
+            }
             ViewGroup view = mView.findViewById (Tool.getResId (mPageModel.mFileName + "_container", R.id.class));
+            view.removeAllViews ( );
             view.addView (mPageModel.getChild (key).mView);
+
+            ViewGroup currentSelectItem = (ViewGroup) mBottomNavArea.getChildAt (mCurrentSelectedPageIndex);
+            ((TextView) currentSelectItem.getChildAt (0)).setTextColor (mContext.getColor (R.color.colorText));
+            ((TextView) currentSelectItem.getChildAt (1)).setTextColor (mContext.getColor (R.color.colorText));
+
+            ViewGroup targetItem = (ViewGroup) mBottomNavArea.getChildAt (Objects.requireNonNull (mKey2Index.get (key)));
+            ((TextView) targetItem.getChildAt (0)).setTextColor (mContext.getColor (R.color.colorPrimaryDark));
+            ((TextView) targetItem.getChildAt (1)).setTextColor (mContext.getColor (R.color.colorPrimaryDark));
+            mCurrentSelectedPageIndex = Objects.requireNonNull (mKey2Index.get (key));
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace ( );
         }
@@ -54,7 +74,9 @@ public class FirstPageBase extends PageBase {
 
     private void loadBottomNav() {
         mBottomNavArea = mView.findViewById (Tool.getResId (mPageModel.mFileName + "_nav_area", R.id.class));//获取主页面底部导航栏容器
+        int index = 0;
         for (String key : mSecondPageMap.keySet ( )) {
+            mKey2Index.put (key, index++);
             addBottomNavItem (key, Objects.requireNonNull (mSecondPageMap.get (key)));
         }
     }
@@ -81,13 +103,15 @@ public class FirstPageBase extends PageBase {
         tabIcon.setTextAlignment (TextView.TEXT_ALIGNMENT_CENTER);
         LinearLayout.LayoutParams tabIconParams = new LinearLayout.LayoutParams (ViewGroup.LayoutParams.MATCH_PARENT, 0, 1);
         tabIcon.setText (bottomNavItemContent[0]);
+        tabIcon.setTextColor (mContext.getColor (R.color.colorText));
         tabIcon.setPadding (0, Tool.dip2px (mContext, 2), 0, 0);
         /*
          * 添加文字域
          */
-        final TextView tabText = (TextView) new TextView (mContext);
+        TextView tabText = new TextView (mContext);
         LinearLayout.LayoutParams tabTextParams = new LinearLayout.LayoutParams (ViewGroup.LayoutParams.MATCH_PARENT, 0, 1);
         tabTextParams.gravity = Gravity.CENTER;
+        tabText.setTextColor (mContext.getColor (R.color.colorText));
         tabText.setText (bottomNavItemContent[1]);
         tabText.setGravity (Gravity.CENTER);
         /*
@@ -108,7 +132,7 @@ public class FirstPageBase extends PageBase {
     class BottomNavItemClickListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
-            Toast.makeText (mContext, (String) v.getTag ( ), Toast.LENGTH_SHORT).show ( );
+            selectPage ((String) v.getTag ( ));
         }
     }
 }
