@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PictureActivity extends AppCompatActivity {
+    public static final int IMAGE_ALL_DOWNLOADED = 4;
     PictureActivity mContext = this;
     JSONObject mResource;
     JSONObject mThumb;
@@ -39,7 +40,8 @@ public class PictureActivity extends AppCompatActivity {
     String mTitle;
     String mResourceId;
     int mLoadedViewIndex = 0;
-    final int mLoadViewBatchSize = 3;
+    int mLoadViewBatchSize = 3;
+    static final int LOAD_DISTANCE = 5;
     SubPicturePagerAdapter mAdapter;
     TextView mTagsArea;
     Button mBrowserButtonLike;
@@ -48,6 +50,9 @@ public class PictureActivity extends AppCompatActivity {
     Network mNetwork;
     MainApplication mApp;
     SubPictureHandler mHandler;
+    private boolean isSubscribe = false;
+    private int mThumbStatus;
+    private boolean mIsLoading = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +74,7 @@ public class PictureActivity extends AppCompatActivity {
             mInfo = mResource.getJSONObject ("info");
             mTitle = !mInfo.getString ("original_name").equals ("null") ? mInfo.getString ("original_name") : mInfo.getString ("name");
             mThumbId = mThumb.getString ("thumb_id");
+            mThumbStatus = mThumb.getInt ("status");
             JSONArray imageNames = mThumb.getJSONArray ("image_names");
             for (int index = 0; index < imageNames.length ( ); index++) {
                 mImageNames.add ((String) imageNames.get (index));
@@ -131,8 +137,42 @@ public class PictureActivity extends AppCompatActivity {
         }
     }
 
+    public void successSubscribe(Network.Response response) {
+        if ("true".equals (response.content)) {
+            Message message = mHandler.obtainMessage ( );
+            message.what = SubPictureHandler.CHANGE_SUBSCRIBE_BUTTON_STATUS;
+            message.obj = true;
+            mHandler.sendMessage (message);
+        }
+    }
+
+    public void successRemoveSubscribe(Network.Response response) {
+        if ("true".equals (response.content)) {
+            Message message = mHandler.obtainMessage ( );
+            message.what = SubPictureHandler.CHANGE_SUBSCRIBE_BUTTON_STATUS;
+            message.obj = false;
+            mHandler.sendMessage (message);
+        }
+    }
+
+    public void successIsSubscribe(Network.Response response) {
+        Message message = mHandler.obtainMessage ( );
+        message.what = SubPictureHandler.CHANGE_SUBSCRIBE_BUTTON_STATUS;
+        if ("true".equals (response.content)) {
+            message.obj = true;
+            mHandler.sendMessage (message);
+        } else if ("false".equals (response.content)) {
+            message.obj = false;
+            mHandler.sendMessage (message);
+        }
+    }
+
     private void initImageBrowser() {
         mImageBrowser = findViewById (R.id.sub_picture_browser);
+        if (mThumbStatus == IMAGE_ALL_DOWNLOADED) {
+            mLoadViewBatchSize = 10;
+            mImageBrowser.addOnPageChangeListener (new SubPageChangeListener ( ));
+        }
         List <View> viewLists = getViews ( );
         mAdapter = new SubPicturePagerAdapter (viewLists);
         mImageBrowser.setAdapter (mAdapter);
@@ -143,16 +183,29 @@ public class PictureActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (!isLike) {
                     NetApi.addLike (mApp.mUser.mUid, mResourceId, mContext, "successLike");
+                    Toast.makeText (mContext, "已标记为喜欢", Toast.LENGTH_SHORT).show ( );
+
                 } else {
                     NetApi.removeLike (mApp.mUser.mUid, mResourceId, mContext, "successRemoveLike");
+                    Toast.makeText (mContext, "已标记为不喜欢", Toast.LENGTH_SHORT).show ( );
+                }
+            }
+        });
+        mBrowserButtonSubScribe.setOnClickListener (new View.OnClickListener ( ) {
+            @Override
+            public void onClick(View v) {
+                if (!isSubscribe) {
+                    NetApi.addSubscribe (mApp.mUser.mUid, mResourceId, mContext, "successSubscribe");
+                    Toast.makeText (mContext, "已发送订阅请求", Toast.LENGTH_SHORT).show ( );
+                } else {
+                    NetApi.removeSubscribe (mApp.mUser.mUid, mResourceId, mContext, "successRemoveSubscribe");
+                    Toast.makeText (mContext, "已取消订阅", Toast.LENGTH_SHORT).show ( );
                 }
             }
         });
 
         NetApi.isLike (mApp.mUser.mUid, mResourceId, mContext, "successIsLike");
-        //Auto load other images
-//        SubPageChangeListener mPageListener = new SubPageChangeListener ( );
-//        mImageBrowser.addOnPageChangeListener (mPageListener);
+        NetApi.isSubscribe (mApp.mUser.mUid, mResourceId, mContext, "successIsSubscribe");
     }
 
     private List <View> getViews() {
@@ -167,6 +220,7 @@ public class PictureActivity extends AppCompatActivity {
             imageView.setImageURL ("http://10.0.0.2:4396/gallery/" + mThumbId + "/" + mImageNames.get (index));
             viewLists.add (imageView);
         }
+        mIsLoading = false;
         mLoadedViewIndex = endIndex;
         return viewLists;
     }
@@ -188,6 +242,7 @@ public class PictureActivity extends AppCompatActivity {
             intent.setClass (mContext, PicturePlayerActivity.class);
             intent.putExtra ("imageNames", String.join (",", mImageNames));
             intent.putExtra ("thumbId", mThumbId);
+            intent.putExtra ("thumbStatus", mThumbStatus);
             mContext.startActivity (intent);
         }
     }
@@ -230,8 +285,6 @@ public class PictureActivity extends AppCompatActivity {
     }
 
     public class SubPageChangeListener implements ViewPager.OnPageChangeListener {
-        static final int LOAD_DISTANCE = 2;
-
         @Override
         public void onPageScrolled(int i, float v, int i1) {
         }
@@ -240,6 +293,7 @@ public class PictureActivity extends AppCompatActivity {
         public void onPageSelected(int i) {
             if (i + LOAD_DISTANCE == mAdapter.viewLists.size ( )) {
                 mAdapter.addView (mContext.getViews ( ));
+                mIsLoading = true;
             }
         }
 
@@ -250,7 +304,8 @@ public class PictureActivity extends AppCompatActivity {
     }
 
     static class SubPictureHandler extends Handler {
-        public static final int CHANGE_LIKE_BUTTON_STATUS = 100;
+        static final int CHANGE_LIKE_BUTTON_STATUS = 100;
+        static final int CHANGE_SUBSCRIBE_BUTTON_STATUS = 101;
         WeakReference <PictureActivity> mOuterClass;
 
         SubPictureHandler(PictureActivity pictureActivity) {
@@ -268,6 +323,14 @@ public class PictureActivity extends AppCompatActivity {
                 } else {
                     pictureActivity.isLike = false;
                     pictureActivity.mBrowserButtonLike.setText (R.string.unlike);
+                }
+            } else if (msg.what == CHANGE_SUBSCRIBE_BUTTON_STATUS) {
+                if ((boolean) msg.obj) {
+                    pictureActivity.isSubscribe = true;
+                    pictureActivity.mBrowserButtonSubScribe.setText (R.string.subscribe);
+                } else {
+                    pictureActivity.isSubscribe = false;
+                    pictureActivity.mBrowserButtonSubScribe.setText (R.string.unsubscribe);
                 }
             }
         }

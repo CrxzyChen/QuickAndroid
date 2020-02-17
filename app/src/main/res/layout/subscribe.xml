@@ -10,49 +10,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <LinearLayout
+        <com.example.crxzy.centertainment.views.ItemsBoxView
+            android:id="@+id/subscribe_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical" />
 
-            <LinearLayout
-                android:elevation="1dp"
-                android:layout_width="match_parent"
-                android:layout_height="200dp"
-                android:layout_margin="10dp"
-                android:background="@drawable/subscribe_item_rect"
-                android:orientation="horizontal">
-
-
-                <com.example.crxzy.centertainment.views.RoundedImageView
-                    android:layout_width="150dp"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/subscribe_item_rect_image"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/example"
-                    app:bottomLeftRadius="5dp"
-                    app:topLeftRadius="5dp" />
-
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="60dp" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="80dp" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="60dp" />
-                </LinearLayout>
-            </LinearLayout>
-        </LinearLayout>
     </ScrollView>
 
 </RelativeLayout>

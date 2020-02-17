@@ -28,10 +28,16 @@ import java.util.Arrays;
 import java.util.List;
 
 public class PicturePlayerActivity extends AppCompatActivity {
+    int mStatus;
     int mImagesSize;
     int mLoadedImageSize;
+    int mLoadedViewIndex = 0;
+    int mLoadViewBatchSize = 3;
     boolean mIsMenuVisible = true;
     boolean mIsMenuRecommendationOpen = false;
+    int mLoadDistance = 5;
+    boolean isLoading = false;
+
 
     String mThumbId;
     Network mNetwork;
@@ -50,6 +56,7 @@ public class PicturePlayerActivity extends AppCompatActivity {
     LinearLayout mIsMenuRecommendation;
     RelativeLayout mIsMenuRecommendationSwitch;
     ProgressBar mMenuProgressBar;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,9 +80,8 @@ public class PicturePlayerActivity extends AppCompatActivity {
         Intent intent = getIntent ( );
         String imageNamesString = intent.getStringExtra ("imageNames");
         mImageNames = Arrays.asList (imageNamesString.split (","));
-//        mImagesSize = mImageNames.size ( );
-        mImagesSize = 3;
-
+        mImagesSize = mImageNames.size ( );
+        mStatus = intent.getIntExtra ("thumbStatus", 0);
         mThumbId = intent.getStringExtra ("thumbId");
     }
 
@@ -100,7 +106,31 @@ public class PicturePlayerActivity extends AppCompatActivity {
         }
         mImagePlayerBrowserAdapter = new ImagePlayerBrowserAdapter (views);
         mBrowser.setAdapter (mImagePlayerBrowserAdapter);
+        mBrowser.addOnPageChangeListener (new MyPageChangeListener ( ));
+        if (mStatus == 4) {
+            mLoadViewBatchSize = 10;
+        }
         loadImages ( );
+    }
+
+    class MyPageChangeListener implements ViewPager.OnPageChangeListener {
+        @Override
+        public void onPageScrolled(int i, float v, int i1) {
+
+        }
+
+        @Override
+        public void onPageSelected(int i) {
+            if (i + mLoadDistance == mLoadedViewIndex) {
+                isLoading = true;
+                loadImages ( );
+            }
+        }
+
+        @Override
+        public void onPageScrollStateChanged(int i) {
+
+        }
     }
 
     private void initCover() {
@@ -194,12 +224,14 @@ public class PicturePlayerActivity extends AppCompatActivity {
     private void loadImages() {
         mImagePlayerHandler = new ImagePlayerHandler (this);
         mNetwork = new Network ( );
-        for (int index = 0; index < mImagesSize; index++) {
+        int endIndex = (mImageNames.size ( ) < mLoadedViewIndex + mLoadViewBatchSize) ? mImageNames.size ( ) : mLoadedViewIndex + mLoadViewBatchSize;
+        for (int index = mLoadedViewIndex; index < endIndex; index++) {
             Network.Request request = new Network.Request ("http://10.0.0.2:4396/gallery/" + mThumbId + "/" + mImageNames.get (index));
             request.setSuccess (this, "loadImageSuccess");
             request.setMeta ("index", index);
             mNetwork.send (request);
         }
+        mLoadedViewIndex = endIndex;
     }
 
     public void loadImageSuccess(Network.Response response) {
@@ -266,8 +298,12 @@ public class PicturePlayerActivity extends AppCompatActivity {
                 int index = (int) response.request.getMeta ("index");
                 imagePlayer.mImagePlayerBrowserAdapter.setImageBitmap (index, response.content);
                 imagePlayer.mLoadedImageSize += 1;
-                if (imagePlayer.mLoadedImageSize == imagePlayer.mImagesSize) {
+                int endIndex = (imagePlayer.mImageNames.size ( ) < imagePlayer.mLoadedViewIndex + imagePlayer.mLoadViewBatchSize) ? imagePlayer.mImageNames.size ( ) : imagePlayer.mLoadedViewIndex + imagePlayer.mLoadViewBatchSize;
+                if (imagePlayer.mLoadedImageSize == imagePlayer.mLoadViewBatchSize) {
                     imagePlayer.mCover.startAnimation (imagePlayer.mCoverOpenAnimation);
+                }
+                if (imagePlayer.mLoadedImageSize == imagePlayer.mLoadedViewIndex) {
+                    imagePlayer.isLoading = false;
                 }
                 imagePlayer.refreshCoverProgress ( );
                 imagePlayer.refreshMenuProgress ( );

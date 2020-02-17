@@ -2,12 +2,6 @@ package com.example.crxzy.centertainment.system;
 
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.widget.Button;
-import android.widget.Toast;
-
-import com.example.crxzy.centertainment.R;
-
-import java.lang.reflect.InvocationTargetException;
 
 public class ThirdPageBase extends PageBase {
 
@@ -28,4 +22,5 @@ public class ThirdPageBase extends PageBase {
 
     public void onShow() {
     }
+
 }

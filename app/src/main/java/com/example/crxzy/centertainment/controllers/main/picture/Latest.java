@@ -7,21 +7,21 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ScrollView;
 
-import com.example.crxzy.centertainment.MainApplication;
 import com.example.crxzy.centertainment.PictureActivity;
 import com.example.crxzy.centertainment.R;
 import com.example.crxzy.centertainment.models.NetApi;
+import com.example.crxzy.centertainment.system.PageBase;
 import com.example.crxzy.centertainment.system.QuickPageModel;
 import com.example.crxzy.centertainment.system.ThirdPageBase;
-import com.example.crxzy.centertainment.views.*;
 import com.example.crxzy.centertainment.tools.Network;
+import com.example.crxzy.centertainment.views.ItemsBoxView;
+import com.example.crxzy.centertainment.views.MangaSelfCard;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
-import java.lang.reflect.InvocationTargetException;
 
 public class Latest extends ThirdPageBase {
     private ItemsBoxView mItemBox;
@@ -66,15 +66,15 @@ public class Latest extends ThirdPageBase {
         static final int INIT_ITEMS_BOX = 100;
         static final int ADD_ITEMS = 101;
 
-        WeakReference <Latest> outerClass;
+        WeakReference <PageBase> outerClass;
 
-        PictureLatestHandler(Latest activity) {
+        PictureLatestHandler(PageBase activity) {
             outerClass = new WeakReference <> (activity);
         }
 
         @Override
         public void handleMessage(Message msg) {
-            final Latest latest = outerClass.get ( );
+            final Latest latest = (Latest) outerClass.get ( );
             switch (msg.what) {
                 case INIT_ITEMS_BOX: {
                     addItems (msg, latest);
@@ -103,13 +103,25 @@ public class Latest extends ThirdPageBase {
                     JSONObject thumb = item.getJSONObject ("thumb");
                     JSONArray image_names = thumb.getJSONArray ("image_names");
                     String name = (!"null".equals (info.getString ("original_name"))) ? info.getString ("original_name") : info.getString ("name");
-                    final ItemsBoxView.NormalItem normalItem = new ItemsBoxView.NormalItem (latest.mContext);
+                    final MangaSelfCard normalItem = new MangaSelfCard (latest.mContext);
                     normalItem.title.setText (name);
                     JSONArray languages = info.getJSONArray ("languages");
                     String language = getLanguage (languages);
-                    normalItem.clickTime.setText ((String) Integer.toString (clickedTimes));
+                    normalItem.clickTime.setText (Integer.toString (clickedTimes));
                     final String tagsString = item.getString ("source") + "." + language;
                     normalItem.sourceTag.setText (tagsString);
+                    int status = thumb.getInt ("status");
+                    if (status == 0) {
+                        normalItem.statusTag.setText ("○");
+                    } else if (status == 1) {
+                        normalItem.statusTag.setText ("◔");
+                    } else if (status == 2) {
+                        normalItem.statusTag.setText ("◑");
+                    } else if (status == 3) {
+                        normalItem.statusTag.setText ("◕");
+                    } else if (status == 4) {
+                        normalItem.statusTag.setText ("●");
+                    }
                     normalItem.pageCount.setText (info.getString ("page"));
                     normalItem.image.setImageURL ("http://10.0.0.2:4396/gallery/" + thumb.getString ("thumb_id") + "/" + image_names.get (0));
                     latest.mItemBox.addItem (normalItem);
@@ -119,7 +131,7 @@ public class Latest extends ThirdPageBase {
                 latest.mItemBox.deleteItem (latest.mLoadingItem);
                 latest.mItemBox.addItem (latest.mLoadingItem);
                 latest.mSkip += latest.mLimit;
-            } catch (JSONException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            } catch (JSONException e) {
                 e.printStackTrace ( );
             }
 
@@ -139,9 +151,9 @@ public class Latest extends ThirdPageBase {
         class ItemOnClickListener implements View.OnClickListener {
             Latest mLatest;
             JSONObject mItem;
-            ItemsBoxView.NormalItem mNormalItem;
+            MangaSelfCard mNormalItem;
 
-            ItemOnClickListener(Latest context, JSONObject item, ItemsBoxView.NormalItem normalItem) {
+            ItemOnClickListener(Latest context, JSONObject item, MangaSelfCard normalItem) {
                 mLatest = context;
                 mItem = item;
                 mNormalItem = normalItem;
@@ -152,8 +164,8 @@ public class Latest extends ThirdPageBase {
                 try {
                     int uid = mLatest.mApp.mUser.mUid;
                     String resource_id = mItem.getJSONObject ("_id").getString ("$oid");
-                    NetApi.addHistory(uid,resource_id);
-                    NetApi.upClickedCount(resource_id);
+                    NetApi.addHistory (uid, resource_id);
+                    NetApi.upClickedCount (resource_id);
                     int clickedTimes = Integer.parseInt ((String) mNormalItem.clickTime.getText ( )) + 1;
                     mNormalItem.clickTime.setText ((String) Integer.toString (clickedTimes));
 
