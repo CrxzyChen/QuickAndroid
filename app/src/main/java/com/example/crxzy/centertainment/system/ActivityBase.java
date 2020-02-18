@@ -25,6 +25,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
 abstract public class ActivityBase extends AppCompatActivity {
     public Map <String, Integer> mKey2Index = new LinkedHashMap <> ( );
@@ -36,6 +38,7 @@ abstract public class ActivityBase extends AppCompatActivity {
     public Set <String> mAlreadyInitiation = new HashSet <> ( );
     public int mCurrentSelectedPageIndex = 0;
     LinearLayout mLeftNavArea;
+    private boolean mBackKeyPressed = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -158,7 +161,19 @@ abstract public class ActivityBase extends AppCompatActivity {
                 //当左边的菜单栏是可见的，则关闭
                 mMainLayout.closeDrawer (relativeLayout);
             } else {
-                finish ( );
+                if (!mBackKeyPressed) {
+                    Toast.makeText(this, "再按一次退出", Toast.LENGTH_SHORT).show();
+                    mBackKeyPressed = true;
+                    new Timer ().schedule(new TimerTask () {
+                        @Override
+                        public void run() {
+                            mBackKeyPressed = false;
+                        }
+                    }, 2000);
+                    return true;
+                } else {
+                    finish();
+                }
             }
             return true;
         }

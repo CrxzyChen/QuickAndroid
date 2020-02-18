@@ -14,7 +14,7 @@ import android.widget.TextView;
 import com.example.crxzy.centertainment.R;
 import com.example.crxzy.centertainment.tools.Tool;
 
-public class MangaSelfCard extends ItemsBoxView.BlockItem {
+public class MangaSelfCard extends CardBox.BlockItem {
     public RoundedImageView image;
     public TextView title;
     public TextView clickTime;
@@ -144,7 +144,7 @@ public class MangaSelfCard extends ItemsBoxView.BlockItem {
 
 
     @Override
-    public ItemsBoxView.LayoutStyle setLayoutStyle() {
-        return ItemsBoxView.LayoutStyle.block;
+    public CardBox.LayoutStyle setLayoutStyle() {
+        return CardBox.LayoutStyle.block;
     }
 }

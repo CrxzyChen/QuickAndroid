@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ScrollView;
 
 import com.example.crxzy.centertainment.PictureActivity;
@@ -14,23 +15,29 @@ import com.example.crxzy.centertainment.system.PageBase;
 import com.example.crxzy.centertainment.system.QuickPageModel;
 import com.example.crxzy.centertainment.system.ThirdPageBase;
 import com.example.crxzy.centertainment.tools.Network;
-import com.example.crxzy.centertainment.views.ItemsBoxView;
+import com.example.crxzy.centertainment.views.CardBox;
+import com.example.crxzy.centertainment.views.ImageView;
 import com.example.crxzy.centertainment.views.MangaSelfCard;
+import com.example.crxzy.centertainment.views.RoundedImageView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 public class Latest extends ThirdPageBase {
-    private ItemsBoxView mItemBox;
+    private CardBox mCardBox;
     private PictureLatestHandler mHandler;
-    private ScrollView mScrollView;
-    private Boolean mTouchBottomLock = false;
-    private ItemsBoxView.LinearBlockItem mLoadingItem;
+    private CardBox.LinearBlockItem mLoadingItem;
     private int mSkip;
     private int mLimit = 10;
+    private boolean mIsLoading = false;
+    private Set <View> mInactivateErrorSet;
 
     public Latest(AppCompatActivity context, View view, QuickPageModel.Page pageModel) {
         super (context, view, pageModel);
@@ -39,19 +46,52 @@ public class Latest extends ThirdPageBase {
 
     @Override
     public void onShow() {
-        mItemBox = mContext.findViewById (R.id.picture_latest_items_box);
-        mScrollView = mContext.findViewById (R.id.picture_latest_scroll_view);
-
-        mLoadingItem = new ItemsBoxView.LinearBlockItem (mContext);
-        NetApi.getLatest (mLimit, 0, this, "initRequestSuccess");
+        mCardBox = mContext.findViewById (R.id.picture_last_card_box);
+        mCardBox.setOnTouchBottomListener (new CardBoxOnTouchBottomListener ( ));
+        mCardBox.setOnActiveAreaChangedListener (new CardBoxOnActiveAreaChangedListener ( ));
+        mLoadingItem = new CardBox.LinearBlockItem (mContext);
+        NetApi.getLatest (mLimit, 0, this, "addRequestSuccess");
         this.mHandler = new PictureLatestHandler (this);
     }
 
-    public void initRequestSuccess(Network.Response response) {
-        Message message = Message.obtain ( );
-        message.obj = response;
-        message.what = PictureLatestHandler.INIT_ITEMS_BOX;
-        this.mHandler.sendMessage (message);
+    class CardBoxOnTouchBottomListener implements CardBox.OnTouchBottomListener {
+
+        @Override
+        public float setDistance(float distance) {
+            return 400;
+        }
+
+        @Override
+        public void OnTouchBottom() {
+            if (!mIsLoading) {
+                mIsLoading = true;
+                NetApi.getLatest (mLimit, mSkip, Latest.this, "addRequestSuccess");
+            }
+        }
+    }
+
+    class CardBoxOnActiveAreaChangedListener implements CardBox.OnActiveAreaChangedListener {
+
+        @Override
+        public void setActiveAreaOperation(Set <View> viewSet) {
+            for (View view : viewSet) {
+                ((MangaSelfCard) view).image.load ( );
+            }
+        }
+
+        @Override
+        public void setInActiveAreaOperation(Set <View> viewSet) {
+            if(mInactivateErrorSet!=null){
+                viewSet.addAll (mInactivateErrorSet);
+            }
+            Set <View> newInactivateErrorSet = new HashSet <> ( );
+            for (View view : viewSet) {
+                if (!((MangaSelfCard) view).image.release ( )) {
+                    newInactivateErrorSet.add (view);
+                }
+            }
+            mInactivateErrorSet = newInactivateErrorSet;
+        }
     }
 
     public void addRequestSuccess(Network.Response response) {
@@ -63,8 +103,7 @@ public class Latest extends ThirdPageBase {
 
     private static class PictureLatestHandler extends Handler {
 
-        static final int INIT_ITEMS_BOX = 100;
-        static final int ADD_ITEMS = 101;
+        static final int ADD_ITEMS = 100;
 
         WeakReference <PageBase> outerClass;
 
@@ -75,18 +114,9 @@ public class Latest extends ThirdPageBase {
         @Override
         public void handleMessage(Message msg) {
             final Latest latest = (Latest) outerClass.get ( );
-            switch (msg.what) {
-                case INIT_ITEMS_BOX: {
-                    addItems (msg, latest);
-                    ItemsBoxOnScrollChangeListener itemsBoxOnScrollChangeListener = new ItemsBoxOnScrollChangeListener (latest);
-                    latest.mScrollView.setOnScrollChangeListener (itemsBoxOnScrollChangeListener);
-                }
-                break;
-                case ADD_ITEMS: {
-                    addItems (msg, latest);
-                    latest.mTouchBottomLock = false;
-                }
-                break;
+            if (msg.what == ADD_ITEMS) {
+                addItems (msg, latest);
+                latest.mIsLoading = false;
             }
         }
 
@@ -107,7 +137,7 @@ public class Latest extends ThirdPageBase {
                     normalItem.title.setText (name);
                     JSONArray languages = info.getJSONArray ("languages");
                     String language = getLanguage (languages);
-                    normalItem.clickTime.setText (Integer.toString (clickedTimes));
+                    normalItem.clickTime.setText (Objects.requireNonNull (Integer.toString (clickedTimes)));
                     final String tagsString = item.getString ("source") + "." + language;
                     normalItem.sourceTag.setText (tagsString);
                     int status = thumb.getInt ("status");
@@ -123,13 +153,13 @@ public class Latest extends ThirdPageBase {
                         normalItem.statusTag.setText ("●");
                     }
                     normalItem.pageCount.setText (info.getString ("page"));
-                    normalItem.image.setImageURL ("http://10.0.0.2:4396/gallery/" + thumb.getString ("thumb_id") + "/" + image_names.get (0));
-                    latest.mItemBox.addItem (normalItem);
+                    normalItem.image.setImageURL ("http://10.0.0.2:4396/gallery/" + thumb.getString ("thumb_id") + "/" + image_names.get (0) + "?height=480&width=360");
+                    latest.mCardBox.addItem (normalItem);
                     ItemOnClickListener itemOnClickListener = new ItemOnClickListener (latest, item, normalItem);
                     normalItem.setOnClickListener (itemOnClickListener);
                 }
-                latest.mItemBox.deleteItem (latest.mLoadingItem);
-                latest.mItemBox.addItem (latest.mLoadingItem);
+                latest.mCardBox.deleteItem (latest.mLoadingItem);
+                latest.mCardBox.addItem (latest.mLoadingItem);
                 latest.mSkip += latest.mLimit;
             } catch (JSONException e) {
                 e.printStackTrace ( );
@@ -175,25 +205,6 @@ public class Latest extends ThirdPageBase {
                     mLatest.mContext.startActivity (intent);
                 } catch (JSONException e) {
                     e.printStackTrace ( );
-                }
-            }
-        }
-
-        class ItemsBoxOnScrollChangeListener implements View.OnScrollChangeListener {
-            Latest mContext;
-
-            ItemsBoxOnScrollChangeListener(Latest latest) {
-                mContext = latest;
-            }
-
-            @Override
-            public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-                int itemBoxHeight = mContext.mItemBox.getHeight ( );
-                int scrollViewHeight = mContext.mScrollView.getHeight ( );
-                int threshold = 400;
-                if ((itemBoxHeight - scrollViewHeight - scrollY <= threshold) && !mContext.mTouchBottomLock) {
-                    mContext.mTouchBottomLock = true;
-                    NetApi.getLatest (mContext.mLimit, mContext.mSkip, mContext, "addRequestSuccess");
                 }
             }
         }
