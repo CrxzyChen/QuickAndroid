@@ -8,6 +8,7 @@ import android.view.ViewTreeObserver;
 
 import com.example.crxzy.centertainment.PictureActivity;
 import com.example.crxzy.centertainment.R;
+import com.example.crxzy.centertainment.controllers.main.picture.Latest;
 import com.example.crxzy.centertainment.models.NetApi;
 import com.example.crxzy.centertainment.system.FirstPageBase;
 import com.example.crxzy.centertainment.system.PageBase;
@@ -37,6 +38,8 @@ public class Subscribe extends FirstPageBase {
         super.onInitiation ( );
         mViewContainer = mView.findViewById (R.id.subscribe_container);
         NetApi.getSubscribe (mApp.mUser.mUid, this, "getSubscribeSuccess");
+        mViewContainer.setIsOpenTopOverDragListener (true);
+        mViewContainer.setOnOverDragRefreshListener (new CardBoxOnOverDragRefresh ( ));
         mViewContainer.setOnTouchBottomListener (new CardBox.OnTouchBottomListener ( ) {
             @Override
             public float setDistance(float distance) {
@@ -48,7 +51,7 @@ public class Subscribe extends FirstPageBase {
                 if (!mIsLoading) {
                     mIsLoading = true;
                     addItem ( );
-                    mViewContainer.getViewTreeObserver ().addOnDrawListener (new ViewTreeObserver.OnDrawListener ( ) {
+                    mViewContainer.getViewTreeObserver ( ).addOnDrawListener (new ViewTreeObserver.OnDrawListener ( ) {
                         @Override
                         public void onDraw() {
                             mIsLoading = false;
@@ -57,6 +60,15 @@ public class Subscribe extends FirstPageBase {
                 }
             }
         });
+    }
+
+    class CardBoxOnOverDragRefresh implements CardBox.OnOverDragRefreshListener {
+        @Override
+        public void OnRefresh() {
+            mViewContainer.clearAll ( );
+            mLoadedSize = 0;
+            NetApi.getSubscribe (mApp.mUser.mUid, Subscribe.this, "getSubscribeSuccess");
+        }
     }
 
     public void getSubscribeSuccess(Network.Response response) {
@@ -159,6 +171,7 @@ public class Subscribe extends FirstPageBase {
             if (msg.what == LOAD_SUBSCRIBE) {
                 subscribe.mSubscribeInfo = ((JSONArray) ((Network.Response) msg.obj).content);
                 subscribe.addItem ( );
+                subscribe.mViewContainer.playEndRefreshAnimation ();
             }
         }
     }

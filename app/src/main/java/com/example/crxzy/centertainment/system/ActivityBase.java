@@ -19,7 +19,6 @@ import com.example.crxzy.centertainment.tools.Tool;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -38,6 +37,7 @@ abstract public class ActivityBase extends AppCompatActivity {
     public Set <String> mAlreadyInitiation = new HashSet <> ( );
     public int mCurrentSelectedPageIndex = 0;
     LinearLayout mLeftNavArea;
+    RelativeLayout mLeftWindow;
     private boolean mBackKeyPressed = false;
 
     @Override
@@ -54,8 +54,7 @@ abstract public class ActivityBase extends AppCompatActivity {
         initFirstPageMap (mFirstPageMap);
         mQuickPageModel = new QuickPageModel (this, mFirstPageMap);
         mQuickPageModelRoot = mQuickPageModel.getRoot ( );
-
-        loadLeftNavItem ( );
+        loadLeftWindow ( );
 
         String firstPageName = mFirstPageMap.keySet ( ).iterator ( ).next ( );
         selectPage (firstPageName);
@@ -82,13 +81,16 @@ abstract public class ActivityBase extends AppCompatActivity {
             ((TextView) targetItem.getChildAt (0)).setTextColor (mContext.getColor (R.color.colorPrimaryDark));
             ((TextView) targetItem.getChildAt (1)).setTextColor (mContext.getColor (R.color.colorPrimaryDark));
             mCurrentSelectedPageIndex = Objects.requireNonNull (mKey2Index.get (key));
-
+            if (mLeftWindow.getVisibility ( ) == View.VISIBLE) {
+                mMainLayout.closeDrawer (mLeftWindow);
+            }
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace ( );
         }
     }
 
-    private void loadLeftNavItem() {
+    private void loadLeftWindow() {
+        mLeftWindow = findViewById (R.id.main_layout_left);
         mLeftNavArea = findViewById (R.id.root_layout_left_nav_area);
         int index = 0;
         for (String key : mFirstPageMap.keySet ( )) {
@@ -156,15 +158,14 @@ abstract public class ActivityBase extends AppCompatActivity {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
 
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            RelativeLayout relativeLayout = findViewById (R.id.main_layout_left);
-            if (relativeLayout.getVisibility ( ) == View.VISIBLE) {
+            if (mLeftWindow.getVisibility ( ) == View.VISIBLE) {
                 //当左边的菜单栏是可见的，则关闭
-                mMainLayout.closeDrawer (relativeLayout);
+                mMainLayout.closeDrawer (mLeftWindow);
             } else {
                 if (!mBackKeyPressed) {
-                    Toast.makeText(this, "再按一次退出", Toast.LENGTH_SHORT).show();
+                    Toast.makeText (this, "再按一次退出", Toast.LENGTH_SHORT).show ( );
                     mBackKeyPressed = true;
-                    new Timer ().schedule(new TimerTask () {
+                    new Timer ( ).schedule (new TimerTask ( ) {
                         @Override
                         public void run() {
                             mBackKeyPressed = false;
@@ -172,7 +173,7 @@ abstract public class ActivityBase extends AppCompatActivity {
                     }, 2000);
                     return true;
                 } else {
-                    finish();
+                    finish ( );
                 }
             }
             return true;

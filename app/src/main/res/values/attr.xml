@@ -8,4 +8,7 @@
         <attr name="topRightRadius" format="dimension" />
         <attr name="radius" format="dimension" />
     </declare-styleable>
+    <declare-styleable name="InnerScrollView">
+        <attr name="outerScrollViewId" format="reference" />
+    </declare-styleable>
 </resources>

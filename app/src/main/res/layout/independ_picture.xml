@@ -122,67 +122,41 @@
                 android:textColor="@color/gray" />
 
             <LinearLayout
+                android:id="@+id/independ_picture_recommend"
                 android:layout_width="match_parent"
-                android:layout_height="200dp"
+                android:layout_height="180dp"
                 android:background="@color/gray"
                 android:orientation="vertical">
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:background="@color/colorPrimaryDark">
+                    android:layout_height="30dp"
+                    android:background="@color/colorPrimary">
 
                     <TextView
+                        android:paddingStart="5dp"
+                        android:paddingEnd="5dp"
                         android:layout_width="0dp"
-                        android:layout_height="50dp"
-                        android:layout_weight="4" />
+                        android:layout_height="30dp"
+                        android:layout_weight="4"
+                        android:text="@string/recommend"
+                        android:textAlignment="viewStart"
+                        android:textColor="@color/white"
+                        android:textSize="20sp" />
 
-                    <Button
-                        android:layout_width="0dp"
-                        android:layout_height="50dp"
-                        android:layout_weight="1" />
                 </LinearLayout>
 
-                <ScrollView
+                <HorizontalScrollView
                     android:layout_width="match_parent"
-                    android:layout_height="150dp">
+                    android:layout_height="150dp"
+                    android:background="@color/colorBackground">
 
                     <LinearLayout
+                        android:id="@+id/independ_picture_recommend_container"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <ImageView
-                            android:layout_width="100dp"
-                            android:layout_height="140dp"
-                            android:layout_margin="5dp"
-                            android:background="@color/white" />
-
-                        <ImageView
-                            android:layout_width="100dp"
-                            android:layout_height="140dp"
-                            android:layout_margin="5dp"
-                            android:background="@color/white" />
-
-                        <ImageView
-                            android:layout_width="100dp"
-                            android:layout_height="140dp"
-                            android:layout_margin="5dp"
-                            android:background="@color/white" />
-
-                        <ImageView
-                            android:layout_width="100dp"
-                            android:layout_height="140dp"
-                            android:layout_margin="5dp"
-                            android:background="@color/white" />
-
-                        <ImageView
-                            android:layout_width="100dp"
-                            android:layout_height="140dp"
-                            android:layout_margin="5dp"
-                            android:background="@color/white" />
-                    </LinearLayout>
-                </ScrollView>
+                        android:orientation="horizontal"/>
+                </HorizontalScrollView>
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

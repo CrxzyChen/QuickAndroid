@@ -6,6 +6,7 @@ import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.ScrollView;
 
 import com.example.crxzy.centertainment.PictureActivity;
@@ -49,6 +50,8 @@ public class Latest extends ThirdPageBase {
         mCardBox = mContext.findViewById (R.id.picture_last_card_box);
         mCardBox.setOnTouchBottomListener (new CardBoxOnTouchBottomListener ( ));
         mCardBox.setOnActiveAreaChangedListener (new CardBoxOnActiveAreaChangedListener ( ));
+        mCardBox.setIsOpenTopOverDragListener (true);
+        mCardBox.setOnOverDragRefreshListener (new CardBoxOnOverDragRefresh ( ));
         mLoadingItem = new CardBox.LinearBlockItem (mContext);
         NetApi.getLatest (mLimit, 0, this, "addRequestSuccess");
         this.mHandler = new PictureLatestHandler (this);
@@ -81,7 +84,7 @@ public class Latest extends ThirdPageBase {
 
         @Override
         public void setInActiveAreaOperation(Set <View> viewSet) {
-            if(mInactivateErrorSet!=null){
+            if (mInactivateErrorSet != null) {
                 viewSet.addAll (mInactivateErrorSet);
             }
             Set <View> newInactivateErrorSet = new HashSet <> ( );
@@ -94,6 +97,15 @@ public class Latest extends ThirdPageBase {
         }
     }
 
+    class CardBoxOnOverDragRefresh implements CardBox.OnOverDragRefreshListener {
+
+        @Override
+        public void OnRefresh() {
+            mCardBox.clearAll ( );
+            NetApi.getLatest (mLimit, 0, Latest.this, "addRequestSuccess");
+        }
+    }
+
     public void addRequestSuccess(Network.Response response) {
         Message message = Message.obtain ( );
         message.obj = response;
@@ -101,22 +113,21 @@ public class Latest extends ThirdPageBase {
         this.mHandler.sendMessage (message);
     }
 
-    private static class PictureLatestHandler extends Handler {
+    private static class PictureLatestHandler extends PageBase.PageHandler {
 
         static final int ADD_ITEMS = 100;
 
-        WeakReference <PageBase> outerClass;
-
         PictureLatestHandler(PageBase activity) {
-            outerClass = new WeakReference <> (activity);
+            super (activity);
         }
 
         @Override
         public void handleMessage(Message msg) {
-            final Latest latest = (Latest) outerClass.get ( );
+            final Latest latest = (Latest) mOuterClass.get ( );
             if (msg.what == ADD_ITEMS) {
                 addItems (msg, latest);
                 latest.mIsLoading = false;
+                latest.mCardBox.playEndRefreshAnimation ( );
             }
         }
 

@@ -8,15 +8,23 @@ import android.support.annotation.NonNull;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.LinearInterpolator;
 import android.widget.Button;
+import android.widget.HorizontalScrollView;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.crxzy.centertainment.models.MangaResource;
 import com.example.crxzy.centertainment.models.NetApi;
 import com.example.crxzy.centertainment.tools.Network;
+import com.example.crxzy.centertainment.tools.Tool;
 import com.example.crxzy.centertainment.views.ImageView;
+import com.example.crxzy.centertainment.views.RoundedImageView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -29,16 +37,9 @@ import java.util.List;
 public class PictureActivity extends AppCompatActivity {
     public static final int IMAGE_ALL_DOWNLOADED = 4;
     PictureActivity mContext = this;
-    JSONObject mResource;
-    JSONObject mThumb;
-    JSONObject mInfo;
+    MangaResource mResource;
     ViewPager mImageBrowser;
-    List <String> mImageNames;
-    List <String> mArtists;
-    List <String> mTags;
-    String mThumbId;
-    String mTitle;
-    String mResourceId;
+    boolean mIsLoading = false;
     int mLoadedViewIndex = 0;
     int mLoadViewBatchSize = 3;
     static final int LOAD_DISTANCE = 5;
@@ -51,8 +52,8 @@ public class PictureActivity extends AppCompatActivity {
     MainApplication mApp;
     SubPictureHandler mHandler;
     private boolean isSubscribe = false;
-    private int mThumbStatus;
-    private boolean mIsLoading = false;
+    LinearLayout mRecommendArea;
+    LinearLayout mRecommendContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,32 +65,7 @@ public class PictureActivity extends AppCompatActivity {
     private void loadsInfo() {
         Intent intent = getIntent ( );
         String infoString = intent.getStringExtra ("info");
-        try {
-            mImageNames = new ArrayList <> ( );
-            mArtists = new ArrayList <> ( );
-            mTags = new ArrayList <> ( );
-            mResource = new JSONObject (infoString);
-            mResourceId = mResource.getJSONObject ("_id").getString ("$oid");
-            mThumb = mResource.getJSONObject ("thumb");
-            mInfo = mResource.getJSONObject ("info");
-            mTitle = !mInfo.getString ("original_name").equals ("null") ? mInfo.getString ("original_name") : mInfo.getString ("name");
-            mThumbId = mThumb.getString ("thumb_id");
-            mThumbStatus = mThumb.getInt ("status");
-            JSONArray imageNames = mThumb.getJSONArray ("image_names");
-            for (int index = 0; index < imageNames.length ( ); index++) {
-                mImageNames.add ((String) imageNames.get (index));
-            }
-            JSONArray artists = mInfo.getJSONArray ("artists");
-            for (int index = 0; index < artists.length ( ); index++) {
-                mArtists.add ((String) artists.get (index));
-            }
-            JSONArray tags = mInfo.getJSONArray ("tags");
-            for (int index = 0; index < tags.length ( ); index++) {
-                mTags.add ((String) tags.get (index));
-            }
-        } catch (JSONException e) {
-            e.printStackTrace ( );
-        }
+        mResource = new MangaResource (infoString);
     }
 
     private void onInitiation() {
@@ -100,11 +76,24 @@ public class PictureActivity extends AppCompatActivity {
         initImageBrowser ( );
         initAuthorInfo ( );
         initTagsArea ( );
+        initRecommendArea ( );
+    }
+
+    private void initRecommendArea() {
+        mRecommendArea = findViewById (R.id.independ_picture_recommend);
+        mRecommendContainer = findViewById (R.id.independ_picture_recommend_container);
+        mRecommendContainer.setBackgroundColor (getColor (R.color.colorBackground));
+
+        if (mResource.Recommend.length ( ) == 0) {
+            mRecommendArea.setVisibility (View.GONE);
+        } else {
+            NetApi.getResourceByIds (mResource.Recommend.toString ( ), this, "successGetRecommend");
+        }
     }
 
     private void initTagsArea() {
         mTagsArea = findViewById (R.id.sub_picture_tags);
-        mTagsArea.setText (String.join (", ", mTags));
+        mTagsArea.setText (String.join (", ", mResource.Tags));
     }
 
     public void successLike(Network.Response response) {
@@ -167,9 +156,16 @@ public class PictureActivity extends AppCompatActivity {
         }
     }
 
+    public void successGetRecommend(Network.Response response) {
+        Message message = mHandler.obtainMessage ( );
+        message.what = SubPictureHandler.LOAD_RECOMMEND;
+        message.obj = response.content;
+        mHandler.sendMessage (message);
+    }
+
     private void initImageBrowser() {
         mImageBrowser = findViewById (R.id.sub_picture_browser);
-        if (mThumbStatus == IMAGE_ALL_DOWNLOADED) {
+        if (mResource.ThumbStatus == IMAGE_ALL_DOWNLOADED) {
             mLoadViewBatchSize = 10;
             mImageBrowser.addOnPageChangeListener (new SubPageChangeListener ( ));
         }
@@ -182,11 +178,11 @@ public class PictureActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (!isLike) {
-                    NetApi.addLike (mApp.mUser.mUid, mResourceId, mContext, "successLike");
+                    NetApi.addLike (mApp.mUser.mUid, mResource.ResourceId, mContext, "successLike");
                     Toast.makeText (mContext, "已标记为喜欢", Toast.LENGTH_SHORT).show ( );
 
                 } else {
-                    NetApi.removeLike (mApp.mUser.mUid, mResourceId, mContext, "successRemoveLike");
+                    NetApi.removeLike (mApp.mUser.mUid, mResource.ResourceId, mContext, "successRemoveLike");
                     Toast.makeText (mContext, "已标记为不喜欢", Toast.LENGTH_SHORT).show ( );
                 }
             }
@@ -195,29 +191,29 @@ public class PictureActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (!isSubscribe) {
-                    NetApi.addSubscribe (mApp.mUser.mUid, mResourceId, mContext, "successSubscribe");
+                    NetApi.addSubscribe (mApp.mUser.mUid, mResource.ResourceId, mContext, "successSubscribe");
                     Toast.makeText (mContext, "已发送订阅请求", Toast.LENGTH_SHORT).show ( );
                 } else {
-                    NetApi.removeSubscribe (mApp.mUser.mUid, mResourceId, mContext, "successRemoveSubscribe");
+                    NetApi.removeSubscribe (mApp.mUser.mUid, mResource.ResourceId, mContext, "successRemoveSubscribe");
                     Toast.makeText (mContext, "已取消订阅", Toast.LENGTH_SHORT).show ( );
                 }
             }
         });
 
-        NetApi.isLike (mApp.mUser.mUid, mResourceId, mContext, "successIsLike");
-        NetApi.isSubscribe (mApp.mUser.mUid, mResourceId, mContext, "successIsSubscribe");
+        NetApi.isLike (mApp.mUser.mUid, mResource.ResourceId, mContext, "successIsLike");
+        NetApi.isSubscribe (mApp.mUser.mUid, mResource.ResourceId, mContext, "successIsSubscribe");
     }
 
     private List <View> getViews() {
         List <View> viewLists = new ArrayList <> ( );
-        int endIndex = (mImageNames.size ( ) < mLoadedViewIndex + mLoadViewBatchSize) ? mImageNames.size ( ) : mLoadedViewIndex + mLoadViewBatchSize;
+        int endIndex = (mResource.ImageNames.size ( ) < mLoadedViewIndex + mLoadViewBatchSize) ? mResource.ImageNames.size ( ) : mLoadedViewIndex + mLoadViewBatchSize;
         for (int index = mLoadedViewIndex; index < endIndex; index++) {
             ImageView imageView = new ImageView (this);
             imageView.setTag (index);
             SubPictureClickListener clickListener = new SubPictureClickListener ( );
             imageView.setOnClickListener (clickListener);
             imageView.setScaleType (android.widget.ImageView.ScaleType.FIT_CENTER);
-            imageView.setImageURL ("http://10.0.0.2:4396/gallery/" + mThumbId + "/" + mImageNames.get (index));
+            imageView.setImageURL ("http://10.0.0.2:4396/gallery/" + mResource.ThumbId + "/" + mResource.ImageNames.get (index));
             viewLists.add (imageView);
         }
         mIsLoading = false;
@@ -228,10 +224,10 @@ public class PictureActivity extends AppCompatActivity {
     private void initAuthorInfo() {
         ImageView cover = findViewById (R.id.sub_picture_cover);
         TextView title = findViewById (R.id.sub_picture_title);
-        title.setText (mTitle);
+        title.setText (mResource.Title);
         TextView artists = findViewById (R.id.sub_picture_artists);
-        artists.setText (String.join (", ", mArtists));
-        cover.setImageURL ("http://10.0.0.2:4396/gallery/" + mThumbId + "/" + mImageNames.get (0));
+        artists.setText (String.join (", ", mResource.Artists));
+        cover.setImageURL ("http://10.0.0.2:4396/gallery/" + mResource.ThumbId + "/" + mResource.ImageNames.get (0));
         cover.setScaleType (android.widget.ImageView.ScaleType.FIT_XY);
     }
 
@@ -240,9 +236,9 @@ public class PictureActivity extends AppCompatActivity {
         public void onClick(View v) {
             Intent intent = new Intent ( );
             intent.setClass (mContext, PicturePlayerActivity.class);
-            intent.putExtra ("imageNames", String.join (",", mImageNames));
-            intent.putExtra ("thumbId", mThumbId);
-            intent.putExtra ("thumbStatus", mThumbStatus);
+            intent.putExtra ("imageNames", String.join (",", mResource.ImageNames));
+            intent.putExtra ("thumbId", mResource.ThumbId);
+            intent.putExtra ("thumbStatus", mResource.ThumbStatus);
             mContext.startActivity (intent);
         }
     }
@@ -306,6 +302,8 @@ public class PictureActivity extends AppCompatActivity {
     static class SubPictureHandler extends Handler {
         static final int CHANGE_LIKE_BUTTON_STATUS = 100;
         static final int CHANGE_SUBSCRIBE_BUTTON_STATUS = 101;
+        static final int LOAD_RECOMMEND = 102;
+
         WeakReference <PictureActivity> mOuterClass;
 
         SubPictureHandler(PictureActivity pictureActivity) {
@@ -314,7 +312,7 @@ public class PictureActivity extends AppCompatActivity {
 
         @Override
         public void handleMessage(Message msg) {
-            PictureActivity pictureActivity = mOuterClass.get ( );
+            final PictureActivity pictureActivity = mOuterClass.get ( );
 
             if (msg.what == CHANGE_LIKE_BUTTON_STATUS) {
                 if ((boolean) msg.obj) {
@@ -331,6 +329,33 @@ public class PictureActivity extends AppCompatActivity {
                 } else {
                     pictureActivity.isSubscribe = false;
                     pictureActivity.mBrowserButtonSubScribe.setText (R.string.unsubscribe);
+                }
+            } else if (msg.what == LOAD_RECOMMEND) {
+                try {
+                    final JSONArray recommends = (JSONArray) msg.obj;
+                    for (int index = 0; index < recommends.length ( ); index++) {
+                        final JSONObject recommend = recommends.getJSONObject (index);
+                        MangaResource resource = new MangaResource (recommend);
+                        RoundedImageView imageView = new RoundedImageView (pictureActivity);
+                        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams (Tool.dip2px (pictureActivity, 100), LinearLayout.LayoutParams.MATCH_PARENT);
+                        imageView.setCornerSize (Tool.dip2px (pictureActivity, 10));
+                        layoutParams.setMargins (10, 10, 10, 10);
+                        imageView.setImageURL ("http://10.0.0.2:4396/gallery/" + resource.ThumbId + "/" + resource.ImageNames.get (0) + "?height=480&width=360");
+                        imageView.setLayoutParams (layoutParams);
+                        imageView.setTag (index);
+                        imageView.setOnClickListener (new View.OnClickListener ( ) {
+                            @Override
+                            public void onClick(View v) {
+                                Intent intent = new Intent ( );
+                                intent.setClass (pictureActivity, PictureActivity.class);
+                                intent.putExtra ("info", recommend.toString ( ));
+                                pictureActivity.startActivity (intent);
+                            }
+                        });
+                        pictureActivity.mRecommendContainer.addView (imageView);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace ( );
                 }
             }
         }

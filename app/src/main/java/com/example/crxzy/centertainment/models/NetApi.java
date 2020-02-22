@@ -5,6 +5,10 @@ import com.example.crxzy.centertainment.controllers.Subscribe;
 import com.example.crxzy.centertainment.controllers.main.picture.Latest;
 import com.example.crxzy.centertainment.tools.Network;
 
+import org.json.JSONArray;
+
+import java.util.List;
+
 public class NetApi {
     private static Network mNetwork = new Network ( );
     private final static String mHost = "http://10.0.0.2/CEntertainment/";
@@ -63,6 +67,12 @@ public class NetApi {
 
     public static void getSubscribe(int uid, Subscribe context, String success) {
         Network.Request getSubscribeRequest = new Network.Request (mHost + "User/getSubscribe.json?uid=" + uid);
+        getSubscribeRequest.setSuccess (context, success);
+        mNetwork.send (getSubscribeRequest);
+    }
+
+    public static void getResourceByIds(String resource_ids, Object context, String success) {
+        Network.Request getSubscribeRequest = new Network.Request (mHost + "Manga/getResourcesByIds.json?resource_ids=" + resource_ids);
         getSubscribeRequest.setSuccess (context, success);
         mNetwork.send (getSubscribeRequest);
     }

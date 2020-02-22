@@ -3,21 +3,29 @@ package com.example.crxzy.centertainment.views;
 import android.content.Context;
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.RotateAnimation;
+import android.view.animation.TranslateAnimation;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.ScrollView;
+import android.widget.TextView;
 
 import com.example.crxzy.centertainment.R;
 import com.example.crxzy.centertainment.tools.Tool;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class CardBox extends ScrollView {
+    public float mRefreshIconDragMaxDistance = 80;
+    public int mRefreshIconSize = 50;
+    public float mRefreshIconTrigger = 40;
     public Context mContext;
     private boolean mBlackSpace = false;
     public LinearLayout mContainer;
@@ -27,6 +35,14 @@ public class CardBox extends ScrollView {
     int mTopActiveElementIndex = 0;
     int mBottomActiveElementIndex = 0;
     Set <View> mActiveAreaElementSet = new HashSet <> ( );
+    float mTouchDownY = 0;
+    OnTopOverDragListener mTopOverDragListener;
+    private ImageView mRefreshIcon;
+    RelativeLayout.LayoutParams mRefreshIconParam;
+    private boolean isOverDragStart = false;
+    private float mLastY;
+    boolean mIsOpenTopOverDragListener = false;
+    OnOverDragRefreshListener mRefreshListener;
 
     public CardBox(Context context) {
         super (context);
@@ -36,7 +52,6 @@ public class CardBox extends ScrollView {
     public CardBox(Context context, AttributeSet attrs) {
         super (context, attrs);
         initCardBox (context);
-
     }
 
     public CardBox(Context context, AttributeSet attrs, int defStyle) {
@@ -46,35 +61,93 @@ public class CardBox extends ScrollView {
 
     private void initCardBox(Context context) {
         mContext = context;
+
+        RelativeLayout mMainView = new RelativeLayout (mContext);
+        RelativeLayout.LayoutParams mMainViewParam = new RelativeLayout.LayoutParams (RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+
+        mRefreshIcon = new ImageView (mContext);
+        mRefreshIconSize = Tool.dip2px (mContext, mRefreshIconSize);
+        mRefreshIconDragMaxDistance = Tool.dip2px (mContext, mRefreshIconDragMaxDistance);
+        mRefreshIconTrigger = Tool.dip2px (mContext, mRefreshIconTrigger);
+
+        int x = Tool.getScreenWidth (mContext) / 2 - mRefreshIconSize / 2;
+        mRefreshIconParam = new RelativeLayout.LayoutParams (mRefreshIconSize, mRefreshIconSize);
+        mRefreshIconParam.leftMargin = x;
+        mRefreshIconParam.topMargin = -mRefreshIconSize;
+        mRefreshIconParam.addRule (RelativeLayout.ALIGN_PARENT_TOP);
+        mRefreshIcon.setImageDrawable (mContext.getDrawable (R.drawable.ic_launcher_foreground));
+        mRefreshIcon.setLayoutParams (mRefreshIconParam);
+
         mContainer = new LinearLayout (mContext);
         LinearLayout.LayoutParams mContainerParam = new LinearLayout.LayoutParams (ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         mContainer.setLayoutParams (mContainerParam);
         mContainer.setOrientation (LinearLayout.VERTICAL);
         mContainer.setBackgroundColor (mContext.getColor (R.color.colorBackground));
-        addView (mContainer);
+
+        mMainView.setLayoutParams (mMainViewParam);
+        mMainView.addView (mContainer);
+        mMainView.addView (mRefreshIcon);
+
+        addView (mMainView);
         setOnScrollChangeListener (new MyScrollChangeListener ( ));
+        setOnTopOverDragListener (new MyTopOverDragListener ( ));
+        setOnOverDragRefreshListener (new MyRefreshListener ( ));
+    }
+
+    public void clearAll() {
+        mContainer.removeAllViews ( );
+    }
+
+    public void setIsOpenTopOverDragListener(boolean status) {
+        mIsOpenTopOverDragListener = status;
+        if (mIsOpenTopOverDragListener) {
+            setOverScrollMode (OVER_SCROLL_NEVER);
+        } else {
+            setOverScrollMode (OVER_SCROLL_ALWAYS);
+        }
     }
 
     public enum LayoutStyle {
         block, linearBlock
     }
 
-    class MyScrollChangeListener implements View.OnScrollChangeListener {
-        @Override
-        public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-            checkIsTouchBottom (scrollY);
-            updateTouchActiveArea ( );
-        }
+    @Override
+    public boolean performClick() {
+        return super.performClick ( );
+    }
 
-        private void checkIsTouchBottom(int scrollY) {
-            int itemBoxHeight = mContainer.getHeight ( );
-            int scrollViewHeight = getHeight ( );
-            if ((itemBoxHeight - scrollViewHeight - scrollY <= mTouchBottomDistance)) {
-                if (mTouchBottomListener != null) {
-                    mTouchBottomListener.OnTouchBottom ( );
-                }
+    @Override
+    public boolean onTouchEvent(MotionEvent ev) {
+        int action = ev.getAction ( );
+        float currentScrollY = getScrollY ( );
+        float currentY = ev.getRawY ( );
+        long intervalTime = ev.getEventTime ( );
+        float deltaY = currentY - mLastY;
+        float totalY = currentY - mTouchDownY;
+        if (mIsOpenTopOverDragListener && currentScrollY == 0 && totalY >= 0) {
+            switch (action) {
+                case MotionEvent.ACTION_MOVE:
+                    if (!isOverDragStart) {
+                        mLastY = mTouchDownY = ev.getRawY ( );
+                        mTopOverDragListener.OnOverDragStart ( );
+                        isOverDragStart = true;
+                    } else {
+                        mTopOverDragListener.OnOverDragDuration (deltaY, totalY, intervalTime);
+                        mLastY = currentY;
+                    }
+                    break;
+                case MotionEvent.ACTION_UP:
+                    isOverDragStart = false;
+                    mTopOverDragListener.OnOverDragEnd (ev.getRawY ( ) - mTouchDownY);
+                    mLastY = 0;
+                    mTouchDownY = 0;
+                    performClick ( );
+                    break;
             }
+            return true;
         }
+        return super.onTouchEvent (ev);
+
     }
 
     private void updateTouchActiveArea() {
@@ -191,21 +264,6 @@ public class CardBox extends ScrollView {
         void setInActiveAreaOperation(Set <View> viewSet);
     }
 
-    public void setOnActiveAreaChangedListener(OnActiveAreaChangedListener listener) {
-        mActiveAreaChangedListener = listener;
-    }
-
-    public interface OnTouchBottomListener {
-        float setDistance(float distance);
-
-        void OnTouchBottom();
-    }
-
-    public void setOnTouchBottomListener(OnTouchBottomListener listener) {
-        mTouchBottomDistance = listener.setDistance (mTouchBottomDistance);
-        mTouchBottomListener = listener;
-    }
-
     public void addItem(ItemBase item) {
         LayoutStyle layoutStyle = item.setLayoutStyle ( );
         switch (layoutStyle) {
@@ -235,4 +293,141 @@ public class CardBox extends ScrollView {
         mContainer.removeView (view);
     }
 
+    public void setOnActiveAreaChangedListener(OnActiveAreaChangedListener listener) {
+        mActiveAreaChangedListener = listener;
+    }
+
+    public void setOnTopOverDragListener(OnTopOverDragListener listener) {
+        mTopOverDragListener = listener;
+    }
+
+    public void setOnTouchBottomListener(OnTouchBottomListener listener) {
+        mTouchBottomDistance = listener.setDistance (mTouchBottomDistance);
+        mTouchBottomListener = listener;
+    }
+
+    public void setOnOverDragRefreshListener(OnOverDragRefreshListener listener) {
+        mRefreshListener = listener;
+    }
+
+    public interface OnTouchBottomListener {
+        float setDistance(float distance);
+
+        void OnTouchBottom();
+    }
+
+    public interface OnTopOverDragListener {
+        void OnOverDragStart();
+
+        void OnOverDragDuration(float deltaY, float totalY, long intervalTime);
+
+        void OnOverDragEnd(float endY);
+    }
+
+    public interface OnOverDragRefreshListener {
+        void OnRefresh();
+    }
+
+    class MyRefreshListener implements OnOverDragRefreshListener {
+
+        @Override
+        public void OnRefresh() {
+            playEndRefreshAnimation ( );
+        }
+    }
+
+    class MyScrollChangeListener implements View.OnScrollChangeListener {
+        @Override
+        public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
+            checkIsTouchBottom (scrollY);
+            updateTouchActiveArea ( );
+        }
+
+        private void checkIsTouchBottom(int scrollY) {
+            int itemBoxHeight = mContainer.getHeight ( );
+            int scrollViewHeight = getHeight ( );
+            if ((itemBoxHeight - scrollViewHeight - scrollY <= mTouchBottomDistance)) {
+                if (mTouchBottomListener != null) {
+                    mTouchBottomListener.OnTouchBottom ( );
+                }
+            }
+        }
+    }
+
+    class MyTopOverDragListener implements OnTopOverDragListener {
+        @Override
+        public void OnOverDragStart() {
+        }
+
+        @Override
+        public void OnOverDragDuration(float deltaY, float totalY, long intervalTime) {
+            if (mRefreshIconParam.topMargin < mRefreshIconDragMaxDistance) {
+                mRefreshIconParam.topMargin += deltaY * (1 - (mRefreshIconParam.topMargin + mRefreshIconSize) / (mRefreshIconSize + mRefreshIconDragMaxDistance));
+            } else {
+                return;
+            }
+            mRefreshIcon.setLayoutParams (mRefreshIconParam);
+            mRefreshIcon.invalidate ( );
+        }
+
+        @Override
+        public void OnOverDragEnd(float endY) {
+            if (mRefreshIconParam.topMargin > mRefreshIconTrigger) {
+                playRefreshingAnimation ( );
+                mRefreshListener.OnRefresh ( );
+            } else {
+                playEndRefreshAnimation ( );
+            }
+        }
+    }
+
+    public void playEndRefreshAnimation() {
+        TranslateAnimation animation = new TranslateAnimation (0, 0, 0, -mRefreshIconParam.topMargin - mRefreshIconSize);
+        animation.setDuration (200);
+        animation.setAnimationListener (new Animation.AnimationListener ( ) {
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                mRefreshIconParam.topMargin = -mRefreshIconSize;
+                mRefreshIcon.setLayoutParams (mRefreshIconParam);
+                mRefreshIcon.invalidate ( );
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+        mRefreshIcon.clearAnimation ();
+        mRefreshIcon.startAnimation (animation);
+    }
+
+    public void playRefreshingAnimation() {
+        TranslateAnimation animation = new TranslateAnimation (0, 0, 0, -mRefreshIconParam.topMargin + mRefreshIconTrigger);
+        animation.setDuration (200);
+        animation.setAnimationListener (new Animation.AnimationListener ( ) {
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                mRefreshIconParam.topMargin = (int) mRefreshIconTrigger;
+                mRefreshIcon.setLayoutParams (mRefreshIconParam);
+                mRefreshIcon.invalidate ( );
+                mRefreshIcon.clearAnimation ( );
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+        mRefreshIcon.startAnimation (animation);
+    }
 }
