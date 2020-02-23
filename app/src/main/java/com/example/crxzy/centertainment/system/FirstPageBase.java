@@ -1,33 +1,23 @@
 package com.example.crxzy.centertainment.system;
 
-import android.support.v7.app.AppCompatActivity;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.crxzy.centertainment.R;
 import com.example.crxzy.centertainment.tools.Tool;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 public class FirstPageBase extends PageBase {
     private LinearLayout mBottomNavArea;
-    private Map <String, Integer> mKey2Index = new HashMap <> ( );
     private Map <String, String[]> mSecondPageMap = new LinkedHashMap <> ( );
-    private Set <String> mAlreadyInitiation = new HashSet <> ( );
-    private int mCurrentSelectedPageIndex = 0;
 
-    public FirstPageBase(AppCompatActivity context, View view, QuickPageModel.Page pageModel) {
+    public FirstPageBase(ActivityBase context, View view, QuickPageModel.Page pageModel) {
         super (context, view, pageModel);
     }
 
@@ -36,39 +26,33 @@ public class FirstPageBase extends PageBase {
         initSecondPageMap (mSecondPageMap);
         if (mPageModel.mChildPages.size ( ) != 0) {
             loadBottomNav ( );
-            String firstPageName = mSecondPageMap.keySet ( ).iterator ( ).next ( );
-            selectPage (firstPageName);
+            selectPage (mPageModel.currentChildIndex);
         }
     }
 
     @Override
     public void onShow() {
-
+        mContext.setTitle (mPageModel.mPageName);
+        if (mPageModel.mChildPages.size ( ) == 0) {
+            mContext.mToolbar.setSubtitle (null);
+        }
     }
 
-    private void selectPage(String key) {
-        try {
-            if (!mAlreadyInitiation.contains (key)) {
-                Object controller = Objects.requireNonNull (mPageModel.mChildPages.get (key)).mController;
-                Method method = controller.getClass ( ).getMethod ("onInitiation");
-                method.invoke (controller);
-                mAlreadyInitiation.add (key);
-            }
-            ViewGroup view = mView.findViewById (Tool.getResId (mPageModel.mFileName + "_container", R.id.class));
-            view.removeAllViews ( );
-            view.addView (mPageModel.getChild (key).mView);
+    @Override
+    public void selectPage(int index) {
+        ViewGroup view = mView.findViewById (Tool.getResId (mPageModel.mFileName + "_container", R.id.class));
+        view.removeAllViews ( );
+        view.addView (mPageModel.getChild (index).mView);
 
-            ViewGroup currentSelectItem = (ViewGroup) mBottomNavArea.getChildAt (mCurrentSelectedPageIndex);
-            ((TextView) currentSelectItem.getChildAt (0)).setTextColor (mContext.getColor (R.color.colorText));
-            ((TextView) currentSelectItem.getChildAt (1)).setTextColor (mContext.getColor (R.color.colorText));
+        ViewGroup currentSelectItem = (ViewGroup) mBottomNavArea.getChildAt (mPageModel.currentChildIndex);
+        ((TextView) currentSelectItem.getChildAt (0)).setTextColor (mContext.getColor (R.color.colorText));
+        ((TextView) currentSelectItem.getChildAt (1)).setTextColor (mContext.getColor (R.color.colorText));
 
-            ViewGroup targetItem = (ViewGroup) mBottomNavArea.getChildAt (Objects.requireNonNull (mKey2Index.get (key)));
-            ((TextView) targetItem.getChildAt (0)).setTextColor (mContext.getColor (R.color.colorPrimaryDark));
-            ((TextView) targetItem.getChildAt (1)).setTextColor (mContext.getColor (R.color.colorPrimaryDark));
-            mCurrentSelectedPageIndex = Objects.requireNonNull (mKey2Index.get (key));
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace ( );
-        }
+        ViewGroup targetItem = (ViewGroup) mBottomNavArea.getChildAt (index);
+        ((TextView) targetItem.getChildAt (0)).setTextColor (mContext.getColor (R.color.colorPrimaryDark));
+        ((TextView) targetItem.getChildAt (1)).setTextColor (mContext.getColor (R.color.colorPrimaryDark));
+
+        super.selectPage (index);
 
     }
 
@@ -76,7 +60,8 @@ public class FirstPageBase extends PageBase {
         mBottomNavArea = mView.findViewById (Tool.getResId (mPageModel.mFileName + "_nav_area", R.id.class));//获取主页面底部导航栏容器
         int index = 0;
         for (String key : mSecondPageMap.keySet ( )) {
-            mKey2Index.put (key, index++);
+            mPageModel.setKeyIndex (key, index++);
+            mPageModel.getChild (key).setPageName (Objects.requireNonNull (mSecondPageMap.get (key))[1]);
             addBottomNavItem (key, Objects.requireNonNull (mSecondPageMap.get (key)));
         }
     }
@@ -132,7 +117,7 @@ public class FirstPageBase extends PageBase {
     class BottomNavItemClickListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
-            selectPage ((String) v.getTag ( ));
+            selectPage (mPageModel.getIndex ((String) v.getTag ( )));
         }
     }
 }

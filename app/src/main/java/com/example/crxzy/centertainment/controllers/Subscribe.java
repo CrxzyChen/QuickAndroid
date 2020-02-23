@@ -10,6 +10,7 @@ import com.example.crxzy.centertainment.PictureActivity;
 import com.example.crxzy.centertainment.R;
 import com.example.crxzy.centertainment.controllers.main.picture.Latest;
 import com.example.crxzy.centertainment.models.NetApi;
+import com.example.crxzy.centertainment.system.ActivityBase;
 import com.example.crxzy.centertainment.system.FirstPageBase;
 import com.example.crxzy.centertainment.system.PageBase;
 import com.example.crxzy.centertainment.system.QuickPageModel;
@@ -29,7 +30,7 @@ public class Subscribe extends FirstPageBase {
     private JSONArray mSubscribeInfo;
     private boolean mIsLoading = false;
 
-    public Subscribe(AppCompatActivity context, View view, QuickPageModel.Page pageModel) {
+    public Subscribe(ActivityBase context, View view, QuickPageModel.Page pageModel) {
         super (context, view, pageModel);
     }
 
@@ -100,6 +101,13 @@ public class Subscribe extends FirstPageBase {
                     if (!language.equals ("translated")) {
                         break;
                     }
+                }
+                if (language.equals ("english")) {
+                    mangaSelfCard.langFlag.setImageDrawable (mangaSelfCard.mContext.getDrawable (R.drawable.flag_en));
+                } else if (language.equals ("chinese")) {
+                    mangaSelfCard.langFlag.setImageDrawable (mangaSelfCard.mContext.getDrawable (R.drawable.flag_cn));
+                } else {
+                    mangaSelfCard.langFlag.setImageDrawable (mangaSelfCard.mContext.getDrawable (R.drawable.flag_jp));
                 }
                 int status = thumb.getInt ("status");
                 if (status == 0) {

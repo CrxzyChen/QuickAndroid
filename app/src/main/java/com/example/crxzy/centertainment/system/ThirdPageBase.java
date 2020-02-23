@@ -5,7 +5,7 @@ import android.view.View;
 
 public class ThirdPageBase extends PageBase {
 
-    public ThirdPageBase(AppCompatActivity context, View view, QuickPageModel.Page pageModel) {
+    public ThirdPageBase(ActivityBase context, View view, QuickPageModel.Page pageModel) {
         super (context, view, pageModel);
     }
 

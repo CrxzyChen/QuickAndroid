@@ -4,6 +4,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
 import com.example.crxzy.centertainment.R;
+import com.example.crxzy.centertainment.system.ActivityBase;
 import com.example.crxzy.centertainment.system.QuickPageModel;
 import com.example.crxzy.centertainment.system.ThirdPageBase;
 import com.example.crxzy.centertainment.tools.Network;
@@ -12,7 +13,7 @@ import com.example.crxzy.centertainment.views.MangaSelfCard;
 
 public class Recommend extends ThirdPageBase {
 
-    public Recommend(AppCompatActivity context, View view, QuickPageModel.Page pageModel) {
+    public Recommend(ActivityBase context, View view, QuickPageModel.Page pageModel) {
         super (context, view, pageModel);
     }
 

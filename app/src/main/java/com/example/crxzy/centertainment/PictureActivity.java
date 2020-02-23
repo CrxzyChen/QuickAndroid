@@ -15,6 +15,7 @@ import android.view.animation.LinearInterpolator;
 import android.widget.Button;
 import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -224,10 +225,18 @@ public class PictureActivity extends AppCompatActivity {
     private void initAuthorInfo() {
         ImageView cover = findViewById (R.id.sub_picture_cover);
         TextView title = findViewById (R.id.sub_picture_title);
+        android.widget.ImageView langFlag = findViewById (R.id.sub_picture_lang_flag);
+        if (mResource.Language.equals ("english")) {
+            langFlag.setImageDrawable (mContext.getDrawable (R.drawable.flag_en));
+        } else if (mResource.Language.equals ("chinese")) {
+            langFlag.setImageDrawable (mContext.getDrawable (R.drawable.flag_cn));
+        } else {
+            langFlag.setImageDrawable (mContext.getDrawable (R.drawable.flag_jp));
+        }
         title.setText (mResource.Title);
         TextView artists = findViewById (R.id.sub_picture_artists);
         artists.setText (String.join (", ", mResource.Artists));
-        cover.setImageURL ("http://10.0.0.2:4396/gallery/" + mResource.ThumbId + "/" + mResource.ImageNames.get (0));
+        cover.setImageURL ("http://10.0.0.2:4396/gallery/" + mResource.ThumbId + "/" + mResource.ImageNames.get (0)+"?height=480&width:360");
         cover.setScaleType (android.widget.ImageView.ScaleType.FIT_XY);
     }
 
@@ -336,10 +345,31 @@ public class PictureActivity extends AppCompatActivity {
                     for (int index = 0; index < recommends.length ( ); index++) {
                         final JSONObject recommend = recommends.getJSONObject (index);
                         MangaResource resource = new MangaResource (recommend);
+
+                        RelativeLayout recommendInfo = new RelativeLayout (pictureActivity);
+                        RelativeLayout.LayoutParams recommendInfoParam = new RelativeLayout.LayoutParams (Tool.dip2px (pictureActivity, 100), LinearLayout.LayoutParams.MATCH_PARENT);
+                        recommendInfoParam.setMargins (10, 10, 10, 10);
+                        recommendInfo.setLayoutParams (recommendInfoParam);
+
+                        ImageView langFlag = new ImageView (pictureActivity);
+                        RelativeLayout.LayoutParams langFlagParam = new RelativeLayout.LayoutParams (Tool.dip2px (pictureActivity, 20), Tool.dip2px (pictureActivity, 15));
+                        langFlagParam.addRule (RelativeLayout.ALIGN_PARENT_BOTTOM);
+                        langFlagParam.addRule (RelativeLayout.ALIGN_PARENT_RIGHT);
+                        langFlagParam.bottomMargin=Tool.dip2px (pictureActivity,5);
+                        langFlagParam.rightMargin=Tool.dip2px (pictureActivity,5);
+
+                        langFlag.setImageDrawable (pictureActivity.mContext.getDrawable (R.drawable.flag_cn));
+                        langFlag.setLayoutParams (langFlagParam);
+                        if (resource.Language.equals ("english")) {
+                            langFlag.setImageDrawable (pictureActivity.mContext.getDrawable (R.drawable.flag_en));
+                        } else if (resource.Language.equals ("chinese")) {
+                            langFlag.setImageDrawable (pictureActivity.mContext.getDrawable (R.drawable.flag_cn));
+                        } else {
+                            langFlag.setImageDrawable (pictureActivity.mContext.getDrawable (R.drawable.flag_jp));
+                        }
                         RoundedImageView imageView = new RoundedImageView (pictureActivity);
-                        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams (Tool.dip2px (pictureActivity, 100), LinearLayout.LayoutParams.MATCH_PARENT);
+                        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams (RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
                         imageView.setCornerSize (Tool.dip2px (pictureActivity, 10));
-                        layoutParams.setMargins (10, 10, 10, 10);
                         imageView.setImageURL ("http://10.0.0.2:4396/gallery/" + resource.ThumbId + "/" + resource.ImageNames.get (0) + "?height=480&width=360");
                         imageView.setLayoutParams (layoutParams);
                         imageView.setTag (index);
@@ -352,7 +382,10 @@ public class PictureActivity extends AppCompatActivity {
                                 pictureActivity.startActivity (intent);
                             }
                         });
-                        pictureActivity.mRecommendContainer.addView (imageView);
+
+                        recommendInfo.addView (imageView);
+                        recommendInfo.addView (langFlag);
+                        pictureActivity.mRecommendContainer.addView (recommendInfo);
                     }
                 } catch (JSONException e) {
                     e.printStackTrace ( );

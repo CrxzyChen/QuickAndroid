@@ -1,6 +1,8 @@
 package com.example.crxzy.centertainment.views;
 
 import android.content.Context;
+import android.media.Image;
+import android.text.Layout;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.TypedValue;
@@ -21,7 +23,7 @@ public class MangaSelfCard extends CardBox.BlockItem {
     public TextView pageCount;
     public TextView sourceTag;
     public TextView statusTag;
-
+    public ImageView langFlag;
     public MangaSelfCard(Context context) {
         super (context);
         drawView (context);
@@ -62,33 +64,42 @@ public class MangaSelfCard extends CardBox.BlockItem {
 
         LinearLayout leftImageInfo = new LinearLayout (context);
         LinearLayout.LayoutParams leftImageInfoParams = new LinearLayout.LayoutParams (0, LayoutParams.MATCH_PARENT);
-        leftImageInfoParams.weight = 2;
+        leftImageInfoParams.weight = 1;
         LinearLayout rightImageInfo = new LinearLayout (context);
         LinearLayout.LayoutParams rightImageInfoParams = new LinearLayout.LayoutParams (0, LayoutParams.MATCH_PARENT);
-        rightImageInfoParams.weight = 1;
+        rightImageInfoParams.weight = 2;
 
         //LeftImageInfo
-        TextView clicked = new TextView (context);
-        clicked.setText (context.getString (R.string.hot));
-        clicked.setPadding (10, 0, 10, 0);
-        clicked.setTextColor (context.getColor (R.color.white));
-        clickTime = new TextView (context);
-        clickTime.setTextColor (context.getColor (R.color.white));
+        //language_flag
+        langFlag = new ImageView (mContext);
+        LinearLayout.LayoutParams langFlagParam = new LinearLayout.LayoutParams (Tool.dip2px (mContext, 20), Tool.dip2px (mContext, 15));
+        langFlagParam.topMargin=Tool.dip2px (mContext,2);
+        langFlagParam.leftMargin=Tool.dip2px (mContext,10);
+        langFlag.setLayoutParams (langFlagParam);
+        leftImageInfo.addView (langFlag);
         leftImageInfo.setGravity (Gravity.START);
-        leftImageInfo.addView (clicked);
-        leftImageInfo.addView (clickTime);
         leftImageInfo.setLayoutParams (leftImageInfoParams);
 
         //RightImageInfo
+        TextView clicked = new TextView (context);
+        clicked.setText (context.getString (R.string.hot));
+        clicked.setPadding (Tool.dip2px (mContext,10), 0, 0, 0);
+        clicked.setTextColor (context.getColor (R.color.white));
+        clickTime = new TextView (context);
+        clickTime.setTextColor (context.getColor (R.color.white));
+
         TextView counter = new TextView (context);
         counter.setText (context.getText (R.string.counter));
         counter.setTextColor (context.getColor (R.color.white));
+        counter.setPadding (0,0,Tool.dip2px (mContext,10),0);
         pageCount = new TextView (context);
         pageCount.setTextColor (context.getColor (R.color.white));
-        pageCount.setPadding (10, 0, 10, 0);
+        pageCount.setPadding (Tool.dip2px (mContext,10),0,0,0);
         rightImageInfo.setGravity (Gravity.END);
-        rightImageInfo.addView (counter);
+        rightImageInfo.addView (clicked);
+        rightImageInfo.addView (clickTime);
         rightImageInfo.addView (pageCount);
+        rightImageInfo.addView (counter);
         rightImageInfo.setLayoutParams (rightImageInfoParams);
 
         //Merge left and right to ImageInfo

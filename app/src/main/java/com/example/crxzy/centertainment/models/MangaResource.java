@@ -19,6 +19,7 @@ public class MangaResource {
     public String Title;
     public String ResourceId;
     public JSONObject Info;
+    public String Language;
 
     public MangaResource(JSONObject resource) {
         Resource = resource;
@@ -46,6 +47,13 @@ public class MangaResource {
             Title = !Info.getString ("original_name").equals ("null") ? Info.getString ("original_name") : Info.getString ("name");
             ThumbId = Thumb.getString ("thumb_id");
             ThumbStatus = Thumb.getInt ("status");
+            JSONArray languages = Info.getJSONArray ("languages");
+            for (int index_2 = 0; index_2 < languages.length ( ); index_2++) {
+                Language = (String) languages.get (index_2);
+                if (!Language.equals ("translated")) {
+                    break;
+                }
+            }
             JSONArray recommends;
             if (Resource.has ("recommend")) {
                 recommends = Resource.getJSONArray ("recommend");

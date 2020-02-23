@@ -31,13 +31,11 @@ import java.util.Objects;
 
 public class SecondPageBase extends PageBase {
     private List <View> mSecondPageViewList = new ArrayList <> ( );//该一级页面下的二级页面视图List
-    private Map <Integer, String> mPos2Key = new LinkedHashMap <> ( );
     private ViewPager mViewPager;//一级页面中ViewPager视图
     private Map <String, String[]> mThirdPageMap = new LinkedHashMap <> ( );
     private ViewGroup mTopNavArea;
-    private int mCurrentSelectedPageIndex = 0;
 
-    public SecondPageBase(AppCompatActivity context, View view, QuickPageModel.Page pageModel) {
+    public SecondPageBase(ActivityBase context, View view, QuickPageModel.Page pageModel) {
         super (context, view, pageModel);
     }
 
@@ -48,13 +46,13 @@ public class SecondPageBase extends PageBase {
         if (mPageModel.mChildPages.size ( ) != 0) {
             loadTopNav ( );
             loadViewPager ( );
-            selectPage (mCurrentSelectedPageIndex);
+            selectPage (0);
         }
     }
 
     @Override
     public void onShow() {
-
+        mContext.mToolbar.setSubtitle (mPageModel.mPageName);
     }
 
     private void loadViewPager() {
@@ -80,17 +78,6 @@ public class SecondPageBase extends PageBase {
         @Override
         public Object instantiateItem(@NonNull ViewGroup container, int position) {
             container.addView (mSecondPageViewList.get (position)); //获取二级当前页面视图
-            Object controller = mPageModel.getChild (mPos2Key.get (position)).mController; //获取当前二级页面控制器
-//
-            /**
-             * 调用控制器二级内页面加载完毕后方法
-             */
-            try {
-                Method method = controller.getClass ( ).getDeclaredMethod ("onShow");
-                method.invoke (controller);
-            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace ( );
-            }
             return mSecondPageViewList.get (position);
         }
 
@@ -103,7 +90,6 @@ public class SecondPageBase extends PageBase {
     class SecondPagerChangeListener implements ViewPager.OnPageChangeListener {
         @Override
         public void onPageScrolled(int i, float v, int i1) {
-
         }
 
         @Override
@@ -122,8 +108,8 @@ public class SecondPageBase extends PageBase {
         int index = 0;
         for (String key : mThirdPageMap.keySet ( )) {
             addTopNavItem (index, Objects.requireNonNull (mThirdPageMap.get (key)));
-            mPos2Key.put (index, key);
-            index++;
+            mPageModel.getChild (key).setPageName (Objects.requireNonNull (mThirdPageMap.get (key))[0]);
+            mPageModel.setKeyIndex (key, index++);
         }
     }
 
@@ -142,15 +128,16 @@ public class SecondPageBase extends PageBase {
         textView.setOnClickListener (new TopNavItemClickListener ( ));
     }
 
-    private void selectPage(int index) {
+    @Override
+    public void selectPage(int index) {
         mViewPager.setCurrentItem (index);
 
-        TextView currentSelectItem = (TextView) mTopNavArea.getChildAt (mCurrentSelectedPageIndex);
+        TextView currentSelectItem = (TextView) mTopNavArea.getChildAt (mPageModel.currentChildIndex);
         currentSelectItem.setTextColor (mContext.getColor (R.color.colorText));
 
         TextView targetItem = (TextView) mTopNavArea.getChildAt (index);
         targetItem.setTextColor (mContext.getColor (R.color.colorPrimaryDark));
-        mCurrentSelectedPageIndex = index;
+        super.selectPage (index);
     }
 
     class TopNavItemClickListener implements View.OnClickListener {

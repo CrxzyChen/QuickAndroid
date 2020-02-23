@@ -5,8 +5,10 @@ import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
@@ -28,17 +30,16 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 abstract public class ActivityBase extends AppCompatActivity {
-    public Map <String, Integer> mKey2Index = new LinkedHashMap <> ( );
     public Context mContext;
     private DrawerLayout mMainLayout;
     public QuickPageModel mQuickPageModel;
     public QuickPageModel.Page mQuickPageModelRoot;
     public Map <String, String[]> mFirstPageMap = new LinkedHashMap <> ( );
     public Set <String> mAlreadyInitiation = new HashSet <> ( );
-    public int mCurrentSelectedPageIndex = 0;
     LinearLayout mLeftNavArea;
     RelativeLayout mLeftWindow;
     private boolean mBackKeyPressed = false;
+    public Toolbar mToolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,12 +56,11 @@ abstract public class ActivityBase extends AppCompatActivity {
         mQuickPageModel = new QuickPageModel (this, mFirstPageMap);
         mQuickPageModelRoot = mQuickPageModel.getRoot ( );
         loadLeftWindow ( );
-
-        String firstPageName = mFirstPageMap.keySet ( ).iterator ( ).next ( );
-        selectPage (firstPageName);
+        selectPage (0);
     }
 
-    private void selectPage(String key) {
+    public void selectPage(int index) {
+        String key = mQuickPageModelRoot.getKey (index);
         try {
             if (!mAlreadyInitiation.contains (key)) {
                 Object controller = Objects.requireNonNull (mQuickPageModelRoot.mChildPages.get (key)).mController;
@@ -73,17 +73,23 @@ abstract public class ActivityBase extends AppCompatActivity {
             relativeLayout.removeAllViews ( );
             relativeLayout.addView (Objects.requireNonNull (mQuickPageModelRoot.mChildPages.get (key)).mView);
 
-            ViewGroup currentSelectItem = (ViewGroup) mLeftNavArea.getChildAt (mCurrentSelectedPageIndex);
+            ViewGroup currentSelectItem = (ViewGroup) mLeftNavArea.getChildAt (mQuickPageModelRoot.currentChildIndex);
             ((TextView) currentSelectItem.getChildAt (0)).setTextColor (mContext.getColor (R.color.black));
             ((TextView) currentSelectItem.getChildAt (1)).setTextColor (mContext.getColor (R.color.black));
 
-            ViewGroup targetItem = (ViewGroup) mLeftNavArea.getChildAt (Objects.requireNonNull (mKey2Index.get (key)));
+            ViewGroup targetItem = (ViewGroup) mLeftNavArea.getChildAt (index);
             ((TextView) targetItem.getChildAt (0)).setTextColor (mContext.getColor (R.color.colorPrimaryDark));
             ((TextView) targetItem.getChildAt (1)).setTextColor (mContext.getColor (R.color.colorPrimaryDark));
-            mCurrentSelectedPageIndex = Objects.requireNonNull (mKey2Index.get (key));
+
+            mQuickPageModelRoot.currentChildIndex = index;
+
             if (mLeftWindow.getVisibility ( ) == View.VISIBLE) {
                 mMainLayout.closeDrawer (mLeftWindow);
             }
+
+            Object controller = Objects.requireNonNull (mQuickPageModelRoot.mChildPages.get (key)).mController;
+            Method method = controller.getClass ( ).getMethod ("show");
+            method.invoke (controller);
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace ( );
         }
@@ -94,7 +100,8 @@ abstract public class ActivityBase extends AppCompatActivity {
         mLeftNavArea = findViewById (R.id.root_layout_left_nav_area);
         int index = 0;
         for (String key : mFirstPageMap.keySet ( )) {
-            mKey2Index.put (key, index++);
+            mQuickPageModelRoot.setKeyIndex (key, index++);
+            mQuickPageModelRoot.getChild (key).setPageName (Objects.requireNonNull (mFirstPageMap.get (key))[1]);
             addSubPageNav (key, Objects.requireNonNull (mFirstPageMap.get (key)));
         }
     }
@@ -129,21 +136,15 @@ abstract public class ActivityBase extends AppCompatActivity {
     class LeftNavItemClickListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
-            selectPage ((String) v.getTag ( ));
+            selectPage (mQuickPageModelRoot.getIndex ((String) v.getTag ( )));
         }
     }
 
     protected abstract void initFirstPageMap(Map <String, String[]> quickLayoutMap);
 
-
     private void loadMainWindow() {
         mMainLayout = this.findViewById (R.id.root_layout);
-        Toolbar mToolbar = this.findViewById (R.id.root_toolbar);
-        mToolbar.setTitle ("Test Title");
-        mToolbar.setSubtitle ("This is substitle");
-        //toolbar.setLogo(R.drawable.ic_launcher); 可以在 Navigation后 设置一个 logo
-        mToolbar.setSubtitleTextColor (this.getColor (R.color.white)); //设置二级标题的颜色
-        mToolbar.setTitleTextColor (this.getColor (R.color.white)); //设置标题的颜色
+        mToolbar = this.findViewById (R.id.root_toolbar);
         setSupportActionBar (mToolbar);
         mToolbar.setNavigationIcon (R.drawable.ic_launcher_foreground);   //setNavigationIcon 需要放在 setSupportActionBar 之后才会生效。
         mToolbar.setNavigationOnClickListener (new View.OnClickListener ( ) {

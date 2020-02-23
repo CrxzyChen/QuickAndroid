@@ -23,9 +23,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class CardBox extends ScrollView {
-    public float mRefreshIconDragMaxDistance = 80;
+    public float mRefreshIconDragMaxDistance = 60;
     public int mRefreshIconSize = 50;
-    public float mRefreshIconTrigger = 40;
+    public float mRefreshIconTrigger = 30;
     public Context mContext;
     private boolean mBlackSpace = false;
     public LinearLayout mContainer;

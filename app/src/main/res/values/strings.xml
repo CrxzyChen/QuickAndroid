@@ -7,7 +7,7 @@
     <string name="class_one_personal">Personal</string>
     <string name="SM">test_1</string>
     <string name="hot">♨</string>
-    <string name="counter">№</string>
+    <string name="counter">P</string>
     <string name="tags">〓Tags</string>
     <string name="setting">⎔设置</string>
     <string name="theme">❐主题</string>
@@ -18,4 +18,5 @@
     <string name="subscribe">📰</string>
     <string name="unsubscribe">📮</string>
     <string name="recommend">〓Recommends</string>
+    <string name="lang_flag">langFlag</string>
 </resources>

@@ -68,11 +68,28 @@
                 android:layout_height="120dp"
                 android:orientation="horizontal">
 
-                <com.example.crxzy.centertainment.views.ImageView
-                    android:id="@+id/sub_picture_cover"
+                <RelativeLayout
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1" />
+                    android:layout_weight="1">
+
+                    <com.example.crxzy.centertainment.views.ImageView
+                        android:id="@+id/sub_picture_cover"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+
+                    <ImageView
+                        android:id="@+id/sub_picture_lang_flag"
+                        android:layout_width="20dp"
+                        android:layout_height="15dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_alignParentBottom="true"
+                        android:layout_marginEnd="5dp"
+                        android:layout_marginBottom="2dp"
+                        android:src="@drawable/flag_cn"
+                        android:contentDescription="@string/lang_flag" />
+                </RelativeLayout>
+
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -134,11 +151,11 @@
                     android:background="@color/colorPrimary">
 
                     <TextView
-                        android:paddingStart="5dp"
-                        android:paddingEnd="5dp"
                         android:layout_width="0dp"
                         android:layout_height="30dp"
                         android:layout_weight="4"
+                        android:paddingStart="5dp"
+                        android:paddingEnd="5dp"
                         android:text="@string/recommend"
                         android:textAlignment="viewStart"
                         android:textColor="@color/white"
@@ -155,7 +172,7 @@
                         android:id="@+id/independ_picture_recommend_container"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"/>
+                        android:orientation="horizontal" />
                 </HorizontalScrollView>
             </LinearLayout>
         </LinearLayout>

@@ -12,6 +12,7 @@ import android.widget.ScrollView;
 import com.example.crxzy.centertainment.PictureActivity;
 import com.example.crxzy.centertainment.R;
 import com.example.crxzy.centertainment.models.NetApi;
+import com.example.crxzy.centertainment.system.ActivityBase;
 import com.example.crxzy.centertainment.system.PageBase;
 import com.example.crxzy.centertainment.system.QuickPageModel;
 import com.example.crxzy.centertainment.system.ThirdPageBase;
@@ -40,14 +41,14 @@ public class Latest extends ThirdPageBase {
     private boolean mIsLoading = false;
     private Set <View> mInactivateErrorSet;
 
-    public Latest(AppCompatActivity context, View view, QuickPageModel.Page pageModel) {
+    public Latest(ActivityBase context, View view, QuickPageModel.Page pageModel) {
         super (context, view, pageModel);
     }
 
 
     @Override
-    public void onShow() {
-        mCardBox = mContext.findViewById (R.id.picture_last_card_box);
+    public void onInitiation() {
+        mCardBox = mView.findViewById (R.id.picture_last_card_box);
         mCardBox.setOnTouchBottomListener (new CardBoxOnTouchBottomListener ( ));
         mCardBox.setOnActiveAreaChangedListener (new CardBoxOnActiveAreaChangedListener ( ));
         mCardBox.setIsOpenTopOverDragListener (true);
@@ -149,6 +150,13 @@ public class Latest extends ThirdPageBase {
                     JSONArray languages = info.getJSONArray ("languages");
                     String language = getLanguage (languages);
                     normalItem.clickTime.setText (Objects.requireNonNull (Integer.toString (clickedTimes)));
+                    if (language.equals ("english")) {
+                        normalItem.langFlag.setImageDrawable (latest.mContext.getDrawable (R.drawable.flag_en));
+                    } else if (language.equals ("chinese")) {
+                        normalItem.langFlag.setImageDrawable (latest.mContext.getDrawable (R.drawable.flag_cn));
+                    } else {
+                        normalItem.langFlag.setImageDrawable (latest.mContext.getDrawable (R.drawable.flag_jp));
+                    }
                     final String tagsString = item.getString ("source") + "." + language;
                     normalItem.sourceTag.setText (tagsString);
                     int status = thumb.getInt ("status");
