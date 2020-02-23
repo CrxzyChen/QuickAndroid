@@ -3,18 +3,15 @@ package com.example.crxzy.centertainment.views;
 import android.content.Context;
 import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
-import android.view.animation.RotateAnimation;
 import android.view.animation.TranslateAnimation;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
-import android.widget.TextView;
 
 import com.example.crxzy.centertainment.R;
 import com.example.crxzy.centertainment.tools.Tool;
@@ -23,9 +20,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class CardBox extends ScrollView {
-    public float mRefreshIconDragMaxDistance = 60;
+    public float mRefreshIconDragMaxDistance = 40;
     public int mRefreshIconSize = 50;
-    public float mRefreshIconTrigger = 30;
+    public float mRefreshIconTrigger = 0;
     public Context mContext;
     private boolean mBlackSpace = false;
     public LinearLayout mContainer;

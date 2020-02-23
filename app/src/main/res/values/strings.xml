@@ -19,4 +19,9 @@
     <string name="unsubscribe">📮</string>
     <string name="recommend">〓Recommends</string>
     <string name="lang_flag">langFlag</string>
+    <string name="icon_search">➢</string>
+    <string name="search_content">search content</string>
+    <string name="mail">＠</string>
+    <string name="folder">⇩</string>
+    <string name="head_blank">☰</string>
 </resources>

@@ -1,22 +1,14 @@
 package com.example.crxzy.centertainment.system;
 
-import android.support.v7.app.AppCompatActivity;
 import android.util.SparseArray;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.crxzy.centertainment.R;
-import com.example.crxzy.centertainment.tools.Tool;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -32,6 +24,7 @@ public class QuickPageModel {
     public class Page {
         int currentChildIndex = 0;
         int mPageLevel = 0;
+        boolean isInitiation = false;
         String mFileName;
         String mPageName;
         Page mParent;

@@ -4,23 +4,96 @@
     android:id="@+id/root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
-        <android.support.v7.widget.Toolbar
+
+        <LinearLayout
             android:id="@+id/root_toolbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/colorPrimaryDark"
-            android:minHeight="?attr/actionBarSize"
-            android:popupTheme="@style/ThemeOverlay.AppCompat.Dark"
-            app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
+            android:layout_height="50dp"
+            android:background="@color/colorPrimaryDark">
+
+            <LinearLayout
+                android:id="@+id/root_toolbar_navigation_icon"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="6">
+<!---->
+                <TextView
+                    android:layout_width="40dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="-20dp"
+                    android:gravity="center"
+                    android:text="@string/head_blank"
+                    android:textColor="@color/white"
+                    android:textSize="20sp" />
+<!---->
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginEnd="20dp"
+                    android:background="@drawable/ic_launcher_foreground" />
+            </LinearLayout>
+<!---->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="20"
+                android:orientation="horizontal">
+<!---->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:layout_weight="14"
+                    android:background="@drawable/toolbar_search"
+                    android:orientation="horizontal">
+<!---->
+                    <TextView
+                        android:layout_width="40dp"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="@string/icon_search"
+                        android:textColor="@color/colorBackground" />
+<!---->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center_vertical"
+                        android:text="@string/search_content"
+                        android:textColor="@color/colorBackground" />
+                </LinearLayout>
+<!---->
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="3"
+                    android:gravity="center"
+                    android:text="@string/folder"
+                    android:textColor="@color/white"
+                    android:textSize="20sp" />
+<!---->
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="3"
+                    android:gravity="center"
+                    android:text="@string/mail"
+                    android:textColor="@color/white"
+                    android:textSize="20sp" />
+            </LinearLayout>
+<!---->
+        </LinearLayout>
+
         <RelativeLayout
             android:id="@+id/root_container"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-        </RelativeLayout>
+            android:layout_height="match_parent" />
     </LinearLayout>
 
 

@@ -31,6 +31,7 @@ import java.util.TimerTask;
 
 abstract public class ActivityBase extends AppCompatActivity {
     public Context mContext;
+    public boolean mIsAutoTitle = true;
     private DrawerLayout mMainLayout;
     public QuickPageModel mQuickPageModel;
     public QuickPageModel.Page mQuickPageModelRoot;
@@ -39,7 +40,7 @@ abstract public class ActivityBase extends AppCompatActivity {
     LinearLayout mLeftNavArea;
     RelativeLayout mLeftWindow;
     private boolean mBackKeyPressed = false;
-    public Toolbar mToolbar;
+    public LinearLayout mToolbar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,13 +63,6 @@ abstract public class ActivityBase extends AppCompatActivity {
     public void selectPage(int index) {
         String key = mQuickPageModelRoot.getKey (index);
         try {
-            if (!mAlreadyInitiation.contains (key)) {
-                Object controller = Objects.requireNonNull (mQuickPageModelRoot.mChildPages.get (key)).mController;
-                Method method = controller.getClass ( ).getMethod ("onInitiation");
-                method.invoke (controller);
-                mAlreadyInitiation.add (key);
-            }
-
             RelativeLayout relativeLayout = findViewById (R.id.root_container);
             relativeLayout.removeAllViews ( );
             relativeLayout.addView (Objects.requireNonNull (mQuickPageModelRoot.mChildPages.get (key)).mView);
@@ -87,9 +81,20 @@ abstract public class ActivityBase extends AppCompatActivity {
                 mMainLayout.closeDrawer (mLeftWindow);
             }
 
-            Object controller = Objects.requireNonNull (mQuickPageModelRoot.mChildPages.get (key)).mController;
-            Method method = controller.getClass ( ).getMethod ("show");
-            method.invoke (controller);
+            if (!mAlreadyInitiation.contains (key)) {
+                QuickPageModel.Page child = Objects.requireNonNull (mQuickPageModelRoot.mChildPages.get (key));
+                Object controller = child.mController;
+                Method method = controller.getClass ( ).getMethod ("onInitiation");
+                method.invoke (controller);
+                method = controller.getClass ( ).getMethod ("show");
+                method.invoke (controller);
+                mAlreadyInitiation.add (key);
+            } else {
+                Object controller = Objects.requireNonNull (mQuickPageModelRoot.mChildPages.get (key)).mController;
+                Method method = controller.getClass ( ).getMethod ("show");
+                method.invoke (controller);
+            }
+
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace ( );
         }
@@ -133,6 +138,16 @@ abstract public class ActivityBase extends AppCompatActivity {
         item.setOnClickListener (new LeftNavItemClickListener ( ));
     }
 
+    public void setAutoTitle(boolean status) {
+        if (!status) {
+            setTitle (null);
+            mIsAutoTitle = false;
+        } else {
+            mIsAutoTitle = true;
+        }
+
+    }
+
     class LeftNavItemClickListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
@@ -145,14 +160,13 @@ abstract public class ActivityBase extends AppCompatActivity {
     private void loadMainWindow() {
         mMainLayout = this.findViewById (R.id.root_layout);
         mToolbar = this.findViewById (R.id.root_toolbar);
-        setSupportActionBar (mToolbar);
-        mToolbar.setNavigationIcon (R.drawable.ic_launcher_foreground);   //setNavigationIcon 需要放在 setSupportActionBar 之后才会生效。
-        mToolbar.setNavigationOnClickListener (new View.OnClickListener ( ) {
+        mToolbar.getChildAt (0).setOnClickListener (new View.OnClickListener ( ) {
             @Override
             public void onClick(View v) {
                 mMainLayout.openDrawer (Gravity.START);
             }
         });
+
     }
 
     @Override

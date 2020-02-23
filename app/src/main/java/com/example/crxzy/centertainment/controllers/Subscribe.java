@@ -63,6 +63,11 @@ public class Subscribe extends FirstPageBase {
         });
     }
 
+    public void onShow() {
+        mContext.setAutoTitle (true);
+        super.onShow ();
+    }
+
     class CardBoxOnOverDragRefresh implements CardBox.OnOverDragRefreshListener {
         @Override
         public void OnRefresh() {
@@ -179,7 +184,7 @@ public class Subscribe extends FirstPageBase {
             if (msg.what == LOAD_SUBSCRIBE) {
                 subscribe.mSubscribeInfo = ((JSONArray) ((Network.Response) msg.obj).content);
                 subscribe.addItem ( );
-                subscribe.mViewContainer.playEndRefreshAnimation ();
+                subscribe.mViewContainer.playEndRefreshAnimation ( );
             }
         }
     }

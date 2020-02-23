@@ -1,6 +1,7 @@
 package com.example.crxzy.centertainment.controllers.main.picture;
 
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 
 import com.example.crxzy.centertainment.R;
@@ -18,7 +19,7 @@ public class Recommend extends ThirdPageBase {
     }
 
     @Override
-    public void onShow() {
+    public void onInitiation() {
         Network network = new Network ( );
         Network.Request request = network.InstanceRequest ("http://10.0.0.2/CEntertainment/Manga/Latest.json?limit=10");
         request.setSuccess (this, "success");
@@ -29,7 +30,6 @@ public class Recommend extends ThirdPageBase {
         MangaSelfCard normalItem2 = new MangaSelfCard (mContext);
         itemBox.addItem (normalItem2);
     }
-
 
     public void success(Network.Response response) {
     }

@@ -1,6 +1,5 @@
 package com.example.crxzy.centertainment.controllers;
 
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
 import com.example.crxzy.centertainment.system.ActivityBase;
@@ -13,6 +12,16 @@ public class Main extends FirstPageBase {
 
     public Main(ActivityBase context, View view, QuickPageModel.Page pageModel) {
         super (context, view, pageModel);
+    }
+
+    @Override
+    public void onInitiation() {
+        super.onInitiation ();
+    }
+
+    @Override
+    public void onShow() {
+        mContext.setAutoTitle(false);
     }
 
     @Override

@@ -32,9 +32,10 @@ public class FirstPageBase extends PageBase {
 
     @Override
     public void onShow() {
-        mContext.setTitle (mPageModel.mPageName);
-        if (mPageModel.mChildPages.size ( ) == 0) {
-            mContext.mToolbar.setSubtitle (null);
+        if (mContext.mIsAutoTitle) {
+            mContext.setTitle (mPageModel.mPageName);
+            if (mPageModel.mChildPages.size ( ) == 0) {
+            }
         }
     }
 
