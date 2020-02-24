@@ -1,4 +1,4 @@
-package com.example.crxzy.centertainment;
+package com.example.crxzy.centertainment.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,20 +8,18 @@ import android.support.annotation.NonNull;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.LinearInterpolator;
 import android.widget.Button;
-import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.crxzy.centertainment.R;
 import com.example.crxzy.centertainment.models.MangaResource;
 import com.example.crxzy.centertainment.models.NetApi;
+import com.example.crxzy.centertainment.system.MainApplication;
 import com.example.crxzy.centertainment.tools.Network;
 import com.example.crxzy.centertainment.tools.Tool;
 import com.example.crxzy.centertainment.views.ImageView;

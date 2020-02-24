@@ -60,7 +60,7 @@ public class CardBox extends ScrollView {
         mContext = context;
 
         RelativeLayout mMainView = new RelativeLayout (mContext);
-        RelativeLayout.LayoutParams mMainViewParam = new RelativeLayout.LayoutParams (RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+        RelativeLayout.LayoutParams mMainViewParam = new RelativeLayout.LayoutParams (RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
 
         mRefreshIcon = new ImageView (mContext);
         mRefreshIconSize = Tool.dip2px (mContext, mRefreshIconSize);
@@ -76,11 +76,10 @@ public class CardBox extends ScrollView {
         mRefreshIcon.setLayoutParams (mRefreshIconParam);
 
         mContainer = new LinearLayout (mContext);
-        LinearLayout.LayoutParams mContainerParam = new LinearLayout.LayoutParams (ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams mContainerParam = new LinearLayout.LayoutParams (ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        mContainer.setMinimumHeight (mRefreshIconSize+(int)mRefreshIconDragMaxDistance);
         mContainer.setLayoutParams (mContainerParam);
         mContainer.setOrientation (LinearLayout.VERTICAL);
-        mContainer.setBackgroundColor (mContext.getColor (R.color.colorBackground));
-
         mMainView.setLayoutParams (mMainViewParam);
         mMainView.addView (mContainer);
         mMainView.addView (mRefreshIcon);
@@ -144,7 +143,6 @@ public class CardBox extends ScrollView {
             return true;
         }
         return super.onTouchEvent (ev);
-
     }
 
     private void updateTouchActiveArea() {
@@ -379,6 +377,12 @@ public class CardBox extends ScrollView {
     }
 
     public void playEndRefreshAnimation() {
+        if(mRefreshIcon.getAnimation ()!=null&&!mRefreshIcon.getAnimation ().hasEnded ()){
+            mRefreshIcon.getAnimation ().getStartTime ();
+            mRefreshIconParam.topMargin = (int) mRefreshIconTrigger;
+            mRefreshIcon.setLayoutParams (mRefreshIconParam);
+            mRefreshIcon.invalidate ( );
+        }
         TranslateAnimation animation = new TranslateAnimation (0, 0, 0, -mRefreshIconParam.topMargin - mRefreshIconSize);
         animation.setDuration (200);
         animation.setAnimationListener (new Animation.AnimationListener ( ) {
@@ -392,6 +396,7 @@ public class CardBox extends ScrollView {
                 mRefreshIconParam.topMargin = -mRefreshIconSize;
                 mRefreshIcon.setLayoutParams (mRefreshIconParam);
                 mRefreshIcon.invalidate ( );
+                mRefreshIcon.clearAnimation ( );
             }
 
             @Override
@@ -399,12 +404,13 @@ public class CardBox extends ScrollView {
 
             }
         });
-        mRefreshIcon.clearAnimation ();
         mRefreshIcon.startAnimation (animation);
     }
 
     public void playRefreshingAnimation() {
+        mRefreshIcon.clearAnimation ( );
         TranslateAnimation animation = new TranslateAnimation (0, 0, 0, -mRefreshIconParam.topMargin + mRefreshIconTrigger);
+
         animation.setDuration (200);
         animation.setAnimationListener (new Animation.AnimationListener ( ) {
             @Override
@@ -417,7 +423,6 @@ public class CardBox extends ScrollView {
                 mRefreshIconParam.topMargin = (int) mRefreshIconTrigger;
                 mRefreshIcon.setLayoutParams (mRefreshIconParam);
                 mRefreshIcon.invalidate ( );
-                mRefreshIcon.clearAnimation ( );
             }
 
             @Override

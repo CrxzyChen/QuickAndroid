@@ -2,15 +2,13 @@ package com.example.crxzy.centertainment.controllers;
 
 import android.content.Intent;
 import android.os.Message;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.ViewTreeObserver;
 
-import com.example.crxzy.centertainment.PictureActivity;
+import com.example.crxzy.centertainment.activities.PictureActivity;
 import com.example.crxzy.centertainment.R;
-import com.example.crxzy.centertainment.controllers.main.picture.Latest;
 import com.example.crxzy.centertainment.models.NetApi;
-import com.example.crxzy.centertainment.system.ActivityBase;
+import com.example.crxzy.centertainment.system.MainActivity;
 import com.example.crxzy.centertainment.system.FirstPageBase;
 import com.example.crxzy.centertainment.system.PageBase;
 import com.example.crxzy.centertainment.system.QuickPageModel;
@@ -30,8 +28,8 @@ public class Subscribe extends FirstPageBase {
     private JSONArray mSubscribeInfo;
     private boolean mIsLoading = false;
 
-    public Subscribe(ActivityBase context, View view, QuickPageModel.Page pageModel) {
-        super (context, view, pageModel);
+    public Subscribe(MainActivity activity,  QuickPageModel.Page pageModel) {
+        super (activity,  pageModel);
     }
 
     @Override
@@ -61,11 +59,7 @@ public class Subscribe extends FirstPageBase {
                 }
             }
         });
-    }
-
-    public void onShow() {
-        mContext.setAutoTitle (true);
-        super.onShow ();
+        mViewContainer.playRefreshingAnimation ();
     }
 
     class CardBoxOnOverDragRefresh implements CardBox.OnOverDragRefreshListener {
@@ -97,7 +91,7 @@ public class Subscribe extends FirstPageBase {
                 JSONObject thumb = item.getJSONObject ("thumb");
                 JSONArray image_names = thumb.getJSONArray ("image_names");
                 String name = (!"null".equals (info.getString ("original_name"))) ? info.getString ("original_name") : info.getString ("name");
-                final MangaSelfCard mangaSelfCard = new MangaSelfCard (mContext);
+                final MangaSelfCard mangaSelfCard = new MangaSelfCard (mActivity);
                 mangaSelfCard.title.setText (name);
                 JSONArray languages = info.getJSONArray ("languages");
                 String language = null;
@@ -108,11 +102,11 @@ public class Subscribe extends FirstPageBase {
                     }
                 }
                 if (language.equals ("english")) {
-                    mangaSelfCard.langFlag.setImageDrawable (mangaSelfCard.mContext.getDrawable (R.drawable.flag_en));
+                    mangaSelfCard.langFlag.setImageDrawable (mActivity.getDrawable (R.drawable.flag_en));
                 } else if (language.equals ("chinese")) {
-                    mangaSelfCard.langFlag.setImageDrawable (mangaSelfCard.mContext.getDrawable (R.drawable.flag_cn));
+                    mangaSelfCard.langFlag.setImageDrawable (mActivity.getDrawable (R.drawable.flag_cn));
                 } else {
-                    mangaSelfCard.langFlag.setImageDrawable (mangaSelfCard.mContext.getDrawable (R.drawable.flag_jp));
+                    mangaSelfCard.langFlag.setImageDrawable (mActivity.getDrawable (R.drawable.flag_jp));
                 }
                 int status = thumb.getInt ("status");
                 if (status == 0) {
@@ -161,9 +155,9 @@ public class Subscribe extends FirstPageBase {
                 int clickedTimes = Integer.parseInt ((String) mNormalItem.clickTime.getText ( )) + 1;
                 mNormalItem.clickTime.setText ((String) Integer.toString (clickedTimes));
                 Intent intent = new Intent ( );
-                intent.setClass (mContext, PictureActivity.class);
+                intent.setClass (mActivity, PictureActivity.class);
                 intent.putExtra ("info", mItem.toString ( ));
-                mContext.startActivity (intent);
+                mActivity.startActivity (intent);
             } catch (JSONException e) {
                 e.printStackTrace ( );
             }

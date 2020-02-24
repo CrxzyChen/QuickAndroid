@@ -1,4 +1,4 @@
-package com.example.crxzy.centertainment;
+package com.example.crxzy.centertainment.activities;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -19,6 +19,7 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.example.crxzy.centertainment.R;
 import com.example.crxzy.centertainment.tools.Network;
 import com.example.crxzy.centertainment.tools.Tool;
 

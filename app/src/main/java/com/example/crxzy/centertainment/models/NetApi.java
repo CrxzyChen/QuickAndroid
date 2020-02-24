@@ -1,13 +1,9 @@
 package com.example.crxzy.centertainment.models;
 
-import com.example.crxzy.centertainment.PictureActivity;
+import com.example.crxzy.centertainment.activities.PictureActivity;
 import com.example.crxzy.centertainment.controllers.Subscribe;
 import com.example.crxzy.centertainment.controllers.main.picture.Latest;
 import com.example.crxzy.centertainment.tools.Network;
-
-import org.json.JSONArray;
-
-import java.util.List;
 
 public class NetApi {
     private static Network mNetwork = new Network ( );

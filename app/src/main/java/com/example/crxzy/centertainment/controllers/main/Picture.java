@@ -1,22 +1,19 @@
 package com.example.crxzy.centertainment.controllers.main;
 
-import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.view.View;
-
-import com.example.crxzy.centertainment.system.ActivityBase;
+import com.example.crxzy.centertainment.system.MainActivity;
 import com.example.crxzy.centertainment.system.QuickPageModel;
 import com.example.crxzy.centertainment.system.SecondPageBase;
 
 import java.util.Map;
 
 public class Picture extends SecondPageBase {
-    public Picture(ActivityBase context, View view, QuickPageModel.Page pageModel) {
-        super (context, view, pageModel);
+    public Picture(MainActivity context, QuickPageModel.Page pageModel) {
+        super (context, pageModel);
     }
+
     @Override
-    public void initThirdPageMap(Map <String, String[]> mThirdPageMap) {
-        mThirdPageMap.put ("latest",new String[]{"最新"});
-        mThirdPageMap.put ("recommend",new String[]{"推荐"});
+    public void setPageMap(Map <String, String[]> mThirdPageMap) {
+        mThirdPageMap.put ("latest", new String[]{"最新"});
+        mThirdPageMap.put ("recommend", new String[]{"推荐"});
     }
 }

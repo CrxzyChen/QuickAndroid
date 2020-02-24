@@ -1,11 +1,7 @@
 package com.example.crxzy.centertainment.controllers.main.picture;
 
-import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.view.View;
-
 import com.example.crxzy.centertainment.R;
-import com.example.crxzy.centertainment.system.ActivityBase;
+import com.example.crxzy.centertainment.system.MainActivity;
 import com.example.crxzy.centertainment.system.QuickPageModel;
 import com.example.crxzy.centertainment.system.ThirdPageBase;
 import com.example.crxzy.centertainment.tools.Network;
@@ -14,8 +10,8 @@ import com.example.crxzy.centertainment.views.MangaSelfCard;
 
 public class Recommend extends ThirdPageBase {
 
-    public Recommend(ActivityBase context, View view, QuickPageModel.Page pageModel) {
-        super (context, view, pageModel);
+    public Recommend(MainActivity activity, QuickPageModel.Page pageModel) {
+        super (activity,  pageModel);
     }
 
     @Override
@@ -24,10 +20,10 @@ public class Recommend extends ThirdPageBase {
         Network.Request request = network.InstanceRequest ("http://10.0.0.2/CEntertainment/Manga/Latest.json?limit=10");
         request.setSuccess (this, "success");
         network.send (request);
-        CardBox itemBox = (CardBox) mContext.findViewById (R.id.picture_recommend_card_box);
-        MangaSelfCard normalItem = new MangaSelfCard (mContext);
+        CardBox itemBox = (CardBox) mActivity.findViewById (R.id.picture_recommend_card_box);
+        MangaSelfCard normalItem = new MangaSelfCard (mActivity);
         itemBox.addItem (normalItem);
-        MangaSelfCard normalItem2 = new MangaSelfCard (mContext);
+        MangaSelfCard normalItem2 = new MangaSelfCard (mActivity);
         itemBox.addItem (normalItem2);
     }
 

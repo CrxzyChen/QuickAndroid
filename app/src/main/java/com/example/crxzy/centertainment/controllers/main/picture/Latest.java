@@ -1,35 +1,26 @@
 package com.example.crxzy.centertainment.controllers.main.picture;
 
 import android.content.Intent;
-import android.os.Handler;
 import android.os.Message;
-import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.widget.ScrollView;
 
-import com.example.crxzy.centertainment.PictureActivity;
+import com.example.crxzy.centertainment.activities.PictureActivity;
 import com.example.crxzy.centertainment.R;
 import com.example.crxzy.centertainment.models.NetApi;
-import com.example.crxzy.centertainment.system.ActivityBase;
+import com.example.crxzy.centertainment.system.MainActivity;
 import com.example.crxzy.centertainment.system.PageBase;
 import com.example.crxzy.centertainment.system.QuickPageModel;
 import com.example.crxzy.centertainment.system.ThirdPageBase;
 import com.example.crxzy.centertainment.tools.Network;
 import com.example.crxzy.centertainment.views.CardBox;
-import com.example.crxzy.centertainment.views.ImageView;
 import com.example.crxzy.centertainment.views.MangaSelfCard;
-import com.example.crxzy.centertainment.views.RoundedImageView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.ref.WeakReference;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -42,8 +33,8 @@ public class Latest extends ThirdPageBase {
     private boolean mIsLoading = false;
     private Set <View> mInactivateErrorSet;
 
-    public Latest(ActivityBase context, View view, QuickPageModel.Page pageModel) {
-        super (context, view, pageModel);
+    public Latest(MainActivity activity, QuickPageModel.Page pageModel) {
+        super (activity, pageModel);
     }
 
     @Override
@@ -53,8 +44,29 @@ public class Latest extends ThirdPageBase {
         mCardBox.setOnActiveAreaChangedListener (new CardBoxOnActiveAreaChangedListener ( ));
         mCardBox.setIsOpenTopOverDragListener (true);
         mCardBox.setOnOverDragRefreshListener (new CardBoxOnOverDragRefresh ( ));
-        mLoadingItem = new CardBox.LinearBlockItem (mContext);
-        NetApi.getLatest (mLimit, 0, this, "addRequestSuccess");
+        mLoadingItem = new CardBox.LinearBlockItem (mActivity);
+        NetApi.getLatest (mLimit, 0, Latest.this, "addRequestSuccess");
+        mCardBox.playRefreshingAnimation ( );
+//        final boolean[] isDescriptionListenerAdded = {false};
+//        final ViewTreeObserver.OnDrawListener a = new ViewTreeObserver.OnDrawListener ( ) {
+//            @Override
+//            public void onDraw() {
+//                NetApi.getLatest (mLimit, 0, Latest.this, "addRequestSuccess");
+//                mCardBox.playRefreshingAnimation ( );
+//                isDescriptionListenerAdded[0] = true;
+//            }
+//
+//        };
+//        mView.getViewTreeObserver ().addOnDrawListener (a);
+//        mView.getViewTreeObserver ( ).addOnGlobalLayoutListener (new ViewTreeObserver.OnGlobalLayoutListener ( ) {
+//            @Override
+//            public void onGlobalLayout() {
+//                if (isDescriptionListenerAdded[0]) {
+//                    mView.getViewTreeObserver ( ).removeOnDrawListener (a);
+//                }
+//            }
+//        });
+
         this.mHandler = new PictureLatestHandler (this);
     }
 
@@ -145,17 +157,17 @@ public class Latest extends ThirdPageBase {
                     JSONObject thumb = item.getJSONObject ("thumb");
                     JSONArray image_names = thumb.getJSONArray ("image_names");
                     String name = (!"null".equals (info.getString ("original_name"))) ? info.getString ("original_name") : info.getString ("name");
-                    final MangaSelfCard normalItem = new MangaSelfCard (latest.mContext);
+                    final MangaSelfCard normalItem = new MangaSelfCard (latest.mActivity);
                     normalItem.title.setText (name);
                     JSONArray languages = info.getJSONArray ("languages");
                     String language = getLanguage (languages);
                     normalItem.clickTime.setText (Objects.requireNonNull (Integer.toString (clickedTimes)));
                     if (language.equals ("english")) {
-                        normalItem.langFlag.setImageDrawable (latest.mContext.getDrawable (R.drawable.flag_en));
+                        normalItem.langFlag.setImageDrawable (latest.mActivity.getDrawable (R.drawable.flag_en));
                     } else if (language.equals ("chinese")) {
-                        normalItem.langFlag.setImageDrawable (latest.mContext.getDrawable (R.drawable.flag_cn));
+                        normalItem.langFlag.setImageDrawable (latest.mActivity.getDrawable (R.drawable.flag_cn));
                     } else {
-                        normalItem.langFlag.setImageDrawable (latest.mContext.getDrawable (R.drawable.flag_jp));
+                        normalItem.langFlag.setImageDrawable (latest.mActivity.getDrawable (R.drawable.flag_jp));
                     }
                     final String tagsString = item.getString ("source") + "." + language;
                     normalItem.sourceTag.setText (tagsString);
@@ -219,9 +231,9 @@ public class Latest extends ThirdPageBase {
                     mNormalItem.clickTime.setText ((String) Integer.toString (clickedTimes));
 
                     Intent intent = new Intent ( );
-                    intent.setClass (mLatest.mContext, PictureActivity.class);
+                    intent.setClass (mLatest.mActivity, PictureActivity.class);
                     intent.putExtra ("info", mItem.toString ( ));
-                    mLatest.mContext.startActivity (intent);
+                    mLatest.mActivity.startActivity (intent);
                 } catch (JSONException e) {
                     e.printStackTrace ( );
                 }

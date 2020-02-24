@@ -1,12 +1,16 @@
 package com.example.crxzy.centertainment.system;
 
-import android.support.v7.app.AppCompatActivity;
-import android.view.View;
+import java.util.Map;
 
 public class ThirdPageBase extends PageBase {
 
-    public ThirdPageBase(ActivityBase context, View view, QuickPageModel.Page pageModel) {
-        super (context, view, pageModel);
+    public ThirdPageBase(MainActivity activity, QuickPageModel.Page pageModel) {
+        super (activity, pageModel);
+    }
+
+    @Override
+    public void setPageMap(Map <String, String[]> pageMap) {
+
     }
 
 

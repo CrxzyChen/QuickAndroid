@@ -2,6 +2,5 @@
 <com.example.crxzy.centertainment.views.CardBox xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/subscribe_container"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical" />
+    android:layout_height="match_parent"/>
 

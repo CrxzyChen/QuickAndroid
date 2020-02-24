@@ -9,37 +9,47 @@ import com.example.crxzy.centertainment.R;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 public class QuickPageModel {
-    private Page mRoot = new Page (0, "root", "root", null, R.layout.root);
-    private ActivityBase mContext;
+    public static final int HEADER_MODEL_NONE = 0;
+    public static final int HEADER_MODEL_INHERIT = 1;
+
+    private Page mRoot = new Page (0, "index", "index", null, Setting.autoload.layout);
+    private MainActivity mActivity;
+    private List <String[]> mHeaderResourceList = new ArrayList <> ( );
 
     Page getRoot() {
         return mRoot;
     }
 
     public class Page {
+        int mResId;
+        int mPageLevel;
         int currentChildIndex = 0;
-        int mPageLevel = 0;
-        boolean isInitiation = false;
+        int mHeaderModel = HEADER_MODEL_INHERIT;
+        boolean isInitialize = false;
         String mFileName;
         String mPageName;
-        Page mParent;
-        int mResId;
-        View mView;
+        String mAliasName;
         String mControllerClassName;
         String mControllerProtoClassName;
+        View mView;
+        View mHeader;
         Object mController;
+        Page mParent;
         Map <String, Page> mChildPages = new HashMap <> ( );
         private Map <String, Integer> mKeyToIndex = new HashMap <> ( );
         private SparseArray <String> mIndexToKey = new SparseArray <> ( );
 
         Page(int pageLevel, String pageName, String fileName, Page parent, int resId) {
             mPageLevel = pageLevel;
-            mPageName = pageName;
+            mAliasName = mPageName = pageName;
             mFileName = fileName;
             mResId = resId;
             mParent = parent;
@@ -53,13 +63,15 @@ public class QuickPageModel {
             System.arraycopy (mFileNameArray, 0, targetClassNameList, currentClassNameList.length - 1, mFileNameArray.length);
 
             mControllerClassName = String.join (".", targetClassNameList);
-            if (mPageLevel == 1) {
+            if (mPageLevel == 0) {
+                currentClassNameList[currentClassNameList.length - 1] = "ZeroPageBase";
+                mControllerProtoClassName = String.join (".", currentClassNameList);
+            } else if (mPageLevel == 1) {
                 currentClassNameList[currentClassNameList.length - 1] = "FirstPageBase";
                 mControllerProtoClassName = String.join (".", currentClassNameList);
             } else if (mPageLevel == 2) {
                 currentClassNameList[currentClassNameList.length - 1] = "SecondPageBase";
                 mControllerProtoClassName = String.join (".", currentClassNameList);
-
             } else if (mPageLevel == 3) {
                 currentClassNameList[currentClassNameList.length - 1] = "ThirdPageBase";
                 mControllerProtoClassName = String.join (".", currentClassNameList);
@@ -79,36 +91,43 @@ public class QuickPageModel {
         }
 
         void loadView() {
-            mView = LayoutInflater.from (mContext).inflate (mResId, null);
+            if (mPageName.equals ("index")) {
+                mView = mActivity.getWindow ( ).getDecorView ( );
+            } else {
+                mView = LayoutInflater.from (mActivity).inflate (mResId, null);
+            }
             for (String key : mChildPages.keySet ( )) {
                 Objects.requireNonNull (mChildPages.get (key)).loadView ( );
             }
         }
 
-        void loadController(Page page) throws ClassNotFoundException {
-            if (!mFileName.equals ("root")) {
-                Class _class = null;
+        void loadController() {
+            try {
+                Constructor constructor;
                 try {
-                    _class = Class.forName (mControllerClassName);
+                    Class <?> _class = Class.forName (mControllerClassName);
+                    constructor = _class.getConstructor (MainActivity.class, Page.class);
                 } catch (ClassNotFoundException e) {
-                    _class = Class.forName (mControllerProtoClassName);
+                    Class <?> _class = Class.forName (mControllerProtoClassName);
+                    constructor = _class.getConstructor (MainActivity.class, Page.class);
                 }
-                try {
-                    Constructor constructor = _class.getConstructor (ActivityBase.class, View.class, Page.class);
-                    mController = constructor.newInstance (mContext, mView, page);
-                } catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
-                    e.printStackTrace ( );
-                }
+                mController = constructor.newInstance (mActivity, this);
+            } catch (InstantiationException | NoSuchMethodException | IllegalAccessException | InvocationTargetException | ClassNotFoundException e) {
+                e.printStackTrace ( );
             }
 
-
             for (String key : mChildPages.keySet ( )) {
-                Objects.requireNonNull (mChildPages.get (key)).loadController (mChildPages.get (key));
+                Objects.requireNonNull (mChildPages.get (key)).loadController ( );
             }
         }
 
-        void setPageName(String pageName) {
-            mPageName = pageName;
+        void loadPageMap() {
+            int index = 0;
+            for (String key : ((PageBase) this.mController).mPageMap.keySet ( )) {
+                setKeyIndex (key, index++);
+                this.getChild (key).mAliasName = Objects.requireNonNull (((PageBase) this.mController).mPageMap.get (key))[0];
+                this.getChild (key).loadPageMap ( );
+            }
         }
 
         void setKeyIndex(String key, int index) {
@@ -123,37 +142,60 @@ public class QuickPageModel {
         int getIndex(String tag) {
             return Objects.requireNonNull (mKeyToIndex.get (tag));
         }
+
+        void loadHeader() {
+            for (String[] headerResource : mHeaderResourceList) {
+                int resId = Integer.parseInt (headerResource[0]);
+                Page page = mRoot;
+                if (headerResource.length == 1) {
+                    page.mHeader = LayoutInflater.from (mActivity).inflate (resId, null);
+                } else {
+                    for (int index = 1; index < headerResource.length; index++) {
+                        if (page.mChildPages.keySet ( ).contains (headerResource[index])) {
+                            page = page.getChild (headerResource[index]);
+                            if (index == headerResource.length - 1) {
+                                page.mHeader = LayoutInflater.from (mActivity).inflate (resId, null);
+                            }
+                        } else {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
     }
 
-    QuickPageModel(ActivityBase context, Map <String, String[]> firstPageMap) {
-        mContext = context;
+    QuickPageModel(MainActivity activity) {
+        mActivity = activity;
         R.layout layout = new R.layout ( );
         Field[] fields = R.layout.class.getDeclaredFields ( );
-        for (int i = 0, j = 0; i < fields.length; i++) {
-            String fileName = fields[i].getName ( );
+        for (Field field : fields) {
+            String fileName = field.getName ( );
             String[] filenameList = fileName.split ("_");
             try {
-                if (firstPageMap.keySet ( ).contains (filenameList[0])) {
-                    int resId = (int) fields[i].get (layout);
-                    if (filenameList.length == 1) {
-                        mRoot.addChild (fileName, new Page (1, fileName, fileName, mRoot, resId));
-                    } else if (filenameList.length == 2) {
-                        Objects.requireNonNull (mRoot.getChild (filenameList[0])).addChild (filenameList[1], new Page (2, filenameList[1], fileName, mRoot.getChild (filenameList[0]), resId));
-                    } else if (filenameList.length == 3) {
-                        Objects.requireNonNull (mRoot.getChild (filenameList[0])).getChild (filenameList[1]).addChild (filenameList[2], new Page (3, filenameList[2], fileName, mRoot.getChild (filenameList[0]).getChild (filenameList[1]), resId))
-                        ;
+                if (filenameList[0].equals (Setting.autoload.keyword.header)) {
+                    int resId = (int) field.get (layout);
+                    filenameList[0] = Integer.toString (resId);
+                    mHeaderResourceList.add (filenameList);
+                } else if (Arrays.asList (Setting.autoload.keyword.page).contains (filenameList[0])) {
+                    int resId = (int) field.get (layout);
+                    Page page = mRoot;
+                    for (int index = 0; index < filenameList.length; index++) {
+                        if (index == filenameList.length - 1) {
+                            page.addChild (filenameList[index], new Page (index + 1, filenameList[index], fileName, page, resId));
+                        }
+                        page = page.getChild (filenameList[index]);
                     }
                 }
             } catch (IllegalAccessException e) {
                 e.printStackTrace ( );
             }
         }
-        try {
-            mRoot.loadView ( );
-            mRoot.loadController (mRoot);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace ( );
-        }
+        mRoot.loadView ( );
+        mRoot.loadController ( );
+        mRoot.loadPageMap ( );
+        mRoot.loadHeader ( );
     }
 
 }

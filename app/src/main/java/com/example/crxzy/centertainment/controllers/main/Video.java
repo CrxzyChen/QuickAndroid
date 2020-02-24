@@ -1,18 +1,14 @@
 package com.example.crxzy.centertainment.controllers.main;
 
-import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.view.View;
-
-import com.example.crxzy.centertainment.system.ActivityBase;
+import com.example.crxzy.centertainment.system.MainActivity;
 import com.example.crxzy.centertainment.system.QuickPageModel;
 import com.example.crxzy.centertainment.system.SecondPageBase;
 
 import java.util.Map;
 
 public class Video extends SecondPageBase {
-    public Video(ActivityBase context, View view, QuickPageModel.Page pageModel) {
-        super (context, view, pageModel);
+    public Video(MainActivity activity, QuickPageModel.Page pageModel) {
+        super (activity, pageModel);
     }
 
     public void initThirdPageMap(Map <String, String[]> mThirdPageMap) {
