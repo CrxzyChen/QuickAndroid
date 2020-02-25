@@ -423,6 +423,7 @@ public class CardBox extends ScrollView {
                 mRefreshIconParam.topMargin = (int) mRefreshIconTrigger;
                 mRefreshIcon.setLayoutParams (mRefreshIconParam);
                 mRefreshIcon.invalidate ( );
+                mRefreshIcon.clearAnimation ( );
             }
 
             @Override

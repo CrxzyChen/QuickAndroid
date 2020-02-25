@@ -11,7 +11,8 @@ public class Video extends SecondPageBase {
         super (activity, pageModel);
     }
 
-    public void initThirdPageMap(Map <String, String[]> mThirdPageMap) {
+    @Override
+    public void setPageMap(Map <String, String[]> mThirdPageMap) {
         mThirdPageMap.put ("latest", new String[]{"最新"});
         mThirdPageMap.put ("recommend", new String[]{"推荐"});
     }

@@ -27,6 +27,7 @@ public class ZeroPageBase extends PageBase {
     public void onInitiation() {
         loadMainWindow ( );
         loadLeftWindow ( );
+        mPageModel.isInitialize=true;
         selectPage (0);
     }
 
@@ -48,14 +49,7 @@ public class ZeroPageBase extends PageBase {
         if (mLeftWindow.getVisibility ( ) == View.VISIBLE) {
             mMainLayout.closeDrawer (mLeftWindow);
         }
-
-        if (!mPageModel.getChild (index).isInitialize) {
-            super.selectPage (index);
-            ((PageBase)mPageModel.getChild (index).mController).show ( );
-            showHeader ( );
-        } else {
-            super.selectPage (index);
-        }
+        super.selectPage (index);
     }
 
     @Override

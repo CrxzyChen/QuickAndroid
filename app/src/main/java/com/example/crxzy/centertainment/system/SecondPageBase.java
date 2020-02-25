@@ -95,9 +95,8 @@ public class SecondPageBase extends PageBase {
 
     private void loadTopNav() {
         mTopNavArea = mView.findViewById (Tool.getResId (mPageModel.mFileName + "_nav_area", R.id.class));//获取主页面底部导航栏容器
-        int index = 0;
         for (String key : mPageMap.keySet ( )) {
-            addTopNavItem (index, Objects.requireNonNull (mPageMap.get (key)));
+            addTopNavItem (mPageModel.getIndex (key), Objects.requireNonNull (mPageMap.get (key)));
         }
     }
 
@@ -130,7 +129,7 @@ public class SecondPageBase extends PageBase {
 
     class TopNavItemClickListener implements View.OnClickListener {
         @Override
-        public void onClick(View v) {
+        public void onClick(@NonNull View v) {
             selectPage ((int) v.getTag ( ));
         }
     }

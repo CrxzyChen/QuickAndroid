@@ -168,18 +168,17 @@ public class QuickPageModel {
 
     QuickPageModel(MainActivity activity) {
         mActivity = activity;
-        R.layout layout = new R.layout ( );
         Field[] fields = R.layout.class.getDeclaredFields ( );
         for (Field field : fields) {
             String fileName = field.getName ( );
             String[] filenameList = fileName.split ("_");
             try {
                 if (filenameList[0].equals (Setting.autoload.keyword.header)) {
-                    int resId = (int) field.get (layout);
+                    int resId = (int) field.get (null);
                     filenameList[0] = Integer.toString (resId);
                     mHeaderResourceList.add (filenameList);
                 } else if (Arrays.asList (Setting.autoload.keyword.page).contains (filenameList[0])) {
-                    int resId = (int) field.get (layout);
+                    int resId = (int) field.get (null);
                     Page page = mRoot;
                     for (int index = 0; index < filenameList.length; index++) {
                         if (index == filenameList.length - 1) {

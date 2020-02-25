@@ -37,8 +37,8 @@ abstract public class PageBase {
     }
 
     public void show() {
+        onShow ( );
         try {
-
             if (mPageModel.mChildPages.size ( ) != 0) {
                 QuickPageModel.Page child = mPageModel.getChild (mPageModel.currentChildIndex);
                 Object controller = child.mController;
@@ -48,7 +48,6 @@ abstract public class PageBase {
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace ( );
         }
-        onShow ( );
     }
 
     public void setHeader(View header) {
@@ -62,11 +61,12 @@ abstract public class PageBase {
                 Method method = controller.getClass ( ).getMethod ("onInitiation");
                 method.invoke (controller);
                 mPageModel.getChild (index).isInitialize = true;
-            } else {
+            }
+            if (mPageModel.isInitialize) {
                 Method method = controller.getClass ( ).getMethod ("show");
                 method.invoke (controller);
-                showHeader ( );
             }
+            showHeader ( );
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace ( );
         }
