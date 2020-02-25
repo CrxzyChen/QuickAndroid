@@ -24,4 +24,14 @@
     <string name="mail">＠</string>
     <string name="folder">⇩</string>
     <string name="head_blank">☰</string>
+    <string name="true_icon">✔</string>
+    <string name="string_include">Include</string>
+    <string name="string_filter">Filter</string>
+    <string name="false_icon">✘</string>
+    <string name="stringenglish">English</string>
+    <string name="string_english">English</string>
+    <string name="string_japanese">Japanese</string>
+    <string name="string_chinese">Chinese</string>
+    <string name="string_language">Language</string>
+    <string name="string_find_more">Find More</string>
 </resources>
