@@ -8,17 +8,15 @@ import android.widget.LinearLayout;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 abstract public class PageBase {
     public final MainActivity mActivity; //主Activity实列
     protected View mView;//当前控制器对应一级页面视图
-    QuickPageModel.Page mPageModel;
-    public Map <String, String[]> mPageMap = new LinkedHashMap <> ( );
+    public QuickPageModel.Page mPageModel;
+    Map <String, String[]> mPageMap = new LinkedHashMap <> ( );
     public MainApplication mApp;
 
 
@@ -50,7 +48,10 @@ abstract public class PageBase {
         }
     }
 
-    public void setHeader(View header) {
+    public void onHeaderInitialize(View header) {
+    }
+
+    public void onHeaderShow(View header) {
     }
 
     public void selectPage(int index) {
@@ -65,20 +66,25 @@ abstract public class PageBase {
             if (mPageModel.isInitialize) {
                 Method method = controller.getClass ( ).getMethod ("show");
                 method.invoke (controller);
+                showHeader ( );
             }
-            showHeader ( );
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace ( );
         }
 
     }
 
-    public void showHeader() {
+    private void showHeader() {
         QuickPageModel.Page pageOwner = getHeader ( );
         if (pageOwner != null) {
             try {
-                Method method = pageOwner.mController.getClass ( ).getMethod ("setHeader", View.class);
+                if (!pageOwner.isHeaderInitialize) {
+                    Method method = pageOwner.mController.getClass ( ).getMethod ("onHeaderInitialize", View.class);
+                    method.invoke (pageOwner.mController, pageOwner.mHeader);
+                }
+                Method method = pageOwner.mController.getClass ( ).getMethod ("onHeaderShow", View.class);
                 method.invoke (pageOwner.mController, pageOwner.mHeader);
+
                 LinearLayout.LayoutParams headerParam = new LinearLayout.LayoutParams (LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
                 mActivity.mRootPage.mToolbarContainer.removeAllViews ( );
                 mActivity.mRootPage.mToolbarContainer.addView (pageOwner.mHeader, headerParam);

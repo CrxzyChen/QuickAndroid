@@ -23,7 +23,7 @@ public class Index extends ZeroPageBase {
     }
 
     @Override
-    public void setHeader(View header) {
+    public void onHeaderInitialize(View header) {
         mActivity.setSupportActionBar ((android.support.v7.widget.Toolbar) header);
         ((Toolbar) header).setNavigationOnClickListener (new Toolbar.OnClickListener ( ) {
             @Override
@@ -31,5 +31,9 @@ public class Index extends ZeroPageBase {
                 mMainLayout.openDrawer (Gravity.START);
             }
         });
+    }
+    @Override public void onHeaderShow(View header){
+        QuickPageModel.Page rootPage = mActivity.mRootPage.mPageModel;
+        ((Toolbar) header).setTitle (rootPage.getChild (rootPage.currentChildIndex).mAliasName);
     }
 }

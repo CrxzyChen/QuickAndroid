@@ -31,12 +31,13 @@ public class QuickPageModel {
     public class Page {
         int mResId;
         int mPageLevel;
-        int currentChildIndex = 0;
+        public int currentChildIndex = 0;
         int mHeaderModel = HEADER_MODEL_INHERIT;
         boolean isInitialize = false;
+        boolean isHeaderInitialize = false;
         String mFileName;
         String mPageName;
-        String mAliasName;
+        public String mAliasName;
         String mControllerClassName;
         String mControllerProtoClassName;
         View mView;
@@ -78,17 +79,26 @@ public class QuickPageModel {
             }
         }
 
-        Page getChild(int index) {
+        public Page getChild(int index) {
             return getChild (mIndexToKey.get (index));
+        }
+
+        public Page getChild(String key) {
+            return mChildPages.get (key);
+        }
+
+        public String getKey(int index) {
+            return Objects.requireNonNull (mIndexToKey.get (index));
+        }
+
+        public int getIndex(String tag) {
+            return Objects.requireNonNull (mKeyToIndex.get (tag));
         }
 
         void addChild(String key, Page page) {
             mChildPages.put (key, page);
         }
 
-        Page getChild(String key) {
-            return mChildPages.get (key);
-        }
 
         void loadView() {
             if (mPageName.equals ("index")) {
@@ -135,13 +145,6 @@ public class QuickPageModel {
             mIndexToKey.put (index, key);
         }
 
-        String getKey(int index) {
-            return Objects.requireNonNull (mIndexToKey.get (index));
-        }
-
-        int getIndex(String tag) {
-            return Objects.requireNonNull (mKeyToIndex.get (tag));
-        }
 
         void loadHeader() {
             for (String[] headerResource : mHeaderResourceList) {

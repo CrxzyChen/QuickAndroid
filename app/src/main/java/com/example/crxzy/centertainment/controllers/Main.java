@@ -22,13 +22,18 @@ public class Main extends FirstPageBase {
     }
 
     @Override
-    public void setHeader(View header) {
+    public void onHeaderInitialize(View header) {
         ((LinearLayout) header).getChildAt (0).setOnClickListener (new View.OnClickListener ( ) {
             @Override
             public void onClick(View v) {
                 mActivity.mRootPage.mMainLayout.openDrawer (Gravity.START);
             }
         });
+    }
+
+    @Override
+    public void onHeaderShow(View header) {
+
     }
 
     @Override
