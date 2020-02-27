@@ -22,8 +22,8 @@ public class FlowLayout extends ViewGroup {
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         int childCount = getChildCount ( );
-        int x = 0;
-        int y = 0;
+        int x = getPaddingStart ();
+        int y = getPaddingTop ();
         int lineHeight = 0;
 
         for (int index = 0; index < childCount; index++) {
@@ -35,7 +35,7 @@ public class FlowLayout extends ViewGroup {
 
             if (width + x > getWidth ( )) {
                 y += lineHeight;
-                x = 0;
+                x = getPaddingStart ();
                 lineHeight = 0;
             }
             view.layout (x + lp.leftMargin, y + lp.topMargin, x + lp.leftMargin + width, y + lp.topMargin + height);
@@ -54,12 +54,12 @@ public class FlowLayout extends ViewGroup {
         int heightMode = MeasureSpec.getMode (heightMeasureSpec);
         int heightSize = MeasureSpec.getSize (heightMeasureSpec);
 
-        if (heightMode == MeasureSpec.AT_MOST) {
+        if (heightMode == MeasureSpec.AT_MOST || heightMode == MeasureSpec.UNSPECIFIED) {
             switch (widthMode) {
-                case MeasureSpec.UNSPECIFIED:
                 case MeasureSpec.EXACTLY:
-                    setMeasuredDimension (widthSize, calculateHeight (getMinimumHeight ( ), widthSize));
+                    setMeasuredDimension (widthSize, calculateHeight (getMinimumHeight ( ), widthSize) + getPaddingTop ( ) + getPaddingBottom ( ));
                     break;
+                case MeasureSpec.UNSPECIFIED:
                 case MeasureSpec.AT_MOST:
                     break;
             }
@@ -71,24 +71,18 @@ public class FlowLayout extends ViewGroup {
         int y = 0;
         int lineHeight = 0;
         int childCount = getChildCount ( );
-        boolean isNewLine = false;
         for (int index = 0; index < childCount; index++) {
             View view = getChildAt (index);
             MarginLayoutParams lp = (MarginLayoutParams) view.getLayoutParams ( );
             int height = lp.topMargin + view.getMeasuredHeight ( ) + lp.bottomMargin;
             int width = lp.leftMargin + view.getMeasuredWidth ( ) + lp.rightMargin;
-            if (isNewLine) {
+            if (width + x > widthSize - getPaddingStart ( ) - getPaddingEnd ( )) {
+                x = 0;
+                y += lineHeight;
                 lineHeight = 0;
-                isNewLine = false;
             }
             lineHeight = Math.max (lineHeight, height);
-            if (width + x < widthSize) {
-                x += width;
-            } else {
-                x = width;
-                y += lineHeight;
-                isNewLine = true;
-            }
+            x += width;
         }
         y += lineHeight;
         return Math.max (y, defaultHeightSize);

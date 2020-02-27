@@ -20,6 +20,9 @@ public class MangaResource {
     public String ResourceId;
     public JSONObject Info;
     public String Language;
+    public Integer clickedTimes;
+    public String Source;
+    public int PageCount;
 
     public MangaResource(JSONObject resource) {
         Resource = resource;
@@ -41,12 +44,19 @@ public class MangaResource {
             ImageNames = new ArrayList <> ( );
             Artists = new ArrayList <> ( );
             Tags = new ArrayList <> ( );
+            Source = Resource.getString ("source");
             ResourceId = Resource.getJSONObject ("_id").getString ("$oid");
             Thumb = Resource.getJSONObject ("thumb");
             Info = Resource.getJSONObject ("info");
             Title = !Info.getString ("original_name").equals ("null") ? Info.getString ("original_name") : Info.getString ("name");
+            PageCount = Integer.parseInt (Info.getString ("page"));
             ThumbId = Thumb.getString ("thumb_id");
             ThumbStatus = Thumb.getInt ("status");
+            if (Resource.has ("clicked")) {
+                clickedTimes = Resource.getInt ("clicked");
+            } else {
+                clickedTimes = 0;
+            }
             JSONArray languages = Info.getJSONArray ("languages");
             for (int index_2 = 0; index_2 < languages.length ( ); index_2++) {
                 Language = (String) languages.get (index_2);

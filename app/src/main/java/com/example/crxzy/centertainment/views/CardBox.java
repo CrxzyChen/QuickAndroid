@@ -40,6 +40,7 @@ public class CardBox extends ScrollView {
     private float mLastY;
     boolean mIsOpenTopOverDragListener = false;
     OnOverDragRefreshListener mRefreshListener;
+    private int mActiveAreaMarginSize;
 
     public CardBox(Context context) {
         super (context);
@@ -61,7 +62,7 @@ public class CardBox extends ScrollView {
 
         RelativeLayout mMainView = new RelativeLayout (mContext);
         RelativeLayout.LayoutParams mMainViewParam = new RelativeLayout.LayoutParams (RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
-
+        mMainView.setPadding (Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), 0);
         mRefreshIcon = new ImageView (mContext);
         mRefreshIconSize = Tool.dip2px (mContext, mRefreshIconSize);
         mRefreshIconDragMaxDistance = Tool.dip2px (mContext, mRefreshIconDragMaxDistance);
@@ -77,7 +78,7 @@ public class CardBox extends ScrollView {
 
         mContainer = new LinearLayout (mContext);
         LinearLayout.LayoutParams mContainerParam = new LinearLayout.LayoutParams (ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-        mContainer.setMinimumHeight (mRefreshIconSize+(int)mRefreshIconDragMaxDistance);
+        mContainer.setMinimumHeight (mRefreshIconSize + (int) mRefreshIconDragMaxDistance);
         mContainer.setLayoutParams (mContainerParam);
         mContainer.setOrientation (LinearLayout.VERTICAL);
         mMainView.setLayoutParams (mMainViewParam);
@@ -88,6 +89,7 @@ public class CardBox extends ScrollView {
         setOnScrollChangeListener (new MyScrollChangeListener ( ));
         setOnTopOverDragListener (new MyTopOverDragListener ( ));
         setOnOverDragRefreshListener (new MyRefreshListener ( ));
+        setOnActiveAreaChangedListener (new MyActiveAreaChangedListener ( ));
     }
 
     public void clearAll() {
@@ -154,7 +156,7 @@ public class CardBox extends ScrollView {
             ViewGroup viewGroup = (ViewGroup) mContainer.getChildAt (index);
             Rect rect = new Rect ( );
             viewGroup.getLocalVisibleRect (rect);
-            if (rect.top >= 0 && rect.top < scrollViewHeight) {
+            if (rect.top >= 0 - mActiveAreaMarginSize && rect.top < scrollViewHeight + mActiveAreaMarginSize) {
                 if (!isSetTopActiveElementIndex) {
                     if (mTopActiveElementIndex != index) {
                         mTopActiveElementIndex = index;
@@ -166,7 +168,7 @@ public class CardBox extends ScrollView {
                     newActiveElementSet.add (viewGroup.getChildAt (index_2));
                 }
             }
-            if (rect.top > scrollViewHeight) {
+            if (rect.top > scrollViewHeight + mActiveAreaMarginSize) {
                 if (mTopActiveElementIndex != index) {
                     mBottomActiveElementIndex = index;
                     isActiveAreaChanged = true;
@@ -177,7 +179,7 @@ public class CardBox extends ScrollView {
         if (mActiveAreaElementSet.isEmpty ( )) {
             mActiveAreaElementSet = newActiveElementSet;
         } else {
-            if (isActiveAreaChanged && mActiveAreaChangedListener != null) {
+            if (isActiveAreaChanged) {
                 Set <View> resultSet = new HashSet <> (newActiveElementSet);
                 resultSet.removeAll (mActiveAreaElementSet);
                 mActiveAreaChangedListener.setActiveAreaOperation (resultSet);
@@ -253,11 +255,6 @@ public class CardBox extends ScrollView {
         }
     }
 
-    public interface OnActiveAreaChangedListener {
-        void setActiveAreaOperation(Set <View> viewSet);
-
-        void setInActiveAreaOperation(Set <View> viewSet);
-    }
 
     public void addItem(ItemBase item) {
         LayoutStyle layoutStyle = item.setLayoutStyle ( );
@@ -290,6 +287,7 @@ public class CardBox extends ScrollView {
 
     public void setOnActiveAreaChangedListener(OnActiveAreaChangedListener listener) {
         mActiveAreaChangedListener = listener;
+        mActiveAreaMarginSize = listener.setActiveAreaMarginSize (mActiveAreaMarginSize);
     }
 
     public void setOnTopOverDragListener(OnTopOverDragListener listener) {
@@ -323,6 +321,14 @@ public class CardBox extends ScrollView {
         void OnRefresh();
     }
 
+    public interface OnActiveAreaChangedListener {
+        int setActiveAreaMarginSize(int mActiveAreaMarginSize);
+
+        void setActiveAreaOperation(Set <View> viewSet);
+
+        void setInActiveAreaOperation(Set <View> viewSet);
+    }
+
     class MyRefreshListener implements OnOverDragRefreshListener {
 
         @Override
@@ -335,7 +341,9 @@ public class CardBox extends ScrollView {
         @Override
         public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
             checkIsTouchBottom (scrollY);
-            updateTouchActiveArea ( );
+            if (mActiveAreaChangedListener != null) {
+                updateTouchActiveArea ( );
+            }
         }
 
         private void checkIsTouchBottom(int scrollY) {
@@ -376,9 +384,26 @@ public class CardBox extends ScrollView {
         }
     }
 
+    static class MyActiveAreaChangedListener implements OnActiveAreaChangedListener {
+        @Override
+        public int setActiveAreaMarginSize(int mActiveAreaMarginSize) {
+            return 0;
+        }
+
+        @Override
+        public void setActiveAreaOperation(Set <View> viewSet) {
+
+        }
+
+        @Override
+        public void setInActiveAreaOperation(Set <View> viewSet) {
+
+        }
+    }
+
     public void playEndRefreshAnimation() {
-        if(mRefreshIcon.getAnimation ()!=null&&!mRefreshIcon.getAnimation ().hasEnded ()){
-            mRefreshIcon.getAnimation ().getStartTime ();
+        if (mRefreshIcon.getAnimation ( ) != null && !mRefreshIcon.getAnimation ( ).hasEnded ( )) {
+            mRefreshIcon.getAnimation ( ).getStartTime ( );
             mRefreshIconParam.topMargin = (int) mRefreshIconTrigger;
             mRefreshIcon.setLayoutParams (mRefreshIconParam);
             mRefreshIcon.invalidate ( );

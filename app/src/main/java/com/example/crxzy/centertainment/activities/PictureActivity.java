@@ -1,18 +1,25 @@
 package com.example.crxzy.centertainment.activities;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,6 +30,7 @@ import com.example.crxzy.centertainment.system.MainApplication;
 import com.example.crxzy.centertainment.tools.Network;
 import com.example.crxzy.centertainment.tools.Tool;
 import com.example.crxzy.centertainment.views.ImageView;
+import com.example.crxzy.centertainment.views.LabelBox;
 import com.example.crxzy.centertainment.views.RoundedImageView;
 
 import org.json.JSONArray;
@@ -34,7 +42,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PictureActivity extends AppCompatActivity {
-    public static final int IMAGE_ALL_DOWNLOADED = 4;
+    public final int IMAGE_ALL_DOWNLOADED = 4;
+    public int SEARCH_CLOSE_DISTANCE = 100;
     PictureActivity mContext = this;
     MangaResource mResource;
     ViewPager mImageBrowser;
@@ -43,7 +52,7 @@ public class PictureActivity extends AppCompatActivity {
     int mLoadViewBatchSize = 3;
     static final int LOAD_DISTANCE = 5;
     SubPicturePagerAdapter mAdapter;
-    TextView mTagsArea;
+    LabelBox mTagsArea;
     Button mBrowserButtonLike;
     Button mBrowserButtonSubScribe;
     boolean isLike = false;
@@ -53,6 +62,22 @@ public class PictureActivity extends AppCompatActivity {
     private boolean isSubscribe = false;
     LinearLayout mRecommendArea;
     LinearLayout mRecommendContainer;
+    private LinearLayout mSearchArea;
+    private ViewGroup.MarginLayoutParams mSearchAreaParam;
+    private ScrollView mContainer;
+    private float mContainerTouchX;
+    private float mContainerLastX;
+    private float mContainerTouchY;
+    private float mContainerLastY;
+    private boolean mIsSearchAreaOperated = false;
+    private boolean mIsContainerOperated = false;
+    private boolean mIsPlayAnimation = false;
+    private boolean mSearchAreaStatus = false;
+    LinearLayout mLabelPopupWindowContainer;
+    PopupWindow mLabelPopupWindow;
+    LabelBox mSearchAreaMark;
+    LabelBox mSearchAreaFilter;
+    private LabelBox.Label mSelectedLabel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,11 +96,179 @@ public class PictureActivity extends AppCompatActivity {
         mApp = (MainApplication) mContext.getApplication ( );
         mNetwork = new Network ( );
         mHandler = new SubPictureHandler (this);
+        mContainer = findViewById (R.id.sub_picture_container);
+
+        SEARCH_CLOSE_DISTANCE = Tool.dip2px (this, SEARCH_CLOSE_DISTANCE);
+
         loadsInfo ( );
         initImageBrowser ( );
         initAuthorInfo ( );
         initTagsArea ( );
         initRecommendArea ( );
+        initSearchArea ( );
+        onInitLabelPopupWindow ( );
+    }
+
+    private void onInitLabelPopupWindow() {
+        mLabelPopupWindowContainer = new LinearLayout (mContext);
+        mLabelPopupWindowContainer.setOrientation (LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams labelPopupWindowContainerParam = new LinearLayout.LayoutParams (LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        mLabelPopupWindowContainer.setLayoutParams (labelPopupWindowContainerParam);
+
+
+        TextView marked = getLabelPopupWindowItem (getText (R.string.import_label_as_mark));
+        TextView filter = getLabelPopupWindowItem (getText (R.string.import_label_as_filter));
+
+        marked.setOnClickListener (new View.OnClickListener ( ) {
+            @Override
+            public void onClick(View v) {
+                PictureActivity.this.setSearchAreaStatus (true);
+                mSearchAreaMark.addLabel (new LabelBox.CancelAbleLabel (mContext, ((String) mSelectedLabel.mTextView.getText ( ))));
+                mLabelPopupWindow.dismiss ( );
+            }
+        });
+
+        filter.setOnClickListener (new View.OnClickListener ( ) {
+            @Override
+            public void onClick(View v) {
+                PictureActivity.this.setSearchAreaStatus (true);
+                mSearchAreaFilter.addLabel (new LabelBox.CancelAbleLabel (mContext, ((String) mSelectedLabel.mTextView.getText ( ))));
+                mLabelPopupWindow.dismiss ( );
+            }
+        });
+
+        mLabelPopupWindowContainer.addView (marked);
+        mLabelPopupWindowContainer.addView (filter);
+
+        mLabelPopupWindow = new PopupWindow (mLabelPopupWindowContainer, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);//参数为1.View 2.宽度 3.高度
+        mLabelPopupWindow.setBackgroundDrawable (getDrawable (R.drawable.label_popup_window));
+        mLabelPopupWindow.setTouchable (true);
+        mLabelPopupWindow.setOutsideTouchable (true);
+        mLabelPopupWindow.setElevation (Tool.dip2px (mContext, 10));
+    }
+
+    @NonNull
+    private TextView getLabelPopupWindowItem(CharSequence content) {
+        LinearLayout.LayoutParams itemParam = new LinearLayout.LayoutParams (ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        itemParam.setMargins (5, 5, 5, 5);
+        TextView textView = new TextView (mContext);
+        textView.setPadding (5, 5, 5, 5);
+        textView.setLayoutParams (itemParam);
+        textView.setClickable (true);
+        textView.setBackground (getDrawable (R.drawable.label_popup_item));
+        textView.setText (content);
+        textView.setTextColor (getColor (R.color.black));
+        return textView;
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private void initSearchArea() {
+        mSearchArea = findViewById (R.id.sub_picture_search);
+        mSearchAreaParam = (ViewGroup.MarginLayoutParams) mSearchArea.getLayoutParams ( );
+        mSearchAreaMark = mSearchArea.findViewById (R.id.sub_picture_search_mark);
+        mSearchAreaFilter = mSearchArea.findViewById (R.id.sub_picture_search_filter);
+        mContainer.setOnTouchListener (new containerTouchEventListener ( ));
+    }
+
+    class containerTouchEventListener implements View.OnTouchListener {
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            int endMargin = mSearchAreaParam.getMarginEnd ( );
+            switch (event.getAction ( )) {
+                case MotionEvent.ACTION_DOWN:
+                    mContainerLastY = mContainerTouchY = event.getRawY ( );
+                    mContainerLastX = mContainerTouchX = event.getRawX ( );
+                    break;
+                case MotionEvent.ACTION_MOVE:
+                    float currentX = event.getRawX ( );
+                    float currentY = event.getRawY ( );
+
+                    float deltaX = mContainerLastX - currentX;
+                    float offsetX = mContainerTouchX - currentX;
+                    float deltaY = mContainerLastY - currentY;
+                    float offsetY = mContainerTouchY - currentY;
+
+                    mContainerLastX = currentX;
+
+                    if (!mIsContainerOperated && !mIsSearchAreaOperated) {
+                        if ((offsetX > 50 && !mSearchAreaStatus) || (offsetX < -50 && mSearchAreaStatus)) {
+                            mIsSearchAreaOperated = true;
+                        } else if (Math.abs (offsetY) > 200) {
+                            mIsContainerOperated = true;
+                        }
+                    }
+                    if (mIsContainerOperated) {
+                        break;
+                    }
+                    if (mIsSearchAreaOperated) {
+                        if (!mIsPlayAnimation) {
+                            if (deltaX > 50) {
+                                setSearchAreaStatus (true);
+                            } else if (deltaX < -50) {
+                                setSearchAreaStatus (false);
+                            } else {
+                                endMargin += (int) deltaX;
+                                if (endMargin < 0) {
+                                    mSearchAreaParam.setMarginEnd (endMargin);
+                                    mSearchArea.setLayoutParams (mSearchAreaParam);
+                                } else {
+                                    mSearchAreaParam.setMarginEnd (0);
+                                    mSearchArea.setLayoutParams (mSearchAreaParam);
+                                }
+                            }
+                        }
+                        return true;
+                    }
+                    break;
+                case MotionEvent.ACTION_UP:
+                    if (Math.abs (mContainerTouchX - event.getRawX ( )) < 5) {
+                        v.performClick ( );
+                    } else {
+                        if (!mIsPlayAnimation && endMargin != 0 && endMargin != -mSearchArea.getWidth ( )) {
+                            if (endMargin < -SEARCH_CLOSE_DISTANCE) {
+                                setSearchAreaStatus (false);
+                            } else {
+                                setSearchAreaStatus (true);
+                            }
+                        }
+                    }
+                    mIsSearchAreaOperated = false;
+                    mIsContainerOperated = false;
+                    break;
+            }
+            return false;
+        }
+    }
+
+    private void setSearchAreaStatus(boolean operation) {
+        int endMargin = mSearchAreaParam.getMarginEnd ( );
+        int deltaX = operation ? endMargin : mSearchArea.getWidth ( ) - endMargin;
+        final int toX = operation ? 0 : -mSearchArea.getWidth ( );
+        TranslateAnimation animation = new TranslateAnimation (0, deltaX, 0, 0);
+        animation.setDuration (200);
+        animation.setAnimationListener (new Animation.AnimationListener ( ) {
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                mSearchAreaParam.setMarginEnd (toX);
+                mSearchArea.setLayoutParams (mSearchAreaParam);
+                mSearchArea.clearAnimation ( );
+                mIsPlayAnimation = false;
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+        mSearchArea.clearAnimation ( );
+        mSearchArea.startAnimation (animation);
+        mIsPlayAnimation = true;
+        mSearchAreaStatus = operation;
     }
 
     private void initRecommendArea() {
@@ -92,7 +285,19 @@ public class PictureActivity extends AppCompatActivity {
 
     private void initTagsArea() {
         mTagsArea = findViewById (R.id.sub_picture_tags);
-        mTagsArea.setText (String.join (", ", mResource.Tags));
+
+        for (String tab : mResource.Tags) {
+            final LabelBox.Label label = new LabelBox.Label (this, tab);
+            label.setOnLongClickListener (new View.OnLongClickListener ( ) {
+                @Override
+                public boolean onLongClick(View v) {
+                    mLabelPopupWindow.showAsDropDown (v);
+                    mSelectedLabel = (LabelBox.Label) v;
+                    return true;
+                }
+            });
+            mTagsArea.addLabel (label);
+        }
     }
 
     public void successLike(Network.Response response) {
@@ -205,7 +410,7 @@ public class PictureActivity extends AppCompatActivity {
 
     private List <View> getViews() {
         List <View> viewLists = new ArrayList <> ( );
-        int endIndex = (mResource.ImageNames.size ( ) < mLoadedViewIndex + mLoadViewBatchSize) ? mResource.ImageNames.size ( ) : mLoadedViewIndex + mLoadViewBatchSize;
+        int endIndex = Math.min (mResource.ImageNames.size ( ), mLoadedViewIndex + mLoadViewBatchSize);
         for (int index = mLoadedViewIndex; index < endIndex; index++) {
             ImageView imageView = new ImageView (this);
             imageView.setTag (index);
@@ -232,9 +437,21 @@ public class PictureActivity extends AppCompatActivity {
             langFlag.setImageDrawable (mContext.getDrawable (R.drawable.flag_jp));
         }
         title.setText (mResource.Title);
-        TextView artists = findViewById (R.id.sub_picture_artists);
-        artists.setText (String.join (", ", mResource.Artists));
-        cover.setImageURL ("http://10.0.0.2:4396/gallery/" + mResource.ThumbId + "/" + mResource.ImageNames.get (0)+"?height=480&width:360");
+        LabelBox artists = findViewById (R.id.sub_picture_artists);
+        for (final String artist : mResource.Artists) {
+            LabelBox.Label label = new LabelBox.Label (mContext, artist);
+            label.setOnClickListener (new View.OnClickListener ( ) {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent ( );
+                    intent.setClass (mContext, ArtistActivity.class);
+                    intent.putExtra ("artist", artist);
+                    mContext.startActivity (intent);
+                }
+            });
+            artists.addLabel (label);
+        }
+        cover.setImageURL ("http://10.0.0.2:4396/gallery/" + mResource.ThumbId + "/" + mResource.ImageNames.get (0) + "?height=480&width:360");
         cover.setScaleType (android.widget.ImageView.ScaleType.FIT_XY);
     }
 
@@ -250,7 +467,7 @@ public class PictureActivity extends AppCompatActivity {
         }
     }
 
-    public class SubPicturePagerAdapter extends PagerAdapter {
+    public static class SubPicturePagerAdapter extends PagerAdapter {
         List <View> viewLists;
 
 
@@ -353,8 +570,8 @@ public class PictureActivity extends AppCompatActivity {
                         RelativeLayout.LayoutParams langFlagParam = new RelativeLayout.LayoutParams (Tool.dip2px (pictureActivity, 20), Tool.dip2px (pictureActivity, 15));
                         langFlagParam.addRule (RelativeLayout.ALIGN_PARENT_BOTTOM);
                         langFlagParam.addRule (RelativeLayout.ALIGN_PARENT_RIGHT);
-                        langFlagParam.bottomMargin=Tool.dip2px (pictureActivity,5);
-                        langFlagParam.rightMargin=Tool.dip2px (pictureActivity,5);
+                        langFlagParam.bottomMargin = Tool.dip2px (pictureActivity, 5);
+                        langFlagParam.rightMargin = Tool.dip2px (pictureActivity, 5);
 
                         langFlag.setImageDrawable (pictureActivity.mContext.getDrawable (R.drawable.flag_cn));
                         langFlag.setLayoutParams (langFlagParam);

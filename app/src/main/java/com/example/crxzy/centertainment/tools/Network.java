@@ -4,6 +4,7 @@ import android.graphics.BitmapFactory;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -59,7 +60,11 @@ public class Network {
                     Map <String, String> contentType = getContentType ( );
                     if (Objects.equals (contentType.get ("ext"), "json")) {
                         this.raw = BaseToString (httpURLConnection.getInputStream ( ), contentType);
-                        this.content = new JSONArray (this.raw);
+                        try {
+                            this.content = new JSONObject (this.raw);
+                        } catch (JSONException e) {
+                            this.content = new JSONArray (this.raw);
+                        }
                     } else if (Objects.equals (contentType.get ("type"), "image")) {
                         this.content = BitmapFactory.decodeStream (httpURLConnection.getInputStream ( ));
                     } else {

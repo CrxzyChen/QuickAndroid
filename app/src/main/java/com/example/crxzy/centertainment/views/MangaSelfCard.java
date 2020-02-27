@@ -1,12 +1,16 @@
 package com.example.crxzy.centertainment.views;
 
+import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.media.Image;
+import android.support.v7.app.AppCompatActivity;
 import android.text.Layout;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -14,7 +18,16 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.example.crxzy.centertainment.R;
+import com.example.crxzy.centertainment.activities.PictureActivity;
+import com.example.crxzy.centertainment.controllers.Subscribe;
+import com.example.crxzy.centertainment.models.MangaResource;
+import com.example.crxzy.centertainment.models.NetApi;
+import com.example.crxzy.centertainment.system.MainApplication;
 import com.example.crxzy.centertainment.tools.Tool;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class MangaSelfCard extends CardBox.BlockItem {
     public RoundedImageView image;
@@ -24,6 +37,7 @@ public class MangaSelfCard extends CardBox.BlockItem {
     public TextView sourceTag;
     public TextView statusTag;
     public ImageView langFlag;
+
     public MangaSelfCard(Context context) {
         super (context);
         drawView (context);
@@ -32,6 +46,67 @@ public class MangaSelfCard extends CardBox.BlockItem {
     public MangaSelfCard(Context context, AttributeSet attributeSet) {
         super (context);
         drawView (context);
+    }
+
+    public MangaSelfCard(Context context, MangaResource resource) {
+        super (context);
+        drawView (context);
+
+        title.setText (resource.Title);
+
+        if (resource.Language.equals ("english")) {
+            langFlag.setImageDrawable (getContext ( ).getDrawable (R.drawable.flag_en));
+        } else if (resource.Language.equals ("chinese")) {
+            langFlag.setImageDrawable (getContext ( ).getDrawable (R.drawable.flag_cn));
+        } else {
+            langFlag.setImageDrawable (getContext ( ).getDrawable (R.drawable.flag_jp));
+        }
+        switch (resource.ThumbStatus) {
+            case 0:
+                statusTag.setText ("○");
+                break;
+            case 1:
+                statusTag.setText ("◔");
+                break;
+            case 2:
+                statusTag.setText ("◑");
+                break;
+            case 3:
+                statusTag.setText ("◕");
+                break;
+            case 4:
+                statusTag.setText ("●");
+                break;
+        }
+        clickTime.setText ((String) Integer.toString (resource.clickedTimes));
+        final String tagsString = resource.Source + "." + resource.Language;
+        sourceTag.setText (tagsString);
+        pageCount.setText ((String) Integer.toString (resource.PageCount));
+        image.setImageURL ("http://10.0.0.2:4396/gallery/" + resource.ThumbId + "/" + resource.ImageNames.get (0) + "?height=480&width=360");
+        CardOnClickListener cardOnClickListener = new CardOnClickListener (resource);
+        setOnClickListener (cardOnClickListener);
+    }
+
+    class CardOnClickListener implements View.OnClickListener {
+        MangaResource mResource;
+
+        CardOnClickListener(MangaResource resource) {
+            mResource = resource;
+        }
+
+        @Override
+        public void onClick(View v) {
+            int uid = ((MainApplication) (((AppCompatActivity) MangaSelfCard.this.getContext ( )).getApplication ( ))).mUser.mUid;
+            String resource_id = mResource.ResourceId;
+            NetApi.addHistory (uid, resource_id);
+            NetApi.upClickedCount (resource_id);
+            int clickedTimes = Integer.parseInt ((String) MangaSelfCard.this.clickTime.getText ( )) + 1;
+            MangaSelfCard.this.clickTime.setText ((String) Integer.toString (clickedTimes));
+            Intent intent = new Intent ( );
+            intent.setClass (MangaSelfCard.this.getContext ( ), PictureActivity.class);
+            intent.putExtra ("info", mResource.Info.toString ());
+            getContext ().startActivity (intent);
+        }
     }
 
     private void drawView(Context context) {
@@ -73,8 +148,8 @@ public class MangaSelfCard extends CardBox.BlockItem {
         //language_flag
         langFlag = new ImageView (mContext);
         LinearLayout.LayoutParams langFlagParam = new LinearLayout.LayoutParams (Tool.dip2px (mContext, 20), Tool.dip2px (mContext, 15));
-        langFlagParam.topMargin=Tool.dip2px (mContext,2);
-        langFlagParam.leftMargin=Tool.dip2px (mContext,10);
+        langFlagParam.topMargin = Tool.dip2px (mContext, 2);
+        langFlagParam.leftMargin = Tool.dip2px (mContext, 10);
         langFlag.setLayoutParams (langFlagParam);
         leftImageInfo.addView (langFlag);
         leftImageInfo.setGravity (Gravity.START);
@@ -83,7 +158,7 @@ public class MangaSelfCard extends CardBox.BlockItem {
         //RightImageInfo
         TextView clicked = new TextView (context);
         clicked.setText (context.getString (R.string.hot));
-        clicked.setPadding (Tool.dip2px (mContext,10), 0, 0, 0);
+        clicked.setPadding (Tool.dip2px (mContext, 10), 0, 0, 0);
         clicked.setTextColor (context.getColor (R.color.white));
         clickTime = new TextView (context);
         clickTime.setTextColor (context.getColor (R.color.white));
@@ -91,10 +166,10 @@ public class MangaSelfCard extends CardBox.BlockItem {
         TextView counter = new TextView (context);
         counter.setText (context.getText (R.string.counter));
         counter.setTextColor (context.getColor (R.color.white));
-        counter.setPadding (0,0,Tool.dip2px (mContext,10),0);
+        counter.setPadding (0, 0, Tool.dip2px (mContext, 10), 0);
         pageCount = new TextView (context);
         pageCount.setTextColor (context.getColor (R.color.white));
-        pageCount.setPadding (Tool.dip2px (mContext,10),0,0,0);
+        pageCount.setPadding (Tool.dip2px (mContext, 10), 0, 0, 0);
         rightImageInfo.setGravity (Gravity.END);
         rightImageInfo.addView (clicked);
         rightImageInfo.addView (clickTime);

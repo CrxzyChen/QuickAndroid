@@ -34,4 +34,9 @@
     <string name="string_chinese">Chinese</string>
     <string name="string_language">Language</string>
     <string name="string_find_more">Find More</string>
+    <string name="import_label_as_mark">import label as mark</string>
+    <string name="import_label_as_filter">import label as filter</string>
+    <string name="string_mark">Mark</string>
+    <string name="string_star">Star</string>
+    <string name="string_artists">Artists</string>
 </resources>

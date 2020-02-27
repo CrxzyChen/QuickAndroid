@@ -10,6 +10,7 @@
         android:layout_height="match_parent">
 
         <ScrollView
+            android:id="@+id/sub_picture_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
@@ -107,20 +108,54 @@
                             android:id="@+id/sub_picture_title"
                             android:layout_width="match_parent"
                             android:layout_height="75dp"
+                            android:background="@color/colorPrimaryDark"
                             android:ellipsize="end"
                             android:maxLines="3"
                             android:padding="5dp"
                             android:text="@string/app_name"
-                            android:textColor="@color/black"
+                            android:textColor="@color/white"
                             android:textSize="16sp" />
 
-                        <TextView
-                            android:id="@+id/sub_picture_artists"
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="45dp"
-                            android:padding="5dp"
-                            android:text="@string/app_name"
-                            android:textColor="@color/gray" />
+                            android:orientation="horizontal">
+
+                            <RelativeLayout
+
+                                android:padding="1dp"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1">
+                                <TextView
+                                    android:layout_alignParentTop="true"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center_horizontal"
+                                    android:text="作"
+                                    android:textColor="@color/colorPrimaryDark"
+                                    android:textFontWeight="4"
+                                    android:textSize="25sp" />
+                                <TextView
+                                    android:layout_alignParentBottom="true"
+                                    android:layout_alignParentEnd="true"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center_horizontal"
+                                    android:text="者"
+                                    android:textColor="@color/colorPrimary"
+                                    android:textFontWeight="4"
+                                    android:textSize="25sp" />
+                            </RelativeLayout>
+
+                            <com.example.crxzy.centertainment.views.LabelBox
+                                android:id="@+id/sub_picture_artists"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="6"
+                                android:textColor="@color/gray" />
+
+                        </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
 
@@ -128,6 +163,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="30dp"
                     android:background="@color/colorPrimary"
+                    android:elevation="2dp"
                     android:paddingStart="5dp"
                     android:paddingEnd="5dp"
                     android:text="@string/tags"
@@ -135,11 +171,12 @@
                     android:textColor="@color/white"
                     android:textSize="20sp" />
 
-                <TextView
+                <com.example.crxzy.centertainment.views.LabelBox
                     android:id="@+id/sub_picture_tags"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@color/white"
+                    android:minHeight="40dp"
                     android:padding="5dp"
                     android:textColor="@color/gray" />
 
@@ -153,7 +190,8 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="30dp"
-                        android:background="@color/colorPrimary">
+                        android:background="@color/colorPrimary"
+                        android:elevation="2dp">
 
                         <TextView
                             android:layout_width="0dp"
@@ -184,6 +222,7 @@
         </ScrollView>
 
         <LinearLayout
+            android:id="@+id/sub_picture_search"
             android:layout_width="200dp"
             android:layout_height="match_parent"
             android:layout_alignParentEnd="true"
@@ -350,15 +389,16 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="4"
                             android:gravity="center_vertical"
-                            android:text="@string/string_include"
+                            android:text="@string/string_mark"
                             android:textColor="@color/colorPrimary"
                             android:textSize="20sp" />
                     </LinearLayout>
 
                     <com.example.crxzy.centertainment.views.LabelBox
+                        android:id="@+id/sub_picture_search_mark"
                         android:layout_width="match_parent"
-                        android:minHeight="40dp"
-                        android:layout_height="wrap_content"/>
+                        android:layout_height="wrap_content"
+                        android:minHeight="40dp" />
 
                 </LinearLayout>
 
@@ -391,10 +431,11 @@
                             android:textSize="20sp" />
                     </LinearLayout>
 
-                    <LinearLayout
+                    <com.example.crxzy.centertainment.views.LabelBox
+                        android:id="@+id/sub_picture_search_filter"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:minHeight="30dp" />
+                        android:minHeight="40dp" />
                 </LinearLayout>
             </LinearLayout>
 

@@ -13,6 +13,7 @@ import com.example.crxzy.centertainment.system.PageBase;
 import com.example.crxzy.centertainment.system.QuickPageModel;
 import com.example.crxzy.centertainment.system.ThirdPageBase;
 import com.example.crxzy.centertainment.tools.Network;
+import com.example.crxzy.centertainment.tools.Tool;
 import com.example.crxzy.centertainment.views.CardBox;
 import com.example.crxzy.centertainment.views.MangaSelfCard;
 
@@ -32,6 +33,7 @@ public class Latest extends ThirdPageBase {
     private int mLimit = 10;
     private boolean mIsLoading = false;
     private Set <View> mInactivateErrorSet;
+    private float mActiveAreaMarginSize = 1000;
 
     public Latest(MainActivity activity, QuickPageModel.Page pageModel) {
         super (activity, pageModel);
@@ -87,6 +89,11 @@ public class Latest extends ThirdPageBase {
     }
 
     class CardBoxOnActiveAreaChangedListener implements CardBox.OnActiveAreaChangedListener {
+
+        @Override
+        public int setActiveAreaMarginSize(int activeAreaMarginSize) {
+            return Tool.dip2px (mActivity, mActiveAreaMarginSize);
+        }
 
         @Override
         public void setActiveAreaOperation(Set <View> viewSet) {
@@ -209,7 +216,7 @@ public class Latest extends ThirdPageBase {
             return language;
         }
 
-        class ItemOnClickListener implements View.OnClickListener {
+        static class ItemOnClickListener implements View.OnClickListener {
             Latest mLatest;
             JSONObject mItem;
             MangaSelfCard mNormalItem;
