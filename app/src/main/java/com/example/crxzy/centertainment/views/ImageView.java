@@ -1,6 +1,7 @@
 package com.example.crxzy.centertainment.views;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -9,11 +10,13 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v4.widget.DrawerLayout;
 import android.util.AttributeSet;
+import android.util.Log;
 
 import com.example.crxzy.centertainment.R;
 import com.example.crxzy.centertainment.tools.Network;
 
 import java.lang.ref.WeakReference;
+import java.util.Objects;
 
 public class ImageView extends android.support.v7.widget.AppCompatImageView {
     protected Handler mHandler;
@@ -27,6 +30,14 @@ public class ImageView extends android.support.v7.widget.AppCompatImageView {
 
     public ImageView(Context context, AttributeSet attrs) {
         super (context, attrs);
+        TypedArray typedArray = context.obtainStyledAttributes (attrs, R.styleable.ImageView);
+        if (typedArray != null) {
+            String url = typedArray.getString (R.styleable.ImageView_url);
+            if (url != null) {
+                setImageURL (url);
+            }
+        }
+        Objects.requireNonNull (typedArray).recycle ( );
         mHandler = new ImageViewHandler (this);
     }
 
@@ -91,7 +102,9 @@ public class ImageView extends android.support.v7.widget.AppCompatImageView {
         public void handleMessage(Message msg) {
             ImageView ImageView = outerClass.get ( );
             if (msg.what == IMAGE_DOWNLOAD_SUCCESS) {
-                ImageView.setImageBitmap ((Bitmap) ((Network.Response) msg.obj).content);
+                if (((Network.Response) msg.obj).content instanceof Bitmap) {
+                    ImageView.setImageBitmap ((Bitmap) ((Network.Response) msg.obj).content);
+                }
             }
         }
     }

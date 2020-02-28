@@ -39,4 +39,11 @@
     <string name="string_mark">Mark</string>
     <string name="string_star">Star</string>
     <string name="string_artists">Artists</string>
+    <string name="icon_def">≝</string>
+    <string name="icon_round_sign">〄</string>
+    <string name="string_save">Save</string>
+    <string name="string_reset">Reset</string>
+    <string name="string_picture_common_setting">Picture Common Setting</string>
+    <string name="icon_lang">あ</string>
+    <string name="string_search">Search</string>
 </resources>

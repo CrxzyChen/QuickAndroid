@@ -11,4 +11,7 @@
     <declare-styleable name="InnerScrollView">
         <attr name="outerScrollViewId" format="reference" />
     </declare-styleable>
+    <declare-styleable name="ImageView">
+        <attr name="url" format="string" />
+    </declare-styleable>
 </resources>

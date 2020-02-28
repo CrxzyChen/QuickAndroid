@@ -18,6 +18,7 @@
         <activity android:name=".activities.PictureActivity" />
         <activity android:name=".activities.PicturePlayerActivity" />
         <activity android:name=".activities.ArtistActivity" />
+        <activity android:name=".activities.SearchActivity" />
         <activity android:name=".system.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

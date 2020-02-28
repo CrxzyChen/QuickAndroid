@@ -62,17 +62,18 @@
             android:layout_height="match_parent"
             android:layout_weight="3"
             android:gravity="center"
-            android:text="@string/folder"
+            android:text="@string/icon_round_sign"
             android:textColor="@color/white"
             android:textSize="20sp" />
         <!---->
         <TextView
+            android:id="@+id/header_main_def"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="3"
             android:gravity="center"
-            android:text="@string/mail"
+            android:text="@string/icon_def"
             android:textColor="@color/white"
-            android:textSize="20sp" />
+            android:textSize="30sp" />
     </LinearLayout>
 </LinearLayout>

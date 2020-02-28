@@ -2,6 +2,7 @@ package com.example.crxzy.centertainment.models;
 
 import com.example.crxzy.centertainment.activities.ArtistActivity;
 import com.example.crxzy.centertainment.activities.PictureActivity;
+import com.example.crxzy.centertainment.activities.SearchActivity;
 import com.example.crxzy.centertainment.controllers.Subscribe;
 import com.example.crxzy.centertainment.controllers.main.picture.Latest;
 import com.example.crxzy.centertainment.tools.Network;
@@ -78,5 +79,11 @@ public class NetApi {
         Network.Request getArtistOpusRequest = new Network.Request (mHost + "Manga/getArtistOpus.json?artist=" + artist + "&limit=" + limit + "&skip=" + skip);
         getArtistOpusRequest.setSuccess (context, success);
         mNetwork.send (getArtistOpusRequest);
+    }
+
+    public static void search(String searchContent, Object context, String success, int limit, int skip) {
+        Network.Request searchRequest = new Network.Request (mHost + "Manga/search.json?search_content=" + searchContent + "&limit=" + limit + "&skip=" + skip);
+        searchRequest.setSuccess (context, success);
+        mNetwork.send (searchRequest);
     }
 }

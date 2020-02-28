@@ -1,5 +1,6 @@
 package com.example.crxzy.centertainment.tools;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
@@ -15,6 +16,7 @@ import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.view.View;
+import android.view.WindowManager;
 
 import com.example.crxzy.centertainment.R;
 
@@ -104,6 +106,14 @@ public class Tool {
 
     public static int getResourceIdByName(Context context, String name) {
         return context.getResources ( ).getIdentifier (name, "id", context.getPackageName ( ));
+    }
+
+    public static void setWindowAlpha(Context context, float alpha) {
+        final android.view.WindowManager.LayoutParams attributes = ((Activity) context).getWindow ( ).getAttributes ( );
+        attributes.flags = attributes.flags | WindowManager.LayoutParams.FLAG_DIM_BEHIND;
+        attributes.dimAmount = alpha;
+        attributes.alpha = alpha;
+        ((Activity) context).getWindow ( ).setAttributes (attributes);
     }
 
     public static int getResId(String variableName, Class <?> c) {

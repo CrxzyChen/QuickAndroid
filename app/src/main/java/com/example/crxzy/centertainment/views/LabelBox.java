@@ -12,7 +12,9 @@ import android.widget.TextView;
 import com.example.crxzy.centertainment.R;
 import com.example.crxzy.centertainment.tools.Tool;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class LabelBox extends FlowLayout {
@@ -29,6 +31,14 @@ public class LabelBox extends FlowLayout {
 
     public LabelBox(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super (context, attrs, defStyleAttr);
+    }
+
+    public List <String> getAllLabels() {
+        List <String> labels = new ArrayList <> ( );
+        for (CharSequence key : mLabelSet) {
+            labels.add ((String) key);
+        }
+        return labels;
     }
 
     public static class LabelBase extends LinearLayout {
@@ -98,7 +108,7 @@ public class LabelBox extends FlowLayout {
             super.onInitiation ( );
             setBackground (getContext ( ).getDrawable (R.drawable.labelbox_label));
             setTextColor (getContext ( ).getColor (R.color.white));
-            setElevation (Tool.dip2px (getContext (),2));
+            setElevation (Tool.dip2px (getContext ( ), 2));
             setClickable (true);
         }
     }

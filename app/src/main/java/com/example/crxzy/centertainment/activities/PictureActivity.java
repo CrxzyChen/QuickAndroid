@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.TranslateAnimation;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
@@ -55,14 +56,14 @@ public class PictureActivity extends AppCompatActivity {
     LabelBox mTagsArea;
     Button mBrowserButtonLike;
     Button mBrowserButtonSubScribe;
-    boolean isLike = false;
+    boolean mIsLike = false;
     Network mNetwork;
     MainApplication mApp;
     SubPictureHandler mHandler;
-    private boolean isSubscribe = false;
+    private boolean mIsSubscribe = false;
     LinearLayout mRecommendArea;
     LinearLayout mRecommendContainer;
-    private LinearLayout mSearchArea;
+    private RelativeLayout mSearchArea;
     private ViewGroup.MarginLayoutParams mSearchAreaParam;
     private ScrollView mContainer;
     private float mContainerTouchX;
@@ -78,6 +79,13 @@ public class PictureActivity extends AppCompatActivity {
     LabelBox mSearchAreaMark;
     LabelBox mSearchAreaFilter;
     private LabelBox.Label mSelectedLabel;
+    private float mSearchAreaLastX;
+    private float mSearchAreaTouchX;
+    private ScrollView mSearchAreaContainer;
+    private Button mSearchAreaSearch;
+    private Button mSearchAreaSave;
+    private ViewGroup mSearchAreaLanguage;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -164,10 +172,56 @@ public class PictureActivity extends AppCompatActivity {
     @SuppressLint("ClickableViewAccessibility")
     private void initSearchArea() {
         mSearchArea = findViewById (R.id.sub_picture_search);
+        mSearchAreaContainer = findViewById (R.id.sub_picture_search_container);
         mSearchAreaParam = (ViewGroup.MarginLayoutParams) mSearchArea.getLayoutParams ( );
+        mSearchAreaLanguage = mSearchArea.findViewById (R.id.sub_picture_search_language);
         mSearchAreaMark = mSearchArea.findViewById (R.id.sub_picture_search_mark);
         mSearchAreaFilter = mSearchArea.findViewById (R.id.sub_picture_search_filter);
+        mSearchAreaSearch = mSearchArea.findViewById (R.id.sub_picture_search_search);
+        mSearchAreaSearch.setOnClickListener (new View.OnClickListener ( ) {
+            @Override
+            public void onClick(View v) {
+                List <String> marked_labels = mSearchAreaMark.getAllLabels ( );
+                List <String> filter_labels = mSearchAreaFilter.getAllLabels ( );
+                List <String> language_labels = new ArrayList <> ( );
+                for (int index = 0; index < mSearchAreaLanguage.getChildCount ( ); index++) {
+                    CheckBox checkBox = (CheckBox) mSearchAreaLanguage.getChildAt (index);
+                    if (checkBox.isChecked ( )) {
+                        language_labels.add (((String) checkBox.getText ( )).toLowerCase ());
+                    }
+                }
+                JSONObject json = new JSONObject ( );
+                try {
+                    json.put ("language", new JSONArray (language_labels));
+                    json.put ("mark", new JSONArray (marked_labels));
+                    json.put ("filter", new JSONArray (filter_labels));
+                    String jsonString = json.toString ( );
+                    Intent intent = new Intent ( );
+                    intent.setClass (mContext, SearchActivity.class);
+                    intent.putExtra ("search_content", jsonString);
+                    mContext.startActivity (intent);
+                } catch (JSONException e) {
+                    e.printStackTrace ( );
+                }
+            }
+        });
+        mSearchAreaSave = mSearchArea.findViewById (R.id.sub_picture_search_save);
+        mSearchAreaSave.setOnClickListener (new View.OnClickListener ( ) {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+        mSearchAreaContainer.setOnTouchListener (new searchAreaTouchEventListener ( ));
         mContainer.setOnTouchListener (new containerTouchEventListener ( ));
+        mContainer.setOnClickListener (new View.OnClickListener ( ) {
+            @Override
+            public void onClick(View v) {
+                if (mSearchAreaStatus) {
+                    setSearchAreaStatus (false);
+                }
+            }
+        });
     }
 
     class containerTouchEventListener implements View.OnTouchListener {
@@ -222,6 +276,66 @@ public class PictureActivity extends AppCompatActivity {
                     break;
                 case MotionEvent.ACTION_UP:
                     if (Math.abs (mContainerTouchX - event.getRawX ( )) < 5) {
+                        v.performClick ( );
+                    } else {
+                        if (!mIsPlayAnimation && endMargin != 0 && endMargin != -mSearchArea.getWidth ( )) {
+                            if (endMargin < -SEARCH_CLOSE_DISTANCE) {
+                                setSearchAreaStatus (false);
+                            } else {
+                                setSearchAreaStatus (true);
+                            }
+                        }
+                    }
+                    mIsSearchAreaOperated = false;
+                    mIsContainerOperated = false;
+                    break;
+            }
+            return false;
+        }
+    }
+
+    class searchAreaTouchEventListener implements View.OnTouchListener {
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            int endMargin = mSearchAreaParam.getMarginEnd ( );
+            switch (event.getAction ( )) {
+                case MotionEvent.ACTION_DOWN:
+                    mSearchAreaLastX = mSearchAreaTouchX = event.getRawX ( );
+                    break;
+                case MotionEvent.ACTION_MOVE:
+                    float currentX = event.getRawX ( );
+                    float deltaX = mSearchAreaLastX - currentX;
+                    float offsetX = mSearchAreaTouchX - currentX;
+
+                    mSearchAreaLastX = currentX;
+
+
+                    if ((offsetX > 50 && !mSearchAreaStatus) || (offsetX < -50 && mSearchAreaStatus)) {
+                        mIsSearchAreaOperated = true;
+                    }
+
+                    if (mIsSearchAreaOperated) {
+                        if (!mIsPlayAnimation) {
+                            if (deltaX > 50) {
+                                setSearchAreaStatus (true);
+                            } else if (deltaX < -50) {
+                                setSearchAreaStatus (false);
+                            } else {
+                                endMargin += (int) deltaX;
+                                if (endMargin < 0) {
+                                    mSearchAreaParam.setMarginEnd (endMargin);
+                                    mSearchArea.setLayoutParams (mSearchAreaParam);
+                                } else {
+                                    mSearchAreaParam.setMarginEnd (0);
+                                    mSearchArea.setLayoutParams (mSearchAreaParam);
+                                }
+                            }
+                        }
+                        return true;
+                    }
+                    break;
+                case MotionEvent.ACTION_UP:
+                    if (Math.abs (mSearchAreaTouchX - event.getRawX ( )) < 5) {
                         v.performClick ( );
                     } else {
                         if (!mIsPlayAnimation && endMargin != 0 && endMargin != -mSearchArea.getWidth ( )) {
@@ -381,7 +495,7 @@ public class PictureActivity extends AppCompatActivity {
         mBrowserButtonLike.setOnClickListener (new View.OnClickListener ( ) {
             @Override
             public void onClick(View v) {
-                if (!isLike) {
+                if (!mIsLike) {
                     NetApi.addLike (mApp.mUser.mUid, mResource.ResourceId, mContext, "successLike");
                     Toast.makeText (mContext, "已标记为喜欢", Toast.LENGTH_SHORT).show ( );
 
@@ -394,7 +508,7 @@ public class PictureActivity extends AppCompatActivity {
         mBrowserButtonSubScribe.setOnClickListener (new View.OnClickListener ( ) {
             @Override
             public void onClick(View v) {
-                if (!isSubscribe) {
+                if (!mIsSubscribe) {
                     NetApi.addSubscribe (mApp.mUser.mUid, mResource.ResourceId, mContext, "successSubscribe");
                     Toast.makeText (mContext, "已发送订阅请求", Toast.LENGTH_SHORT).show ( );
                 } else {
@@ -417,7 +531,7 @@ public class PictureActivity extends AppCompatActivity {
             SubPictureClickListener clickListener = new SubPictureClickListener ( );
             imageView.setOnClickListener (clickListener);
             imageView.setScaleType (android.widget.ImageView.ScaleType.FIT_CENTER);
-            imageView.setImageURL ("http://10.0.0.2:4396/gallery/" + mResource.ThumbId + "/" + mResource.ImageNames.get (index));
+            imageView.setImageURL ("http://10.0.0.2:4396/gallery/" + mResource.ThumbId + "/" + mResource.ImageNames.get (index) + "?width=" + Tool.dip2px (mContext, Tool.getScreenWidth (mContext)));
             viewLists.add (imageView);
         }
         mIsLoading = false;
@@ -451,7 +565,7 @@ public class PictureActivity extends AppCompatActivity {
             });
             artists.addLabel (label);
         }
-        cover.setImageURL ("http://10.0.0.2:4396/gallery/" + mResource.ThumbId + "/" + mResource.ImageNames.get (0) + "?height=480&width:360");
+        cover.setImageURL ("http://10.0.0.2:4396/gallery/" + mResource.ThumbId + "/" + mResource.ImageNames.get (0) + "?height=480&width=360");
         cover.setScaleType (android.widget.ImageView.ScaleType.FIT_XY);
     }
 
@@ -540,18 +654,18 @@ public class PictureActivity extends AppCompatActivity {
 
             if (msg.what == CHANGE_LIKE_BUTTON_STATUS) {
                 if ((boolean) msg.obj) {
-                    pictureActivity.isLike = true;
+                    pictureActivity.mIsLike = true;
                     pictureActivity.mBrowserButtonLike.setText (R.string.like);
                 } else {
-                    pictureActivity.isLike = false;
+                    pictureActivity.mIsLike = false;
                     pictureActivity.mBrowserButtonLike.setText (R.string.unlike);
                 }
             } else if (msg.what == CHANGE_SUBSCRIBE_BUTTON_STATUS) {
                 if ((boolean) msg.obj) {
-                    pictureActivity.isSubscribe = true;
+                    pictureActivity.mIsSubscribe = true;
                     pictureActivity.mBrowserButtonSubScribe.setText (R.string.subscribe);
                 } else {
-                    pictureActivity.isSubscribe = false;
+                    pictureActivity.mIsSubscribe = false;
                     pictureActivity.mBrowserButtonSubScribe.setText (R.string.unsubscribe);
                 }
             } else if (msg.what == LOAD_RECOMMEND) {

@@ -104,7 +104,7 @@ public class MangaSelfCard extends CardBox.BlockItem {
             MangaSelfCard.this.clickTime.setText ((String) Integer.toString (clickedTimes));
             Intent intent = new Intent ( );
             intent.setClass (MangaSelfCard.this.getContext ( ), PictureActivity.class);
-            intent.putExtra ("info", mResource.Info.toString ());
+            intent.putExtra ("info", mResource.Resource.toString ());
             getContext ().startActivity (intent);
         }
     }

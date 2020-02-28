@@ -118,7 +118,7 @@ public class Network {
     }
 
     public static class Request {
-        String url;
+        public String url;
         String method = "GET";
         Map <String, Object> meta;
         private Object mInstance;

@@ -225,9 +225,9 @@ public class PicturePlayerActivity extends AppCompatActivity {
     private void loadImages() {
         mImagePlayerHandler = new ImagePlayerHandler (this);
         mNetwork = new Network ( );
-        int endIndex = (mImageNames.size ( ) < mLoadedViewIndex + mLoadViewBatchSize) ? mImageNames.size ( ) : mLoadedViewIndex + mLoadViewBatchSize;
+        int endIndex = Math.min (mImageNames.size ( ), mLoadedViewIndex + mLoadViewBatchSize);
         for (int index = mLoadedViewIndex; index < endIndex; index++) {
-            Network.Request request = new Network.Request ("http://10.0.0.2:4396/gallery/" + mThumbId + "/" + mImageNames.get (index));
+            Network.Request request = new Network.Request ("http://10.0.0.2:4396/gallery/" + mThumbId + "/" + mImageNames.get (index) + "?width=" + Tool.dip2px (mContext, Tool.getScreenWidth (mContext)));
             request.setSuccess (this, "loadImageSuccess");
             request.setMeta ("index", index);
             mNetwork.send (request);
