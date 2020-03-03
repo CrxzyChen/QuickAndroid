@@ -6,6 +6,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.AnimatedImageDrawable;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -16,7 +17,6 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
-import android.widget.TextView;
 
 import com.example.crxzy.centertainment.R;
 import com.example.crxzy.centertainment.tools.Tool;
@@ -248,7 +248,7 @@ public class CardBox extends ScrollView {
         public void initLayoutParams() {
             setBackgroundColor (mContext.getColor (R.color.colorPrimary));
             setBackground (mContext.getDrawable (R.drawable.roundrect_image));//设置圆角
-            setElevation (Tool.dip2px (mContext, 2));//设置阴影
+            setElevation (Tool.dip2px (mContext, 5));//设置阴影
             mItemLayoutParams.height = Tool.dip2px (mContext, 300);
             mItemLayoutParams.setMargins (Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5));
 //            setOrientation (VERTICAL);
@@ -348,7 +348,7 @@ public class CardBox extends ScrollView {
     public interface OnTouchBottomListener {
         float setDistance(float distance);
 
-        void OnTouchBottom();
+        void onTouchBottom();
     }
 
     public interface OnTopOverDragListener {
@@ -391,9 +391,10 @@ public class CardBox extends ScrollView {
         private void checkIsTouchBottom(int scrollY) {
             int itemBoxHeight = mContainer.getHeight ( );
             int scrollViewHeight = getHeight ( );
+
             if ((itemBoxHeight - scrollViewHeight - scrollY <= mTouchBottomDistance)) {
                 if (mTouchBottomListener != null) {
-                    mTouchBottomListener.OnTouchBottom ( );
+                    mTouchBottomListener.onTouchBottom ( );
                 }
             }
         }

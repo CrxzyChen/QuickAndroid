@@ -46,7 +46,7 @@ public class Subscribe extends FirstPageBase {
             }
 
             @Override
-            public void OnTouchBottom() {
+            public void onTouchBottom() {
                 if (!mIsLoading) {
                     mIsLoading = true;
                     mViewContainer.setLoadingCard(View.VISIBLE);

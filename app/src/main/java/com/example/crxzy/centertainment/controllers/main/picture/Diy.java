@@ -43,7 +43,7 @@ public class Diy extends ThirdPageBase {
             }
 
             @Override
-            public void OnTouchBottom() {
+            public void onTouchBottom() {
                 if (!mIsLoading) {
                     ((CardBox) mView).setLoadingCard (View.VISIBLE);
                     NetApi.getUserDefine (mApp.mUser.uid, mSingleLoadSize, Diy.this, "getUserDefineSuccess");

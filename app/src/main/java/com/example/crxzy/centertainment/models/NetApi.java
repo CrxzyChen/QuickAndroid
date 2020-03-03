@@ -114,4 +114,28 @@ public class NetApi {
         getUserDefineRequest.setSuccess (context, success);
         mNetwork.send (getUserDefineRequest);
     }
+
+    public static void isFocusArtist(int uid, String artistName, Network.Callback callback) {
+        Network.Request request = new Network.Request (mHost + "User/isFocusArtist.json?uid=" + uid + "&artist_name=" + artistName);
+        request.setCallback (callback);
+        mNetwork.send (request);
+    }
+
+    public static void addFocusArtist(int uid, String artistName, Network.Callback callback) {
+        Network.Request request = new Network.Request (mHost + "User/addFocusArtist.json?uid=" + uid + "&artist_name=" + artistName);
+        request.setCallback (callback);
+        mNetwork.send (request);
+    }
+
+    public static void removeFocusArtist(int uid, String artistName, Network.Callback callback) {
+        Network.Request request = new Network.Request (mHost + "User/removeFocusArtist.json?uid=" + uid + "&artist_name=" + artistName);
+        request.setCallback (callback);
+        mNetwork.send (request);
+    }
+
+    public static void getUserFocus(int uid, int limit, int skip, Network.Callback callback) {
+        Network.Request request = new Network.Request (mHost + "Manga/getUserFocus.json?uid=" + uid + "&limit=" + limit + "&skip=" + skip);
+        request.setCallback (callback);
+        mNetwork.send (request);
+    }
 }

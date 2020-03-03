@@ -58,7 +58,7 @@ public class Latest extends ThirdPageBase {
         }
 
         @Override
-        public void OnTouchBottom() {
+        public void onTouchBottom() {
             if (!mIsLoading) {
                 mIsLoading = true;
                 mCardBox.setLoadingCard(View.VISIBLE);

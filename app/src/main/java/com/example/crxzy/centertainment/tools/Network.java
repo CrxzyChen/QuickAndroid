@@ -31,9 +31,17 @@ public class Network {
                     httpURLConnection.connect ( );
                     int status = httpURLConnection.getResponseCode ( );
                     if (status == HttpURLConnection.HTTP_OK) {
-                        request.callSuccess (new Response (request, httpURLConnection));
+                        if (request.callback != null) {
+                            request.callback.success (new Response (request, httpURLConnection));
+                        } else {
+                            request.callSuccess (new Response (request, httpURLConnection));
+                        }
                     } else {
-                        request.callError (new Response (request, httpURLConnection));
+                        if (request.callback != null) {
+                            request.callback.error (new Response (request, httpURLConnection));
+                        } else {
+                            request.callError (new Response (request, httpURLConnection));
+                        }
                     }
                 } catch (IOException e) {
                     e.printStackTrace ( );
@@ -42,7 +50,13 @@ public class Network {
         }).start ( );
     }
 
-    public class Response {
+    abstract public static class Callback {
+        public abstract void success(Response response);
+
+        public abstract void error(Response response);
+    }
+
+    public static class Response {
         public Request request;
         public Object content;
         public Map <String, String> contentType;
@@ -125,10 +139,15 @@ public class Network {
         private Object mInstance;
         private String mSuccess;
         private String mError;
+        private Callback callback;
 
         public Request(String url) {
             this.meta = new HashMap <> ( );
             this.url = url;
+        }
+
+        public void setCallback(Callback callback) {
+            this.callback = callback;
         }
 
         public void setSuccess(Object instance, String success) {
