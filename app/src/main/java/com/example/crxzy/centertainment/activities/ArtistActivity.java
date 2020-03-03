@@ -96,7 +96,7 @@ public class ArtistActivity extends AppCompatActivity {
 
     private void addItem(List <MangaResource> opus) {
         for (MangaResource opu : opus) {
-            mContainer.addItem (new MangaSelfCard (this, opu));
+            mContainer.addCard (new MangaSelfCard (this, opu));
         }
         mLoadedSize += opus.size ( );
         mIsLoading = false;

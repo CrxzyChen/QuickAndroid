@@ -1,8 +1,12 @@
 package com.example.crxzy.centertainment.views;
 
 import android.content.Context;
+import android.graphics.ImageDecoder;
 import android.graphics.Rect;
+import android.graphics.drawable.AnimatedImageDrawable;
+import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,10 +16,12 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
+import android.widget.TextView;
 
 import com.example.crxzy.centertainment.R;
 import com.example.crxzy.centertainment.tools.Tool;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -41,6 +47,7 @@ public class CardBox extends ScrollView {
     boolean mIsOpenTopOverDragListener = false;
     OnOverDragRefreshListener mRefreshListener;
     private int mActiveAreaMarginSize;
+    private LinearCard mLoadingCard;
 
     public CardBox(Context context) {
         super (context);
@@ -61,7 +68,7 @@ public class CardBox extends ScrollView {
         mContext = context;
 
         RelativeLayout mMainView = new RelativeLayout (mContext);
-        RelativeLayout.LayoutParams mMainViewParam = new RelativeLayout.LayoutParams (RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+        RelativeLayout.LayoutParams mMainViewParam = new RelativeLayout.LayoutParams (RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         mMainView.setPadding (Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), 0);
         mRefreshIcon = new ImageView (mContext);
         mRefreshIconSize = Tool.dip2px (mContext, mRefreshIconSize);
@@ -77,23 +84,54 @@ public class CardBox extends ScrollView {
         mRefreshIcon.setLayoutParams (mRefreshIconParam);
 
         mContainer = new LinearLayout (mContext);
-        LinearLayout.LayoutParams mContainerParam = new LinearLayout.LayoutParams (ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        LinearLayout.LayoutParams mContainerParam = new LinearLayout.LayoutParams (ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         mContainer.setMinimumHeight (mRefreshIconSize + (int) mRefreshIconDragMaxDistance);
         mContainer.setLayoutParams (mContainerParam);
         mContainer.setOrientation (LinearLayout.VERTICAL);
         mMainView.setLayoutParams (mMainViewParam);
+
         mMainView.addView (mContainer);
         mMainView.addView (mRefreshIcon);
 
         addView (mMainView);
+        addLoadingCard ( );
+
         setOnScrollChangeListener (new MyScrollChangeListener ( ));
         setOnTopOverDragListener (new MyTopOverDragListener ( ));
-        setOnOverDragRefreshListener (new MyRefreshListener ( ));
         setOnActiveAreaChangedListener (new MyActiveAreaChangedListener ( ));
+    }
+
+    private void addLoadingCard() {
+        mLoadingCard = new LinearCard (mContext);
+        RelativeLayout mLoadingBlank = new RelativeLayout (mContext);
+        mLoadingBlank.setBackground (mContext.getDrawable (R.drawable.cardbox_card));
+        mLoadingBlank.setGravity (Gravity.CENTER_HORIZONTAL);
+        RelativeLayout.LayoutParams mLoadingBlankParam = new RelativeLayout.LayoutParams (ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        ImageView loadingImage = new ImageView (mContext);
+        RelativeLayout.LayoutParams loadingImageParam = new RelativeLayout.LayoutParams (Tool.dip2px (mContext, 150), Tool.dip2px (mContext, 150));
+        loadingImage.setScaleType (android.widget.ImageView.ScaleType.CENTER_CROP);
+        loadingImage.setLayoutParams (loadingImageParam);
+        try {
+            Drawable decodedAnimation = ImageDecoder.decodeDrawable (ImageDecoder.createSource (getResources ( ), R.drawable.loading));
+            if (decodedAnimation instanceof AnimatedImageDrawable) {
+                // Prior to start(), the first frame is displayed.
+                ((AnimatedImageDrawable) decodedAnimation).start ( );
+            }
+            loadingImage.setImageDrawable (decodedAnimation);
+        } catch (IOException e) {
+            e.printStackTrace ( );
+        }
+        mLoadingBlank.addView (loadingImage);
+        mLoadingBlank.setMinimumHeight (Tool.dip2px (mContext, 150));
+        mLoadingBlank.setLayoutParams (mLoadingBlankParam);
+        mLoadingCard.setVisibility (GONE);
+        mLoadingCard.addView (mLoadingBlank);
+        addCard (mLoadingCard);
     }
 
     public void clearAll() {
         mContainer.removeAllViews ( );
+        addLoadingCard ( );
     }
 
     public void setIsOpenTopOverDragListener(boolean status) {
@@ -103,6 +141,10 @@ public class CardBox extends ScrollView {
         } else {
             setOverScrollMode (OVER_SCROLL_ALWAYS);
         }
+    }
+
+    public void setLoadingCard(int visible) {
+        mLoadingCard.setVisibility (visible);
     }
 
     public enum LayoutStyle {
@@ -152,7 +194,7 @@ public class CardBox extends ScrollView {
         boolean isSetTopActiveElementIndex = false;
         boolean isActiveAreaChanged = false;
         Set <View> newActiveElementSet = new HashSet <> ( );
-        for (int index = 0; index < mContainer.getChildCount ( ); index++) {
+        for (int index = 0; index < mContainer.getChildCount ( ) - 1; index++) {
             ViewGroup viewGroup = (ViewGroup) mContainer.getChildAt (index);
             Rect rect = new Rect ( );
             viewGroup.getLocalVisibleRect (rect);
@@ -193,11 +235,11 @@ public class CardBox extends ScrollView {
 
     }
 
-    private abstract static class ItemBase extends FrameLayout {
+    private abstract static class CardBase extends FrameLayout {
         public FrameLayout.LayoutParams mItemLayoutParams = new FrameLayout.LayoutParams (0, 0);
         public Context mContext;
 
-        ItemBase(Context context) {
+        CardBase(Context context) {
             super (context);
             mContext = context;
             initLayoutParams ( );
@@ -226,8 +268,8 @@ public class CardBox extends ScrollView {
         }
     }
 
-    public static class BlockItem extends ItemBase {
-        public BlockItem(Context context) {
+    public static class BlockCard extends CardBase {
+        public BlockCard(Context context) {
             super (context);
         }
 
@@ -237,14 +279,13 @@ public class CardBox extends ScrollView {
         }
     }
 
-    public static class LinearBlockItem extends ItemBase {
-        public LinearBlockItem(Context context) {
+    public static class LinearCard extends CardBase {
+        public LinearCard(Context context) {
             super (context);
         }
 
         public void initLayoutParams() {
-            setBackgroundColor (mContext.getColor (R.color.colorPrimary));
-            mItemLayoutParams.height = 400;
+            mItemLayoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
             mItemLayoutParams.setMargins (Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5));
             setLayoutParams (mItemLayoutParams);
         }
@@ -256,32 +297,32 @@ public class CardBox extends ScrollView {
     }
 
 
-    public void addItem(ItemBase item) {
+    public void addCard(CardBase item) {
         LayoutStyle layoutStyle = item.setLayoutStyle ( );
         switch (layoutStyle) {
             case block:
                 item.setWidth (Tool.getScreenWidth (mContext) / 2 - Tool.dip2px (mContext, 15));
                 if (mBlackSpace) {
                     int childCount = mContainer.getChildCount ( );
-                    ((ViewGroup) mContainer.getChildAt (childCount - 1)).addView (item);
+                    ((ViewGroup) mContainer.getChildAt (childCount - 2)).addView (item);
                     mBlackSpace = false;
                 } else {
                     LinearLayout linearLayout = new LinearLayout (mContext);
                     linearLayout.addView (item);
                     LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams (LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-                    mContainer.addView (linearLayout, layoutParams);
+                    mContainer.addView (linearLayout, mContainer.getChildCount ( ) - 1, layoutParams);
                     mBlackSpace = true;
                 }
                 break;
             case linearBlock:
                 item.setWidth (Tool.getScreenWidth (mContext) - Tool.dip2px (mContext, 20));
-                mContainer.addView (item);
+                mContainer.addView (item, -2);
                 mBlackSpace = false;
                 break;
         }
     }
 
-    public void deleteItem(View view) {
+    public void removeCard(View view) {
         mContainer.removeView (view);
     }
 
@@ -300,6 +341,7 @@ public class CardBox extends ScrollView {
     }
 
     public void setOnOverDragRefreshListener(OnOverDragRefreshListener listener) {
+        setIsOpenTopOverDragListener (true);
         mRefreshListener = listener;
     }
 

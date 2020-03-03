@@ -1,18 +1,23 @@
 package com.example.crxzy.centertainment.models;
 
+import android.util.ArrayMap;
+
 import com.example.crxzy.centertainment.activities.ArtistActivity;
 import com.example.crxzy.centertainment.activities.PictureActivity;
 import com.example.crxzy.centertainment.activities.SearchActivity;
 import com.example.crxzy.centertainment.controllers.Subscribe;
 import com.example.crxzy.centertainment.controllers.main.picture.Latest;
+import com.example.crxzy.centertainment.system.MainActivity;
 import com.example.crxzy.centertainment.tools.Network;
+
+import java.util.Map;
 
 public class NetApi {
     private static Network mNetwork = new Network ( );
     private final static String mHost = "http://10.0.0.2/CEntertainment/";
 
-    static public void getLatest(int limit, int skip, Latest context, String success) {
-        Network.Request request = new Network.Request (mHost + "Manga/Latest.json?limit=" + limit + "&skip=" + skip);
+    static public void getLatest(int uid, int limit, int skip, Latest context, String success) {
+        Network.Request request = new Network.Request (mHost + "Manga/Latest.json?uid=" + uid + "&limit=" + limit + "&skip=" + skip);
         request.setSuccess (context, success);
         mNetwork.send (request);
     }
@@ -63,8 +68,8 @@ public class NetApi {
         mNetwork.send (isLikeRequest);
     }
 
-    public static void getSubscribe(int uid, Subscribe context, String success) {
-        Network.Request getSubscribeRequest = new Network.Request (mHost + "User/getSubscribe.json?uid=" + uid);
+    public static void getSubscribe(int uid, Subscribe context, String success, int limit, int skip) {
+        Network.Request getSubscribeRequest = new Network.Request (mHost + "User/getSubscribe.json?uid=" + uid + "&limit=" + limit + "&skip=" + skip);
         getSubscribeRequest.setSuccess (context, success);
         mNetwork.send (getSubscribeRequest);
     }
@@ -85,5 +90,28 @@ public class NetApi {
         Network.Request searchRequest = new Network.Request (mHost + "Manga/search.json?search_content=" + searchContent + "&limit=" + limit + "&skip=" + skip);
         searchRequest.setSuccess (context, success);
         mNetwork.send (searchRequest);
+    }
+
+    public static void getAllLabels(Object context, String success) {
+        Network.Request getAllLabelsRequest = new Network.Request (mHost + "Manga/getAllLabels.json");
+        getAllLabelsRequest.setSuccess (context, success);
+        mNetwork.send (getAllLabelsRequest);
+    }
+
+    public static void getUserConfig(int uid, Object context, String success) {
+        Network.Request getUserConfigRequest = new Network.Request (mHost + "User/getUserConfig.json?uid=" + uid);
+        getUserConfigRequest.setSuccess (context, success);
+        mNetwork.send (getUserConfigRequest);
+    }
+
+    public static void setUserConfig(int uid, String key, String value) {
+        Network.Request setUserConfigRequest = new Network.Request (mHost + "User/setUserConfig.json?uid=" + uid + "&key=" + key + "&value=" + value);
+        mNetwork.send (setUserConfigRequest);
+    }
+
+    public static void getUserDefine(int uid, int limit, Object context, String success) {
+        Network.Request getUserDefineRequest = new Network.Request (mHost + "Manga/getUserDefine.json?uid=" + uid + "&limit=" + limit);
+        getUserDefineRequest.setSuccess (context, success);
+        mNetwork.send (getUserDefineRequest);
     }
 }

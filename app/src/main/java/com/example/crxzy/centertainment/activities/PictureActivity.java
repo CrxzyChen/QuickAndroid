@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -64,20 +63,20 @@ public class PictureActivity extends AppCompatActivity {
     LinearLayout mRecommendArea;
     LinearLayout mRecommendContainer;
     private RelativeLayout mSearchArea;
-    private ViewGroup.MarginLayoutParams mSearchAreaParam;
+    static private ViewGroup.MarginLayoutParams mSearchAreaParam;
     private ScrollView mContainer;
     private float mContainerTouchX;
     private float mContainerLastX;
     private float mContainerTouchY;
     private float mContainerLastY;
-    private boolean mIsSearchAreaOperated = false;
+    static private boolean mIsSearchAreaOperated = false;
     private boolean mIsContainerOperated = false;
     private boolean mIsPlayAnimation = false;
-    private boolean mSearchAreaStatus = false;
+    static private boolean mSearchAreaStatus = false;
     LinearLayout mLabelPopupWindowContainer;
     PopupWindow mLabelPopupWindow;
-    LabelBox mSearchAreaMark;
-    LabelBox mSearchAreaFilter;
+    static LabelBox mSearchAreaMark;
+    static LabelBox mSearchAreaFilter;
     private LabelBox.Label mSelectedLabel;
     private float mSearchAreaLastX;
     private float mSearchAreaTouchX;
@@ -85,7 +84,6 @@ public class PictureActivity extends AppCompatActivity {
     private Button mSearchAreaSearch;
     private Button mSearchAreaSave;
     private ViewGroup mSearchAreaLanguage;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,10 +122,13 @@ public class PictureActivity extends AppCompatActivity {
         mLabelPopupWindowContainer.setLayoutParams (labelPopupWindowContainerParam);
 
 
-        TextView marked = getLabelPopupWindowItem (getText (R.string.import_label_as_mark));
-        TextView filter = getLabelPopupWindowItem (getText (R.string.import_label_as_filter));
-
-        marked.setOnClickListener (new View.OnClickListener ( ) {
+        TextView globeMarked = getLabelPopupWindowItem (getText (R.string.import_as_globe_mark));
+        TextView globeFilter = getLabelPopupWindowItem (getText (R.string.import_as_globe_filter));
+        TextView searchMarked = getLabelPopupWindowItem (getText (R.string.import_as_search_mark));
+        TextView searchFilter = getLabelPopupWindowItem (getText (R.string.import_as_search_filter));
+        globeMarked.setOnClickListener (new OnAddGlobeLabelListener ("mark"));
+        globeFilter.setOnClickListener (new OnAddGlobeLabelListener ("filter"));
+        searchMarked.setOnClickListener (new View.OnClickListener ( ) {
             @Override
             public void onClick(View v) {
                 PictureActivity.this.setSearchAreaStatus (true);
@@ -136,7 +137,7 @@ public class PictureActivity extends AppCompatActivity {
             }
         });
 
-        filter.setOnClickListener (new View.OnClickListener ( ) {
+        searchFilter.setOnClickListener (new View.OnClickListener ( ) {
             @Override
             public void onClick(View v) {
                 PictureActivity.this.setSearchAreaStatus (true);
@@ -144,9 +145,10 @@ public class PictureActivity extends AppCompatActivity {
                 mLabelPopupWindow.dismiss ( );
             }
         });
-
-        mLabelPopupWindowContainer.addView (marked);
-        mLabelPopupWindowContainer.addView (filter);
+        mLabelPopupWindowContainer.addView (globeMarked);
+        mLabelPopupWindowContainer.addView (globeFilter);
+        mLabelPopupWindowContainer.addView (searchMarked);
+        mLabelPopupWindowContainer.addView (searchFilter);
 
         mLabelPopupWindow = new PopupWindow (mLabelPopupWindowContainer, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);//参数为1.View 2.宽度 3.高度
         mLabelPopupWindow.setBackgroundDrawable (getDrawable (R.drawable.label_popup_window));
@@ -155,17 +157,52 @@ public class PictureActivity extends AppCompatActivity {
         mLabelPopupWindow.setElevation (Tool.dip2px (mContext, 10));
     }
 
+    class OnAddGlobeLabelListener implements View.OnClickListener {
+        private final String mLabelKind;
+
+        OnAddGlobeLabelListener(String labelKind) {
+            mLabelKind = labelKind;
+        }
+
+        @Override
+        public void onClick(View v) {
+            JSONObject config = (JSONObject) mApp.mUser.getConfig ("picture_common");
+            if (config != null && config.has (mLabelKind)) {
+                try {
+                    JSONArray labels = config.getJSONArray (mLabelKind);
+                    boolean isContainLabel = false;
+                    for (int index = 0; index < labels.length ( ); index++) {
+                        if (labels.getString (index).contentEquals (mSelectedLabel.mTextView.getText ( ))) {
+                            isContainLabel = true;
+                            break;
+                        }
+                    }
+                    if (!isContainLabel) {
+                        labels.put (mSelectedLabel.mTextView.getText ( ));
+                        mApp.mUser.putConfig ("picture_common", config);
+                        Toast.makeText (mContext, "Add label to globe " + mLabelKind + " success!", Toast.LENGTH_SHORT).show ( );
+                    } else {
+                        Toast.makeText (mContext, "label is existed in globe " + mLabelKind + "!", Toast.LENGTH_SHORT).show ( );
+                    }
+                    mLabelPopupWindow.dismiss ( );
+                } catch (JSONException e) {
+                    e.printStackTrace ( );
+                }
+            }
+        }
+    }
+
     @NonNull
     private TextView getLabelPopupWindowItem(CharSequence content) {
         LinearLayout.LayoutParams itemParam = new LinearLayout.LayoutParams (ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        itemParam.setMargins (5, 5, 5, 5);
+        itemParam.setMargins (Tool.dip2px (mContext,5), Tool.dip2px (mContext,5), Tool.dip2px (mContext,5), Tool.dip2px (mContext,5));
         TextView textView = new TextView (mContext);
         textView.setPadding (5, 5, 5, 5);
         textView.setLayoutParams (itemParam);
         textView.setClickable (true);
         textView.setBackground (getDrawable (R.drawable.label_popup_item));
         textView.setText (content);
-        textView.setTextColor (getColor (R.color.black));
+        textView.setTextColor (getColor (R.color.colorText));
         return textView;
     }
 
@@ -175,34 +212,31 @@ public class PictureActivity extends AppCompatActivity {
         mSearchAreaContainer = findViewById (R.id.sub_picture_search_container);
         mSearchAreaParam = (ViewGroup.MarginLayoutParams) mSearchArea.getLayoutParams ( );
         mSearchAreaLanguage = mSearchArea.findViewById (R.id.sub_picture_search_language);
-        mSearchAreaMark = mSearchArea.findViewById (R.id.sub_picture_search_mark);
-        mSearchAreaFilter = mSearchArea.findViewById (R.id.sub_picture_search_filter);
+        if (mSearchAreaMark != null) {
+            LabelBox currentView = mSearchArea.findViewById (R.id.sub_picture_search_mark);
+            List <String> labels = mSearchAreaMark.getAllLabels ( );
+            for (String label : labels) {
+                currentView.addLabel (new LabelBox.CancelAbleLabel (mContext, label));
+            }
+            mSearchAreaMark = currentView;
+        } else {
+            mSearchAreaMark = mSearchArea.findViewById (R.id.sub_picture_search_mark);
+        }
+        if (mSearchAreaFilter != null) {
+            LabelBox currentView = mSearchArea.findViewById (R.id.sub_picture_search_filter);
+            List <String> labels = mSearchAreaFilter.getAllLabels ( );
+            for (String label : labels) {
+                currentView.addLabel (new LabelBox.CancelAbleLabel (mContext, label));
+            }
+            mSearchAreaFilter = currentView;
+        } else {
+            mSearchAreaFilter = mSearchArea.findViewById (R.id.sub_picture_search_filter);
+        }
         mSearchAreaSearch = mSearchArea.findViewById (R.id.sub_picture_search_search);
         mSearchAreaSearch.setOnClickListener (new View.OnClickListener ( ) {
             @Override
             public void onClick(View v) {
-                List <String> marked_labels = mSearchAreaMark.getAllLabels ( );
-                List <String> filter_labels = mSearchAreaFilter.getAllLabels ( );
-                List <String> language_labels = new ArrayList <> ( );
-                for (int index = 0; index < mSearchAreaLanguage.getChildCount ( ); index++) {
-                    CheckBox checkBox = (CheckBox) mSearchAreaLanguage.getChildAt (index);
-                    if (checkBox.isChecked ( )) {
-                        language_labels.add (((String) checkBox.getText ( )).toLowerCase ());
-                    }
-                }
-                JSONObject json = new JSONObject ( );
-                try {
-                    json.put ("language", new JSONArray (language_labels));
-                    json.put ("mark", new JSONArray (marked_labels));
-                    json.put ("filter", new JSONArray (filter_labels));
-                    String jsonString = json.toString ( );
-                    Intent intent = new Intent ( );
-                    intent.setClass (mContext, SearchActivity.class);
-                    intent.putExtra ("search_content", jsonString);
-                    mContext.startActivity (intent);
-                } catch (JSONException e) {
-                    e.printStackTrace ( );
-                }
+                turnToSearchPage ( );
             }
         });
         mSearchAreaSave = mSearchArea.findViewById (R.id.sub_picture_search_save);
@@ -222,6 +256,31 @@ public class PictureActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    private void turnToSearchPage() {
+        List <String> marked_labels = mSearchAreaMark.getAllLabels ( );
+        List <String> filter_labels = mSearchAreaFilter.getAllLabels ( );
+        List <String> language_labels = new ArrayList <> ( );
+        for (int index = 0; index < mSearchAreaLanguage.getChildCount ( ); index++) {
+            CheckBox checkBox = (CheckBox) mSearchAreaLanguage.getChildAt (index);
+            if (checkBox.isChecked ( )) {
+                language_labels.add (((String) checkBox.getText ( )).toLowerCase ( ));
+            }
+        }
+        JSONObject json = new JSONObject ( );
+        try {
+            json.put ("language", new JSONArray (language_labels));
+            json.put ("mark", new JSONArray (marked_labels));
+            json.put ("filter", new JSONArray (filter_labels));
+            String jsonString = json.toString ( );
+            Intent intent = new Intent ( );
+            intent.setClass (mContext, SearchActivity.class);
+            intent.putExtra ("search_content", jsonString);
+            mContext.startActivity (intent);
+        } catch (JSONException e) {
+            e.printStackTrace ( );
+        }
     }
 
     class containerTouchEventListener implements View.OnTouchListener {
@@ -402,6 +461,24 @@ public class PictureActivity extends AppCompatActivity {
 
         for (String tab : mResource.Tags) {
             final LabelBox.Label label = new LabelBox.Label (this, tab);
+            label.setOnClickListener (new View.OnClickListener ( ) {
+                @Override
+                public void onClick(final View v) {
+                    try {
+                        JSONObject json = new JSONObject ( );
+                        json.put ("mark", new JSONArray (new ArrayList <String> ( ) {{
+                            add ((String) ((LabelBox.Label) v).mTextView.getText ( ));
+                        }}));
+                        String jsonString = json.toString ( );
+                        Intent intent = new Intent ( );
+                        intent.setClass (mContext, SearchActivity.class);
+                        intent.putExtra ("search_content", jsonString);
+                        mContext.startActivity (intent);
+                    } catch (JSONException e) {
+                        e.printStackTrace ( );
+                    }
+                }
+            });
             label.setOnLongClickListener (new View.OnLongClickListener ( ) {
                 @Override
                 public boolean onLongClick(View v) {
@@ -496,11 +573,11 @@ public class PictureActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (!mIsLike) {
-                    NetApi.addLike (mApp.mUser.mUid, mResource.ResourceId, mContext, "successLike");
+                    NetApi.addLike (mApp.mUser.uid, mResource.ResourceId, mContext, "successLike");
                     Toast.makeText (mContext, "已标记为喜欢", Toast.LENGTH_SHORT).show ( );
 
                 } else {
-                    NetApi.removeLike (mApp.mUser.mUid, mResource.ResourceId, mContext, "successRemoveLike");
+                    NetApi.removeLike (mApp.mUser.uid, mResource.ResourceId, mContext, "successRemoveLike");
                     Toast.makeText (mContext, "已标记为不喜欢", Toast.LENGTH_SHORT).show ( );
                 }
             }
@@ -509,17 +586,17 @@ public class PictureActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (!mIsSubscribe) {
-                    NetApi.addSubscribe (mApp.mUser.mUid, mResource.ResourceId, mContext, "successSubscribe");
+                    NetApi.addSubscribe (mApp.mUser.uid, mResource.ResourceId, mContext, "successSubscribe");
                     Toast.makeText (mContext, "已发送订阅请求", Toast.LENGTH_SHORT).show ( );
                 } else {
-                    NetApi.removeSubscribe (mApp.mUser.mUid, mResource.ResourceId, mContext, "successRemoveSubscribe");
+                    NetApi.removeSubscribe (mApp.mUser.uid, mResource.ResourceId, mContext, "successRemoveSubscribe");
                     Toast.makeText (mContext, "已取消订阅", Toast.LENGTH_SHORT).show ( );
                 }
             }
         });
 
-        NetApi.isLike (mApp.mUser.mUid, mResource.ResourceId, mContext, "successIsLike");
-        NetApi.isSubscribe (mApp.mUser.mUid, mResource.ResourceId, mContext, "successIsSubscribe");
+        NetApi.isLike (mApp.mUser.uid, mResource.ResourceId, mContext, "successIsLike");
+        NetApi.isSubscribe (mApp.mUser.uid, mResource.ResourceId, mContext, "successIsSubscribe");
     }
 
     private List <View> getViews() {
@@ -531,7 +608,7 @@ public class PictureActivity extends AppCompatActivity {
             SubPictureClickListener clickListener = new SubPictureClickListener ( );
             imageView.setOnClickListener (clickListener);
             imageView.setScaleType (android.widget.ImageView.ScaleType.FIT_CENTER);
-            imageView.setImageURL ("http://10.0.0.2:4396/gallery/" + mResource.ThumbId + "/" + mResource.ImageNames.get (index) + "?width=" + Tool.dip2px (mContext, Tool.getScreenWidth (mContext)));
+            imageView.setImageURL ("http://10.0.0.2:4396/gallery/" + mResource.ThumbId + "/" + mResource.ImageNames.get (index) + "?width=720");
             viewLists.add (imageView);
         }
         mIsLoading = false;

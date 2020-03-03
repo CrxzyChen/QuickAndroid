@@ -3,6 +3,13 @@ package com.example.crxzy.centertainment.views;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.ImageDecoder;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Xfermode;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.Image;
@@ -100,10 +107,10 @@ public class ImageView extends android.support.v7.widget.AppCompatImageView {
 
         @Override
         public void handleMessage(Message msg) {
-            ImageView ImageView = outerClass.get ( );
+            ImageView imageView = outerClass.get ( );
             if (msg.what == IMAGE_DOWNLOAD_SUCCESS) {
                 if (((Network.Response) msg.obj).content instanceof Bitmap) {
-                    ImageView.setImageBitmap ((Bitmap) ((Network.Response) msg.obj).content);
+                    imageView.setImageBitmap ((Bitmap) ((Network.Response) msg.obj).content);
                 }
             }
         }

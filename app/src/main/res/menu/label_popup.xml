@@ -2,9 +2,9 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/send"
-        android:title="@string/import_label_as_mark" />
+        android:title="@string/import_as_search_mark" />
 
     <item
         android:id="@+id/change"
-        android:title="@string/import_label_as_filter" />
+        android:title="@string/import_as_search_filter" />
 </menu>

@@ -7,170 +7,253 @@
     android:outlineAmbientShadowColor="@color/colorPrimary"
     android:padding="5dp">
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:elevation="2dp"
-            android:gravity="center"
-            android:text="@string/string_picture_common_setting"
-            android:textColor="@color/white"
-            android:textSize="20sp" />
+        android:layout_height="match_parent">
 
         <LinearLayout
-
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:background="@color/colorBackground"
-            android:elevation="10dp"
-            android:orientation="vertical"
-            android:padding="5dp">
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:elevation="2dp"
+                android:gravity="center"
+                android:text="@string/string_picture_common_setting"
+                android:textColor="@color/white"
+                android:textSize="20sp" />
 
             <LinearLayout
+
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
+                android:layout_height="wrap_content"
+                android:layout_margin="5dp"
+                android:background="@color/colorBackground"
+                android:elevation="10dp"
+                android:orientation="vertical"
+                android:padding="5dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:orientation="horizontal">
+                    android:orientation="vertical">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="40dp"
-                        android:gravity="center_vertical"
-                        android:padding="5dp"
-                        android:text="@string/icon_lang" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
 
-                    <TextView
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="40dp"
+                            android:gravity="center_vertical"
+                            android:padding="5dp"
+                            android:text="@string/icon_lang" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="40dp"
+                            android:gravity="center_vertical"
+                            android:padding="5dp"
+                            android:text="@string/string_language" />
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:id="@+id/popup_picture_language_selector"
                         android:layout_width="match_parent"
                         android:layout_height="40dp"
-                        android:gravity="center_vertical"
-                        android:padding="5dp"
-                        android:text="@string/string_language" />
+                        android:padding="10dp">
+
+                        <CheckBox
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:text="@string/string_english" />
+
+                        <CheckBox
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:text="@string/string_chinese" />
+
+                        <CheckBox
+                            android:layout_width="0dp"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:text="@string/string_japanese" />
+                    </LinearLayout>
                 </LinearLayout>
-
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="40dp"
-                    android:padding="10dp">
-
-                    <CheckBox
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:text="@string/string_english" />
-
-                    <CheckBox
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:text="@string/string_chinese" />
-
-                    <CheckBox
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:text="@string/string_japanese" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:orientation="horizontal">
+                    android:orientation="vertical">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="40dp"
-                        android:gravity="center_vertical"
-                        android:padding="5dp"
-                        android:text="@string/true_icon" />
-
-                    <TextView
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="40dp"
-                        android:gravity="center_vertical"
-                        android:padding="5dp"
-                        android:text="@string/string_mark" />
-                </LinearLayout>
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
 
-                <com.example.crxzy.centertainment.views.LabelBox
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:minHeight="40dp"
-                    android:padding="10dp" />
-            </LinearLayout>
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="40dp"
+                                android:gravity="center_vertical"
+                                android:padding="5dp"
+                                android:text="@string/true_icon" />
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="horizontal">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="40dp"
+                                android:gravity="center_vertical"
+                                android:padding="5dp"
+                                android:text="@string/string_mark" />
+                        </LinearLayout>
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="40dp"
-                        android:gravity="center_vertical"
-                        android:padding="5dp"
-                        android:text="@string/false_icon" />
+                        <LinearLayout
+                            android:id="@+id/popup_picture_add_mark"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="end"
+                            android:orientation="horizontal">
 
-                    <TextView
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="40dp"
+                                android:gravity="center_vertical"
+                                android:text="@string/string_add" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="40dp"
+                                android:layout_marginEnd="10dp"
+                                android:gravity="center_vertical"
+                                android:text="@string/icon_plus" />
+
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <com.example.crxzy.centertainment.views.LabelBox
+                        android:id="@+id/popup_picture_mark_container"
                         android:layout_width="match_parent"
-                        android:layout_height="40dp"
-                        android:gravity="center_vertical"
-                        android:padding="5dp"
-                        android:text="@string/string_filter" />
-                </LinearLayout>
-
-                <com.example.crxzy.centertainment.views.LabelBox
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:minHeight="40dp"
-                    android:padding="10dp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:gravity="center">
-
-                    <Button
-                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_margin="5dp"
-                        android:text="@string/string_save" />
+                        android:minHeight="40dp"
+                        android:padding="10dp" />
 
-                    <Button
-                        android:layout_width="wrap_content"
+                    <AutoCompleteTextView
+                        android:id="@+id/popup_picture_mark_auto_complete"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:completionThreshold="1"
+                        android:inputType="text"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="40dp"
+                                android:gravity="center_vertical"
+                                android:padding="5dp"
+                                android:text="@string/false_icon" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="40dp"
+                                android:gravity="center_vertical"
+                                android:padding="5dp"
+                                android:text="@string/string_filter" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/popup_picture_add_filter"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="end"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="40dp"
+                                android:gravity="center_vertical"
+                                android:text="@string/string_add" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="40dp"
+                                android:layout_marginEnd="10dp"
+                                android:gravity="center_vertical"
+                                android:text="@string/icon_plus" />
+
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <com.example.crxzy.centertainment.views.LabelBox
+                        android:id="@+id/popup_picture_filter_container"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_margin="5dp"
-                        android:text="@string/string_reset" />
+                        android:minHeight="40dp"
+                        android:padding="10dp" />
+
+                    <AutoCompleteTextView
+                        android:id="@+id/popup_picture_filter_auto_complete"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:completionThreshold="1"
+                        android:inputType="text"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:gravity="center">
+
+                        <Button
+                            android:id="@+id/popup_picture_save"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="5dp"
+                            android:text="@string/string_save" />
+
+                        <Button
+                            android:id="@+id/popup_picture_reset"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="5dp"
+                            android:text="@string/string_reset" />
+                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
+    </ScrollView>
 
-
-    </LinearLayout>
 </LinearLayout>

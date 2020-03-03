@@ -28,14 +28,11 @@
     <string name="string_include">Include</string>
     <string name="string_filter">Filter</string>
     <string name="false_icon">✘</string>
-    <string name="stringenglish">English</string>
     <string name="string_english">English</string>
     <string name="string_japanese">Japanese</string>
     <string name="string_chinese">Chinese</string>
     <string name="string_language">Language</string>
     <string name="string_find_more">Find More</string>
-    <string name="import_label_as_mark">import label as mark</string>
-    <string name="import_label_as_filter">import label as filter</string>
     <string name="string_mark">Mark</string>
     <string name="string_star">Star</string>
     <string name="string_artists">Artists</string>
@@ -46,4 +43,13 @@
     <string name="string_picture_common_setting">Picture Common Setting</string>
     <string name="icon_lang">あ</string>
     <string name="string_search">Search</string>
+    <string name="string_add">Add</string>
+    <string name="icon_plus">+</string>
+    <string name="import_as_search_mark">import as search mark</string>
+    <string name="import_as_search_filter">import as search filter</string>
+    <string name="import_as_globe_mark">import as globe mark</string>
+    <string name="import_as_globe_filter">import as globe filter</string>
+    <string name="string_cn_fan">粉丝</string>
+    <string name="string_cn_focus">关注</string>
+    <string name="string_cn_thumb_up">获赞</string>
 </resources>

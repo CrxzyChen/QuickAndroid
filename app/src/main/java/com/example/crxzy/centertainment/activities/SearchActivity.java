@@ -52,6 +52,7 @@ public class SearchActivity extends QuickActivity {
             @Override
             public void OnTouchBottom() {
                 if (!mIsLoading) {
+                    mContainer.setLoadingCard(View.VISIBLE);
                     NetApi.search (mSearchContent, SearchActivity.this, "searchSuccess", mSingleLoadSize, mLoadedSize);
                     mIsLoading = true;
                 }
@@ -128,7 +129,7 @@ public class SearchActivity extends QuickActivity {
 
     private void addItem(List <MangaResource> opus) {
         for (MangaResource opu : opus) {
-            mContainer.addItem (new MangaSelfCard (this, opu));
+            mContainer.addCard (new MangaSelfCard (this, opu));
         }
         mLoadedSize += opus.size ( );
         mIsLoading = false;

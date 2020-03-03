@@ -45,10 +45,10 @@ public class Network {
     public class Response {
         public Request request;
         public Object content;
+        public Map <String, String> contentType;
         int code;
         String raw;
         Map <String, List <String>> headers;
-
 
         Response(Request request, HttpURLConnection httpURLConnection) {
             try {
@@ -57,7 +57,7 @@ public class Network {
                 this.headers = httpURLConnection.getHeaderFields ( );
 
                 if (this.code == HttpURLConnection.HTTP_OK) {
-                    Map <String, String> contentType = getContentType ( );
+                    contentType = getContentType ( );
                     if (Objects.equals (contentType.get ("ext"), "json")) {
                         this.raw = BaseToString (httpURLConnection.getInputStream ( ), contentType);
                         try {
@@ -120,6 +120,7 @@ public class Network {
     public static class Request {
         public String url;
         String method = "GET";
+        boolean isSynchronous = false;
         Map <String, Object> meta;
         private Object mInstance;
         private String mSuccess;

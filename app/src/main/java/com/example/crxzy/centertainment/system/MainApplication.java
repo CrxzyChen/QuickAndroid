@@ -15,16 +15,6 @@ public class MainApplication extends Application {
     }
 
     private void initUserInfo() {
-        SPUtils.clear (this);
-        SPUtils.put (this, "uid", 1);
-        SPUtils.put (this, "username", "admin");
-        mUser = new User ( );
-        String username = (String) SPUtils.get (this, "username", "");
-        int uid = (int) SPUtils.get (this, "uid", -1);
-        assert username != null;
-        if (username.equals ("")) {
-            mUser.mUsername = "unknown";
-        }
-        mUser.mUid = uid;
+        mUser = new User (this );
     }
 }

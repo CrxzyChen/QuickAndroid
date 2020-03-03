@@ -3,7 +3,6 @@ package com.example.crxzy.centertainment.controllers;
 import android.content.Intent;
 import android.os.Message;
 import android.view.View;
-import android.view.ViewTreeObserver;
 
 import com.example.crxzy.centertainment.activities.PictureActivity;
 import com.example.crxzy.centertainment.R;
@@ -20,23 +19,24 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Objects;
+
 public class Subscribe extends FirstPageBase {
     private MyHandler mHandler = new MyHandler (this);
     private CardBox mViewContainer;
     private int mSingleLoadSize = 10;
     private int mLoadedSize = 0;
-    private JSONArray mSubscribeInfo;
     private boolean mIsLoading = false;
 
-    public Subscribe(MainActivity activity,  QuickPageModel.Page pageModel) {
-        super (activity,  pageModel);
+    public Subscribe(MainActivity activity, QuickPageModel.Page pageModel) {
+        super (activity, pageModel);
     }
 
     @Override
     public void onInitiation() {
         super.onInitiation ( );
         mViewContainer = mView.findViewById (R.id.subscribe_container);
-        NetApi.getSubscribe (mApp.mUser.mUid, this, "getSubscribeSuccess");
+        NetApi.getSubscribe (mApp.mUser.uid, this, "getSubscribeSuccess", mSingleLoadSize, mLoadedSize);
         mViewContainer.setIsOpenTopOverDragListener (true);
         mViewContainer.setOnOverDragRefreshListener (new CardBoxOnOverDragRefresh ( ));
         mViewContainer.setOnTouchBottomListener (new CardBox.OnTouchBottomListener ( ) {
@@ -49,17 +49,12 @@ public class Subscribe extends FirstPageBase {
             public void OnTouchBottom() {
                 if (!mIsLoading) {
                     mIsLoading = true;
-                    addItem ( );
-                    mViewContainer.getViewTreeObserver ( ).addOnDrawListener (new ViewTreeObserver.OnDrawListener ( ) {
-                        @Override
-                        public void onDraw() {
-                            mIsLoading = false;
-                        }
-                    });
+                    mViewContainer.setLoadingCard(View.VISIBLE);
+                    NetApi.getSubscribe (mApp.mUser.uid, Subscribe.this, "getSubscribeSuccess", mSingleLoadSize, mLoadedSize);
                 }
             }
         });
-        mViewContainer.playRefreshingAnimation ();
+        mViewContainer.playRefreshingAnimation ( );
     }
 
     class CardBoxOnOverDragRefresh implements CardBox.OnOverDragRefreshListener {
@@ -67,7 +62,7 @@ public class Subscribe extends FirstPageBase {
         public void OnRefresh() {
             mViewContainer.clearAll ( );
             mLoadedSize = 0;
-            NetApi.getSubscribe (mApp.mUser.mUid, Subscribe.this, "getSubscribeSuccess");
+            NetApi.getSubscribe (mApp.mUser.uid, Subscribe.this, "getSubscribeSuccess", mSingleLoadSize, mLoadedSize);
         }
     }
 
@@ -78,11 +73,10 @@ public class Subscribe extends FirstPageBase {
         mHandler.sendMessage (message);
     }
 
-    private void addItem() {
+    private void addItem(JSONArray subscribeItems) {
         try {
-            int endIndex = mSubscribeInfo.length ( ) < mLoadedSize + mSingleLoadSize ? mSubscribeInfo.length ( ) : mSingleLoadSize + mLoadedSize;
-            for (int index = mLoadedSize; index < endIndex; index++) {
-                final JSONObject item = mSubscribeInfo.getJSONObject (index);
+            for (int index = 0; index < subscribeItems.length ( ); index++) {
+                final JSONObject item = subscribeItems.getJSONObject (index);
                 int clickedTimes = 0;
                 if (item.has ("clicked")) {
                     clickedTimes = item.getInt ("clicked");
@@ -101,9 +95,9 @@ public class Subscribe extends FirstPageBase {
                         break;
                     }
                 }
-                if (language.equals ("english")) {
+                if (Objects.equals (language, "english")) {
                     mangaSelfCard.langFlag.setImageDrawable (mActivity.getDrawable (R.drawable.flag_en));
-                } else if (language.equals ("chinese")) {
+                } else if (Objects.equals (language, "chinese")) {
                     mangaSelfCard.langFlag.setImageDrawable (mActivity.getDrawable (R.drawable.flag_cn));
                 } else {
                     mangaSelfCard.langFlag.setImageDrawable (mActivity.getDrawable (R.drawable.flag_jp));
@@ -125,11 +119,12 @@ public class Subscribe extends FirstPageBase {
                 mangaSelfCard.sourceTag.setText (tagsString);
                 mangaSelfCard.pageCount.setText (info.getString ("page"));
                 mangaSelfCard.image.setImageURL ("http://10.0.0.2:4396/gallery/" + thumb.getString ("thumb_id") + "/" + image_names.get (0) + "?height=480&width=360");
-                mViewContainer.addItem (mangaSelfCard);
+                mViewContainer.addCard (mangaSelfCard);
                 ItemOnClickListener itemOnClickListener = new ItemOnClickListener (item, mangaSelfCard);
                 mangaSelfCard.setOnClickListener (itemOnClickListener);
             }
-            mLoadedSize = endIndex;
+            mLoadedSize += subscribeItems.length ( );
+            mIsLoading = false;
         } catch (JSONException e) {
             e.printStackTrace ( );
         }
@@ -148,7 +143,7 @@ public class Subscribe extends FirstPageBase {
         @Override
         public void onClick(View v) {
             try {
-                int uid = mApp.mUser.mUid;
+                int uid = mApp.mUser.uid;
                 String resource_id = mItem.getJSONObject ("_id").getString ("$oid");
                 NetApi.addHistory (uid, resource_id);
                 NetApi.upClickedCount (resource_id);
@@ -176,8 +171,8 @@ public class Subscribe extends FirstPageBase {
         public void handleMessage(Message msg) {
             Subscribe subscribe = (Subscribe) mOuterClass.get ( );
             if (msg.what == LOAD_SUBSCRIBE) {
-                subscribe.mSubscribeInfo = ((JSONArray) ((Network.Response) msg.obj).content);
-                subscribe.addItem ( );
+                JSONArray subscribeItems = ((JSONArray) ((Network.Response) msg.obj).content);
+                subscribe.addItem (subscribeItems);
                 subscribe.mViewContainer.playEndRefreshAnimation ( );
             }
         }

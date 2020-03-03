@@ -22,9 +22,9 @@ public class Recommend extends ThirdPageBase {
         network.send (request);
         CardBox itemBox = (CardBox) mActivity.findViewById (R.id.picture_recommend_card_box);
         MangaSelfCard normalItem = new MangaSelfCard (mActivity);
-        itemBox.addItem (normalItem);
+        itemBox.addCard (normalItem);
         MangaSelfCard normalItem2 = new MangaSelfCard (mActivity);
-        itemBox.addItem (normalItem2);
+        itemBox.addCard (normalItem2);
     }
 
     public void success(Network.Response response) {

@@ -140,8 +140,8 @@ abstract public class PageBase {
     public static abstract class PageHandler extends Handler {
         protected WeakReference <PageBase> mOuterClass;
 
-        public PageHandler(PageBase activity) {
-            mOuterClass = new WeakReference <> (activity);
+        public PageHandler(PageBase page) {
+            mOuterClass = new WeakReference <> (page);
         }
 
         @Override

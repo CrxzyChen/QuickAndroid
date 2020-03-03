@@ -227,7 +227,7 @@ public class PicturePlayerActivity extends AppCompatActivity {
         mNetwork = new Network ( );
         int endIndex = Math.min (mImageNames.size ( ), mLoadedViewIndex + mLoadViewBatchSize);
         for (int index = mLoadedViewIndex; index < endIndex; index++) {
-            Network.Request request = new Network.Request ("http://10.0.0.2:4396/gallery/" + mThumbId + "/" + mImageNames.get (index) + "?width=" + Tool.dip2px (mContext, Tool.getScreenWidth (mContext)));
+            Network.Request request = new Network.Request ("http://10.0.0.2:4396/gallery/" + mThumbId + "/" + mImageNames.get (index) + "?width=720");
             request.setSuccess (this, "loadImageSuccess");
             request.setMeta ("index", index);
             mNetwork.send (request);
@@ -242,7 +242,7 @@ public class PicturePlayerActivity extends AppCompatActivity {
         mImagePlayerHandler.sendMessage (message);
     }
 
-    class ImagePlayerBrowserAdapter extends PagerAdapter {
+    static class ImagePlayerBrowserAdapter extends PagerAdapter {
         List <View> mViewLists;
 
         ImagePlayerBrowserAdapter(List <View> viewLists) {
@@ -299,7 +299,7 @@ public class PicturePlayerActivity extends AppCompatActivity {
                 int index = (int) response.request.getMeta ("index");
                 imagePlayer.mImagePlayerBrowserAdapter.setImageBitmap (index, response.content);
                 imagePlayer.mLoadedImageSize += 1;
-                int endIndex = (imagePlayer.mImageNames.size ( ) < imagePlayer.mLoadedViewIndex + imagePlayer.mLoadViewBatchSize) ? imagePlayer.mImageNames.size ( ) : imagePlayer.mLoadedViewIndex + imagePlayer.mLoadViewBatchSize;
+                int endIndex = Math.min (imagePlayer.mImageNames.size ( ), imagePlayer.mLoadedViewIndex + imagePlayer.mLoadViewBatchSize);
                 if (imagePlayer.mLoadedImageSize == imagePlayer.mLoadViewBatchSize) {
                     imagePlayer.mCover.startAnimation (imagePlayer.mCoverOpenAnimation);
                 }

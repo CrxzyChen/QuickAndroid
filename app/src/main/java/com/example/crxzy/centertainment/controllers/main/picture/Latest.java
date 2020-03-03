@@ -1,9 +1,9 @@
 package com.example.crxzy.centertainment.controllers.main.picture;
 
 import android.content.Intent;
+import android.opengl.Visibility;
 import android.os.Message;
 import android.view.View;
-import android.view.ViewTreeObserver;
 
 import com.example.crxzy.centertainment.activities.PictureActivity;
 import com.example.crxzy.centertainment.R;
@@ -28,7 +28,6 @@ import java.util.Set;
 public class Latest extends ThirdPageBase {
     private CardBox mCardBox;
     private PictureLatestHandler mHandler;
-    private CardBox.LinearBlockItem mLoadingItem;
     private int mSkip;
     private int mLimit = 10;
     private boolean mIsLoading = false;
@@ -46,29 +45,8 @@ public class Latest extends ThirdPageBase {
         mCardBox.setOnActiveAreaChangedListener (new CardBoxOnActiveAreaChangedListener ( ));
         mCardBox.setIsOpenTopOverDragListener (true);
         mCardBox.setOnOverDragRefreshListener (new CardBoxOnOverDragRefresh ( ));
-        mLoadingItem = new CardBox.LinearBlockItem (mActivity);
-        NetApi.getLatest (mLimit, 0, Latest.this, "addRequestSuccess");
+        NetApi.getLatest (mApp.mUser.uid, mLimit, 0, Latest.this, "addRequestSuccess");
         mCardBox.playRefreshingAnimation ( );
-//        final boolean[] isDescriptionListenerAdded = {false};
-//        final ViewTreeObserver.OnDrawListener a = new ViewTreeObserver.OnDrawListener ( ) {
-//            @Override
-//            public void onDraw() {
-//                NetApi.getLatest (mLimit, 0, Latest.this, "addRequestSuccess");
-//                mCardBox.playRefreshingAnimation ( );
-//                isDescriptionListenerAdded[0] = true;
-//            }
-//
-//        };
-//        mView.getViewTreeObserver ().addOnDrawListener (a);
-//        mView.getViewTreeObserver ( ).addOnGlobalLayoutListener (new ViewTreeObserver.OnGlobalLayoutListener ( ) {
-//            @Override
-//            public void onGlobalLayout() {
-//                if (isDescriptionListenerAdded[0]) {
-//                    mView.getViewTreeObserver ( ).removeOnDrawListener (a);
-//                }
-//            }
-//        });
-
         this.mHandler = new PictureLatestHandler (this);
     }
 
@@ -83,7 +61,8 @@ public class Latest extends ThirdPageBase {
         public void OnTouchBottom() {
             if (!mIsLoading) {
                 mIsLoading = true;
-                NetApi.getLatest (mLimit, mSkip, Latest.this, "addRequestSuccess");
+                mCardBox.setLoadingCard(View.VISIBLE);
+                NetApi.getLatest (mApp.mUser.uid, mLimit, mSkip, Latest.this, "addRequestSuccess");
             }
         }
     }
@@ -118,11 +97,10 @@ public class Latest extends ThirdPageBase {
     }
 
     class CardBoxOnOverDragRefresh implements CardBox.OnOverDragRefreshListener {
-
         @Override
         public void OnRefresh() {
             mCardBox.clearAll ( );
-            NetApi.getLatest (mLimit, 0, Latest.this, "addRequestSuccess");
+            NetApi.getLatest (mApp.mUser.uid, mLimit, 0, Latest.this, "addRequestSuccess");
         }
     }
 
@@ -192,12 +170,10 @@ public class Latest extends ThirdPageBase {
                     }
                     normalItem.pageCount.setText (info.getString ("page"));
                     normalItem.image.setImageURL ("http://10.0.0.2:4396/gallery/" + thumb.getString ("thumb_id") + "/" + image_names.get (0) + "?height=480&width=360");
-                    latest.mCardBox.addItem (normalItem);
+                    latest.mCardBox.addCard (normalItem);
                     ItemOnClickListener itemOnClickListener = new ItemOnClickListener (latest, item, normalItem);
                     normalItem.setOnClickListener (itemOnClickListener);
                 }
-                latest.mCardBox.deleteItem (latest.mLoadingItem);
-                latest.mCardBox.addItem (latest.mLoadingItem);
                 latest.mSkip += latest.mLimit;
             } catch (JSONException e) {
                 e.printStackTrace ( );
@@ -230,7 +206,7 @@ public class Latest extends ThirdPageBase {
             @Override
             public void onClick(View v) {
                 try {
-                    int uid = mLatest.mApp.mUser.mUid;
+                    int uid = mLatest.mApp.mUser.uid;
                     String resource_id = mItem.getJSONObject ("_id").getString ("$oid");
                     NetApi.addHistory (uid, resource_id);
                     NetApi.upClickedCount (resource_id);

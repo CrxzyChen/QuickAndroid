@@ -1,11 +1,8 @@
 package com.example.crxzy.centertainment.views;
 
-import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
-import android.media.Image;
 import android.support.v7.app.AppCompatActivity;
-import android.text.Layout;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.TypedValue;
@@ -19,17 +16,12 @@ import android.widget.TextView;
 
 import com.example.crxzy.centertainment.R;
 import com.example.crxzy.centertainment.activities.PictureActivity;
-import com.example.crxzy.centertainment.controllers.Subscribe;
 import com.example.crxzy.centertainment.models.MangaResource;
 import com.example.crxzy.centertainment.models.NetApi;
 import com.example.crxzy.centertainment.system.MainApplication;
 import com.example.crxzy.centertainment.tools.Tool;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-public class MangaSelfCard extends CardBox.BlockItem {
+public class MangaSelfCard extends CardBox.BlockCard {
     public RoundedImageView image;
     public TextView title;
     public TextView clickTime;
@@ -96,7 +88,7 @@ public class MangaSelfCard extends CardBox.BlockItem {
 
         @Override
         public void onClick(View v) {
-            int uid = ((MainApplication) (((AppCompatActivity) MangaSelfCard.this.getContext ( )).getApplication ( ))).mUser.mUid;
+            int uid = ((MainApplication) (((AppCompatActivity) MangaSelfCard.this.getContext ( )).getApplication ( ))).mUser.uid;
             String resource_id = mResource.ResourceId;
             NetApi.addHistory (uid, resource_id);
             NetApi.upClickedCount (resource_id);
@@ -113,13 +105,13 @@ public class MangaSelfCard extends CardBox.BlockItem {
         LinearLayout mainLinerLayout = new LinearLayout (context);
         LinearLayout.LayoutParams mainLinerLayoutParams = new LinearLayout.LayoutParams (LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
         mainLinerLayout.setLayoutParams (mainLinerLayoutParams);
-        mainLinerLayout.setBackground (context.getDrawable (R.drawable.items_box));
+        mainLinerLayout.setBackground (context.getDrawable (R.drawable.manga_self_card_backgroud));
         mainLinerLayout.setOrientation (LinearLayout.VERTICAL);
         //cover
         FrameLayout coverLayout = new FrameLayout (context);
         LayoutParams coverLayoutParams = new LayoutParams (LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
         coverLayout.setLayoutParams (coverLayoutParams);
-        coverLayout.setBackground (context.getDrawable (R.drawable.items_box));
+        coverLayout.setBackground (context.getDrawable (R.drawable.manga_self_card_cover));
 
         RelativeLayout imageInfoBox = new RelativeLayout (context);
         RelativeLayout.LayoutParams imageInfoBoxLayoutParams = new RelativeLayout.LayoutParams (RelativeLayout.LayoutParams.MATCH_PARENT, Tool.dip2px (context, 225));
@@ -129,7 +121,6 @@ public class MangaSelfCard extends CardBox.BlockItem {
         image.setCornerSize (Tool.dip2px (context, 5));
         image.setImageResource (R.drawable.ic_launcher_foreground);
         image.setScaleType (ImageView.ScaleType.FIT_XY);
-        image.setBackgroundColor (context.getColor (R.color.class_one_title));
         RelativeLayout.LayoutParams imageAreaLayoutParams = new RelativeLayout.LayoutParams (RelativeLayout.LayoutParams.MATCH_PARENT, Tool.dip2px (context, 225));
         image.setLayoutParams (imageAreaLayoutParams);
 
@@ -200,8 +191,6 @@ public class MangaSelfCard extends CardBox.BlockItem {
 
         LinearLayout tagsArea = new LinearLayout (context);
         LinearLayout.LayoutParams tagsAreaParams = new LinearLayout.LayoutParams (LayoutParams.MATCH_PARENT, Tool.dip2px (context, 30));
-        tagsArea.setBackgroundColor (context.getColor (R.color.white));
-        tagsArea.setBackground (mContext.getDrawable (R.drawable.items_box_tags_area));
         tagsArea.setLayoutParams (tagsAreaParams);
 
         sourceTag = new TextView (context);

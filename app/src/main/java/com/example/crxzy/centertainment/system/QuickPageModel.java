@@ -33,7 +33,7 @@ public class QuickPageModel {
         int mPageLevel;
         public int currentChildIndex = 0;
         int mHeaderModel = HEADER_MODEL_INHERIT;
-        boolean isInitialize = false;
+        public boolean isInitialize = false;
         boolean isHeaderInitialize = false;
         String mFileName;
         String mPageName;
@@ -79,8 +79,16 @@ public class QuickPageModel {
             }
         }
 
+        public int getChildCount() {
+            return mKeyToIndex.size ( );
+        }
+
         public Page getChild(int index) {
             return getChild (mIndexToKey.get (index));
+        }
+
+        public View getView() {
+            return mView;
         }
 
         public Page getChild(String key) {
@@ -100,7 +108,7 @@ public class QuickPageModel {
         }
 
 
-        void loadView() {
+        public void loadView() {
             if (mPageName.equals ("index")) {
                 mView = mActivity.getWindow ( ).getDecorView ( );
             } else {
@@ -167,6 +175,13 @@ public class QuickPageModel {
             }
         }
 
+        public PageBase getController() {
+            return (PageBase) mController;
+        }
+
+        public void setView(View view) {
+            mView = view;
+        }
     }
 
     QuickPageModel(MainActivity activity) {

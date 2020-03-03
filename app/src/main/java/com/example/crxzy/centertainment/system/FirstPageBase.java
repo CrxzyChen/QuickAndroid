@@ -9,7 +9,6 @@ import android.widget.TextView;
 import com.example.crxzy.centertainment.R;
 import com.example.crxzy.centertainment.tools.Tool;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -97,7 +96,7 @@ public class FirstPageBase extends PageBase {
         tabLayout.addView (tabIcon, tabIconParams);
         tabLayout.addView (tabText, tabTextParams);
         tabLayout.setTag (key);
-        tabLayout.setBackground (mActivity.getDrawable (R.drawable.items_box));
+        tabLayout.setBackground (mActivity.getDrawable (R.drawable.manga_self_card_backgroud));
 
         mBottomNavArea.addView (tabLayout, linearLayoutParams);
         /*
