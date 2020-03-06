@@ -11,7 +11,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
-    public QuickPageModel mQuickPageModel;
     private boolean mBackKeyPressed = false;
     public ZeroPageBase mRootPage;
 
@@ -23,7 +22,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onInitiation() {
-        mQuickPageModel = new QuickPageModel (this);
+        QuickPageModel mQuickPageModel = new QuickPageModel (this);
         mRootPage = (ZeroPageBase) mQuickPageModel.getRoot ( ).mController;
         mRootPage.onInitiation ();
     }

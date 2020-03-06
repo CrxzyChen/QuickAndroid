@@ -58,12 +58,12 @@ abstract public class PageBase {
         mPageModel.currentChildIndex = index;
         try {
             Object controller = mPageModel.getChild (index).mController;
-            if (!mPageModel.getChild (index).isInitialize) {
+            if (!mPageModel.getChild (index).mIsInitialize) {
                 Method method = controller.getClass ( ).getMethod ("onInitiation");
                 method.invoke (controller);
-                mPageModel.getChild (index).isInitialize = true;
+                mPageModel.getChild (index).mIsInitialize = true;
             }
-            if (mPageModel.isInitialize) {
+            if (mPageModel.mIsInitialize) {
                 Method method = controller.getClass ( ).getMethod ("show");
                 method.invoke (controller);
                 showHeader ( );
@@ -78,7 +78,7 @@ abstract public class PageBase {
         QuickPageModel.Page pageOwner = getHeader ( );
         if (pageOwner != null) {
             try {
-                if (!pageOwner.isHeaderInitialize) {
+                if (!pageOwner.mIsHeaderInitialize) {
                     Method method = pageOwner.mController.getClass ( ).getMethod ("onHeaderInitialize", View.class);
                     method.invoke (pageOwner.mController, pageOwner.mHeader);
                 }

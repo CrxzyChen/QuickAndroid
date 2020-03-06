@@ -33,8 +33,8 @@ public class QuickPageModel {
         int mPageLevel;
         public int currentChildIndex = 0;
         int mHeaderModel = HEADER_MODEL_INHERIT;
-        public boolean isInitialize = false;
-        boolean isHeaderInitialize = false;
+        boolean mIsInitialize = false;
+        boolean mIsHeaderInitialize = false;
         String mFileName;
         String mPageName;
         public String mAliasName;
@@ -42,7 +42,7 @@ public class QuickPageModel {
         String mControllerProtoClassName;
         View mView;
         View mHeader;
-        Object mController;
+        PageBase mController;
         Page mParent;
         Map <String, Page> mChildPages = new HashMap <> ( );
         private Map <String, Integer> mKeyToIndex = new HashMap <> ( );
@@ -99,8 +99,8 @@ public class QuickPageModel {
             return Objects.requireNonNull (mIndexToKey.get (index));
         }
 
-        public int getIndex(String tag) {
-            return Objects.requireNonNull (mKeyToIndex.get (tag));
+        public int getIndex(String key) {
+            return Objects.requireNonNull (mKeyToIndex.get (key));
         }
 
         void addChild(String key, Page page) {
@@ -108,7 +108,7 @@ public class QuickPageModel {
         }
 
 
-        public void loadView() {
+        void loadView() {
             if (mPageName.equals ("index")) {
                 mView = mActivity.getWindow ( ).getDecorView ( );
             } else {
@@ -129,7 +129,7 @@ public class QuickPageModel {
                     Class <?> _class = Class.forName (mControllerProtoClassName);
                     constructor = _class.getConstructor (MainActivity.class, Page.class);
                 }
-                mController = constructor.newInstance (mActivity, this);
+                mController = (PageBase) constructor.newInstance (mActivity, this);
             } catch (InstantiationException | NoSuchMethodException | IllegalAccessException | InvocationTargetException | ClassNotFoundException e) {
                 e.printStackTrace ( );
             }
@@ -141,9 +141,9 @@ public class QuickPageModel {
 
         void loadPageMap() {
             int index = 0;
-            for (String key : ((PageBase) this.mController).mPageMap.keySet ( )) {
+            for (String key : this.mController.mPageMap.keySet ( )) {
                 setKeyIndex (key, index++);
-                this.getChild (key).mAliasName = Objects.requireNonNull (((PageBase) this.mController).mPageMap.get (key))[0];
+                this.getChild (key).mAliasName = Objects.requireNonNull (this.mController.mPageMap.get (key))[0];
                 this.getChild (key).loadPageMap ( );
             }
         }
@@ -158,11 +158,11 @@ public class QuickPageModel {
             for (String[] headerResource : mHeaderResourceList) {
                 int resId = Integer.parseInt (headerResource[0]);
                 Page page = mRoot;
-                if (headerResource.length == 1) {
+                if (headerResource.length == 1) {//load common header if exist
                     page.mHeader = LayoutInflater.from (mActivity).inflate (resId, null);
-                } else {
+                } else {//load specified header
                     for (int index = 1; index < headerResource.length; index++) {
-                        if (page.mChildPages.keySet ( ).contains (headerResource[index])) {
+                        if (page.mChildPages.containsKey (headerResource[index])) {
                             page = page.getChild (headerResource[index]);
                             if (index == headerResource.length - 1) {
                                 page.mHeader = LayoutInflater.from (mActivity).inflate (resId, null);
@@ -186,16 +186,16 @@ public class QuickPageModel {
 
     QuickPageModel(MainActivity activity) {
         mActivity = activity;
-        Field[] fields = R.layout.class.getDeclaredFields ( );
+        Field[] fields = R.layout.class.getDeclaredFields ( );//get all layout resource
         for (Field field : fields) {
             String fileName = field.getName ( );
             String[] filenameList = fileName.split ("_");
             try {
-                if (filenameList[0].equals (Setting.autoload.keyword.header)) {
+                if (filenameList[0].equals (Setting.autoload.keyword.header)) {//restore header filename in mHeaderResourceList
                     int resId = (int) field.get (null);
                     filenameList[0] = Integer.toString (resId);
                     mHeaderResourceList.add (filenameList);
-                } else if (Arrays.asList (Setting.autoload.keyword.page).contains (filenameList[0])) {
+                } else if (Arrays.asList (Setting.autoload.keyword.page).contains (filenameList[0])) {//build page model tree
                     int resId = (int) field.get (null);
                     Page page = mRoot;
                     for (int index = 0; index < filenameList.length; index++) {

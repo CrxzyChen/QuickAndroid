@@ -27,7 +27,7 @@ public class ZeroPageBase extends PageBase {
     public void onInitiation() {
         loadMainWindow ( );
         loadLeftWindow ( );
-        mPageModel.isInitialize=true;
+        mPageModel.mIsInitialize =true;
         selectPage (0);
     }
 
