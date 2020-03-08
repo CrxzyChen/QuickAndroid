@@ -9,6 +9,7 @@ import android.support.annotation.NonNull;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -23,6 +24,8 @@ import com.example.crxzy.centertainment.R;
 import com.example.crxzy.centertainment.tools.Network;
 import com.example.crxzy.centertainment.tools.Tool;
 
+import org.w3c.dom.Text;
+
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,7 +36,7 @@ public class PicturePlayerActivity extends AppCompatActivity {
     int mImagesSize;
     int mLoadedImageSize;
     int mLoadedViewIndex = 0;
-    int mLoadViewBatchSize = 3;
+    int mLoadViewBatchSize = 10;
     boolean mIsMenuVisible = true;
     boolean mIsMenuRecommendationOpen = false;
     int mLoadDistance = 5;
@@ -52,11 +55,8 @@ public class PicturePlayerActivity extends AppCompatActivity {
     PicturePlayerActivity mContext;
     ImagePlayerHandler mImagePlayerHandler;
     ImagePlayerBrowserAdapter mImagePlayerBrowserAdapter;
-    Animation mMenuRecommendationOpenAnimation;
-    Animation mMenuRecommendationCloseAnimation;
-    LinearLayout mIsMenuRecommendation;
-    RelativeLayout mIsMenuRecommendationSwitch;
     ProgressBar mMenuProgressBar;
+    TextView mMenuProgressText;
 
 
     @Override
@@ -81,10 +81,27 @@ public class PicturePlayerActivity extends AppCompatActivity {
         Intent intent = getIntent ( );
         String imageNamesString = intent.getStringExtra ("imageNames");
         mImageNames = Arrays.asList (imageNamesString.split (","));
-        mImagesSize = mImageNames.size ( );
         mStatus = intent.getIntExtra ("thumbStatus", 0);
+        mImagesSize = mStatus == 4 ? mImageNames.size ( ) : 3;
         mThumbId = intent.getStringExtra ("thumbId");
     }
+
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        switch (keyCode) {
+
+            case KeyEvent.KEYCODE_VOLUME_DOWN:
+                mBrowser.setCurrentItem (mBrowser.getCurrentItem ( ) != mImagesSize - 1 ? mBrowser.getCurrentItem ( ) + 1 : mImagesSize - 1);
+                return true;
+
+            case KeyEvent.KEYCODE_VOLUME_UP:
+                mBrowser.setCurrentItem (mBrowser.getCurrentItem ( ) != 0 ? mBrowser.getCurrentItem ( ) - 1 : 0);
+                return true;
+        }
+        return super.onKeyDown (keyCode, event);
+    }
+
 
     private void initImageBrowser() {
         mBrowser = findViewById (R.id.image_player_browser);
@@ -126,6 +143,8 @@ public class PicturePlayerActivity extends AppCompatActivity {
                 isLoading = true;
                 loadImages ( );
             }
+            final String progressText = i + 1 + "/" + mImagesSize;
+            mMenuProgressText.setText (progressText);
         }
 
         @Override
@@ -147,66 +166,12 @@ public class PicturePlayerActivity extends AppCompatActivity {
 
     private void iniMenu() {
         mMenu = findViewById (R.id.image_player_menu);
-        mIsMenuRecommendation = findViewById (R.id.image_player_menu_recommendation);
-        mIsMenuRecommendationSwitch = findViewById (R.id.image_player_menu_recommendation_switch);
-        mMenuRecommendationOpenAnimation = AnimationUtils.loadAnimation (this, R.anim.image_player_cover_menu_recommendation_open);
-        mMenuRecommendationOpenAnimation.setAnimationListener (new Animation.AnimationListener ( ) {
-            @Override
-            public void onAnimationStart(Animation animation) {
-
-            }
-
-            @Override
-            public void onAnimationEnd(Animation animation) {
-                RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams (RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-                layoutParams.alignWithParent = true;
-                layoutParams.addRule (RelativeLayout.ALIGN_PARENT_BOTTOM);
-                layoutParams.setMargins (0, 0, 0, Tool.dip2px (mContext, -200));
-                mIsMenuRecommendation.setLayoutParams (layoutParams);
-                mIsMenuRecommendation.clearAnimation ( );
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-
-            }
-        });
-
-        mMenuRecommendationCloseAnimation = AnimationUtils.loadAnimation (this, R.anim.image_player_cover_menu_recommendation_close);
-        mMenuRecommendationCloseAnimation.setAnimationListener (new Animation.AnimationListener ( ) {
-            @Override
-            public void onAnimationStart(Animation animation) {
-
-            }
-
-            @Override
-            public void onAnimationEnd(Animation animation) {
-                RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams (RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-                layoutParams.alignWithParent = true;
-                layoutParams.addRule (RelativeLayout.ALIGN_PARENT_BOTTOM);
-                mIsMenuRecommendation.setLayoutParams (layoutParams);
-                mIsMenuRecommendation.clearAnimation ( );
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-
-            }
-        });
-        mIsMenuRecommendationSwitch.setOnClickListener (new View.OnClickListener ( ) {
-            @Override
-            public void onClick(View v) {
-                if (mIsMenuRecommendationOpen) {
-                    findViewById (R.id.image_player_menu_recommendation).startAnimation (mMenuRecommendationOpenAnimation);
-                    mIsMenuRecommendationOpen = false;
-                } else {
-                    findViewById (R.id.image_player_menu_recommendation).startAnimation (mMenuRecommendationCloseAnimation);
-                    mIsMenuRecommendationOpen = true;
-                }
-            }
-        });
         mMenuProgressBar = findViewById (R.id.image_player_menu_progress_bar);
         mMenuProgressBar.setMax (mImagesSize);
+
+        mMenuProgressText = mMenu.findViewById (R.id.image_player_menu_progress_text);
+        final String progressText = "1/" + mImagesSize;
+        mMenuProgressText.setText (progressText);
     }
 
     private void refreshCoverProgress() {
@@ -225,7 +190,7 @@ public class PicturePlayerActivity extends AppCompatActivity {
     private void loadImages() {
         mImagePlayerHandler = new ImagePlayerHandler (this);
         mNetwork = new Network ( );
-        int endIndex = Math.min (mImageNames.size ( ), mLoadedViewIndex + mLoadViewBatchSize);
+        int endIndex = Math.min (mImagesSize, mLoadedViewIndex + mLoadViewBatchSize);
         for (int index = mLoadedViewIndex; index < endIndex; index++) {
             Network.Request request = new Network.Request ("http://10.0.0.2:4396/gallery/" + mThumbId + "/" + mImageNames.get (index) + "?width=720");
             request.setSuccess (this, "loadImageSuccess");
@@ -299,8 +264,7 @@ public class PicturePlayerActivity extends AppCompatActivity {
                 int index = (int) response.request.getMeta ("index");
                 imagePlayer.mImagePlayerBrowserAdapter.setImageBitmap (index, response.content);
                 imagePlayer.mLoadedImageSize += 1;
-                int endIndex = Math.min (imagePlayer.mImageNames.size ( ), imagePlayer.mLoadedViewIndex + imagePlayer.mLoadViewBatchSize);
-                if (imagePlayer.mLoadedImageSize == imagePlayer.mLoadViewBatchSize) {
+                if (imagePlayer.mLoadedImageSize == Math.min (imagePlayer.mImagesSize, imagePlayer.mLoadViewBatchSize)) {
                     imagePlayer.mCover.startAnimation (imagePlayer.mCoverOpenAnimation);
                 }
                 if (imagePlayer.mLoadedImageSize == imagePlayer.mLoadedViewIndex) {
