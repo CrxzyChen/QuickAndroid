@@ -1,5 +1,6 @@
 package com.example.crxzy.centertainment.models;
 
+import android.telecom.Call;
 import android.util.ArrayMap;
 
 import com.example.crxzy.centertainment.activities.ArtistActivity;
@@ -16,9 +17,15 @@ public class NetApi {
     private static Network mNetwork = new Network ( );
     private final static String mHost = "http://10.0.0.2/CEntertainment/";
 
-    static public void getLatest(int uid, int limit, int skip, Latest context, String success) {
-        Network.Request request = new Network.Request (mHost + "Manga/Latest.json?uid=" + uid + "&limit=" + limit + "&skip=" + skip);
-        request.setSuccess (context, success);
+    static public void getLatest(int uid, int limit, int skip, Network.Callback callback) {
+        Network.Request request = new Network.Request (mHost + "Picture/Latest.json?uid=" + uid + "&limit=" + limit + "&skip=" + skip);
+        request.setCallback (callback);
+        mNetwork.send (request);
+    }
+
+    static public void getLatest(int uid, int limit, int skip, Network.Callback callback, String resource) {
+        Network.Request request = new Network.Request (mHost + "Picture/Latest.json?uid=" + uid + "&limit=" + limit + "&skip=" + skip + "&resource=" + resource);
+        request.setCallback (callback);
         mNetwork.send (request);
     }
 
@@ -45,8 +52,8 @@ public class NetApi {
         mNetwork.send (isLikeRequest);
     }
 
-    public static void upClickedCount(String resource_id) {
-        Network.Request clickedRequest = new Network.Request (mHost + "Manga/upClickedCount.json?resource_id=" + resource_id);
+    public static void upClickedCount(String resource_id, String resource) {
+        Network.Request clickedRequest = new Network.Request (mHost + "Picture/upClickedCount.json?resource_id=" + resource_id + "&resource=" + resource);
         mNetwork.send (clickedRequest);
     }
 
@@ -68,32 +75,32 @@ public class NetApi {
         mNetwork.send (isLikeRequest);
     }
 
-    public static void getSubscribe(int uid, Subscribe context, String success, int limit, int skip) {
+    public static void getSubscribe(int uid, int limit, int skip, Network.Callback callback) {
         Network.Request getSubscribeRequest = new Network.Request (mHost + "User/getSubscribe.json?uid=" + uid + "&limit=" + limit + "&skip=" + skip);
-        getSubscribeRequest.setSuccess (context, success);
+        getSubscribeRequest.setCallback (callback);
         mNetwork.send (getSubscribeRequest);
     }
 
     public static void getResourceByIds(String resource_ids, Object context, String success) {
-        Network.Request getSubscribeRequest = new Network.Request (mHost + "Manga/getResourcesByIds.json?resource_ids=" + resource_ids);
+        Network.Request getSubscribeRequest = new Network.Request (mHost + "Picture/getResourcesByIds.json?resource_ids=" + resource_ids);
         getSubscribeRequest.setSuccess (context, success);
         mNetwork.send (getSubscribeRequest);
     }
 
-    public static void getArtistOpus(String artist, Object context, String success, int limit, int skip) {
-        Network.Request getArtistOpusRequest = new Network.Request (mHost + "Manga/getArtistOpus.json?artist=" + artist + "&limit=" + limit + "&skip=" + skip);
-        getArtistOpusRequest.setSuccess (context, success);
+    public static void getArtistOpus(String artist, int limit, int skip, Network.Callback callback) {
+        Network.Request getArtistOpusRequest = new Network.Request (mHost + "Picture/getArtistOpus.json?artist=" + artist + "&limit=" + limit + "&skip=" + skip);
+        getArtistOpusRequest.setCallback (callback);
         mNetwork.send (getArtistOpusRequest);
     }
 
-    public static void search(String searchContent, Object context, String success, int limit, int skip) {
-        Network.Request searchRequest = new Network.Request (mHost + "Manga/search.json?search_content=" + searchContent + "&limit=" + limit + "&skip=" + skip);
-        searchRequest.setSuccess (context, success);
+    public static void search(String searchContent, int limit, int skip, Network.Callback callback) {
+        Network.Request searchRequest = new Network.Request (mHost + "Picture/search.json?search_content=" + searchContent + "&limit=" + limit + "&skip=" + skip);
+        searchRequest.setCallback (callback);
         mNetwork.send (searchRequest);
     }
 
     public static void getAllLabels(Object context, String success) {
-        Network.Request getAllLabelsRequest = new Network.Request (mHost + "Manga/getAllLabels.json");
+        Network.Request getAllLabelsRequest = new Network.Request (mHost + "Picture/getAllLabels.json");
         getAllLabelsRequest.setSuccess (context, success);
         mNetwork.send (getAllLabelsRequest);
     }
@@ -109,9 +116,9 @@ public class NetApi {
         mNetwork.send (setUserConfigRequest);
     }
 
-    public static void getUserDefine(int uid, int limit, Object context, String success) {
-        Network.Request getUserDefineRequest = new Network.Request (mHost + "Manga/getUserDefine.json?uid=" + uid + "&limit=" + limit);
-        getUserDefineRequest.setSuccess (context, success);
+    public static void getUserDefine(int uid, int limit, Network.Callback callback) {
+        Network.Request getUserDefineRequest = new Network.Request (mHost + "Picture/getUserDefine.json?uid=" + uid + "&limit=" + limit);
+        getUserDefineRequest.setCallback (callback);
         mNetwork.send (getUserDefineRequest);
     }
 
@@ -134,7 +141,7 @@ public class NetApi {
     }
 
     public static void getUserFocus(int uid, int limit, int skip, Network.Callback callback) {
-        Network.Request request = new Network.Request (mHost + "Manga/getUserFocus.json?uid=" + uid + "&limit=" + limit + "&skip=" + skip);
+        Network.Request request = new Network.Request (mHost + "Picture/getUserFocus.json?uid=" + uid + "&limit=" + limit + "&skip=" + skip);
         request.setCallback (callback);
         mNetwork.send (request);
     }

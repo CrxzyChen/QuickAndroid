@@ -23,6 +23,7 @@ public class User {
 
     public User(Application application) {
         mApplication = application;
+        login();
         username = (String) SPUtils.get (application, "username", "unknown");
         uid = (int) SPUtils.get (application, "uid", -1);
         if (uid != -1) {

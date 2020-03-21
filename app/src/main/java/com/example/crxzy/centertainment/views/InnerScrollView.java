@@ -43,12 +43,6 @@ public class InnerScrollView extends ScrollView {
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-//        if (mOuterScrollViewId != 0) {
-//            mOuterScrollView = getRootView ( ).findViewById (mOuterScrollViewId);
-//            mOuterScrollView.requestDisallowInterceptTouchEvent (true);
-//        } else {
-//            getParent ( ).requestDisallowInterceptTouchEvent (true);
-//        }
         getParent ( ).requestDisallowInterceptTouchEvent (true);
 
         return super.onInterceptTouchEvent (ev);

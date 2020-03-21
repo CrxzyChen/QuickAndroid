@@ -67,20 +67,22 @@ public class ImageView extends android.support.v7.widget.AppCompatImageView {
     }
 
     public void loadImageSuccess(Network.Response response) {
-        Message message = Message.obtain ( );
-        message.obj = response;
-        message.what = ImageViewHandler.IMAGE_DOWNLOAD_SUCCESS;
-        mHandler.sendMessage (message);
+        if (response.request.url.equals (mImageUrl)) {
+            Message message = Message.obtain ( );
+            message.obj = response;
+            message.what = ImageViewHandler.IMAGE_DOWNLOAD_SUCCESS;
+            mHandler.sendMessage (message);
+        }
     }
 
     public void load() {
-        if (!mImageIsLoaded) {
-            Network network = new Network ( );
-            Network.Request request = network.InstanceRequest (mImageUrl);
-            request.setSuccess (this, "loadImageSuccess");
-            network.send (request);
-            mImageIsLoaded = true;
-        }
+//        if (!mImageIsLoaded) {
+        Network network = new Network ( );
+        Network.Request request = network.InstanceRequest (mImageUrl);
+        request.setSuccess (this, "loadImageSuccess");
+        network.send (request);
+        mImageIsLoaded = true;
+//        }
     }
 
     public boolean release() {

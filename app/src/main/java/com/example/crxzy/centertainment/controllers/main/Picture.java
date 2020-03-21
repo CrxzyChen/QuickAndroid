@@ -16,5 +16,6 @@ public class Picture extends SecondPageBase {
         mThirdPageMap.put ("latest", new String[]{"最新"});
         mThirdPageMap.put ("focus", new String[]{"关注"});
         mThirdPageMap.put ("diy", new String[]{"自定义"});
+        mThirdPageMap.put ("syasinn", new String[]{"写真"});
     }
 }

@@ -8,13 +8,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MangaArtistInfo {
-    public List <MangaResource> opus = new ArrayList <> ( );
+    public List <PictureResource> opus = new ArrayList <> ( );
 
     public MangaArtistInfo(JSONObject resource) {
         try {
             JSONArray opus = resource.getJSONArray ("opus");
             for (int index = 0; index < opus.length ( ); index++) {
-                this.opus.add (new MangaResource (opus.getJSONObject (index)));
+                this.opus.add (new PictureResource (opus.getJSONObject (index)));
             }
         } catch (JSONException e) {
             e.printStackTrace ( );

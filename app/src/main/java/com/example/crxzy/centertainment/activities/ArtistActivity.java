@@ -11,20 +11,17 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.crxzy.centertainment.R;
-import com.example.crxzy.centertainment.models.MangaResource;
 import com.example.crxzy.centertainment.models.NetApi;
+import com.example.crxzy.centertainment.models.PictureResource;
 import com.example.crxzy.centertainment.system.MainApplication;
 import com.example.crxzy.centertainment.tools.Network;
-import com.example.crxzy.centertainment.tools.Tool;
+import com.example.crxzy.centertainment.views.Card;
 import com.example.crxzy.centertainment.views.CardBox;
-import com.example.crxzy.centertainment.views.MangaSelfCard;
 
-import org.json.JSONArray;
-import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 
 public class ArtistActivity extends AppCompatActivity {
 
@@ -32,9 +29,6 @@ public class ArtistActivity extends AppCompatActivity {
     public static final int ARTIST_INFO_FOCUS_STATUS_TRUE = 1;
     MyHandler mHandler;
     private CardBox mContainer;
-    private int mLoadedSize;
-    private int mSingleLoadSize = 10;
-    private boolean mIsLoading = false;
     private LinearLayout mArtistInfo;
     private String mArtistName;
     private MainApplication mApp;
@@ -52,29 +46,28 @@ public class ArtistActivity extends AppCompatActivity {
         mHandler = new MyHandler (this);
         mArtistName = getIntent ( ).getStringExtra ("artist");
         mApp = (MainApplication) getApplication ( );
-        mIsLoading = true;
         initArtistInfo ( );
         initArtistOpusArea ( );
     }
 
     private void initArtistOpusArea() {
         mContainer = findViewById (R.id.sub_artist_container);
-        mContainer.setOnTouchBottomListener (new CardBox.OnTouchBottomListener ( ) {
+        mContainer.setCardBoxAdapt (new CardBox.CardBoxAdapt (mContainer) {
             @Override
-            public float setDistance(float distance) {
-                return Tool.dip2px (ArtistActivity.this, 200);
+            protected void initViewTypeToView(Map <Integer, Class <?>> mViewTypeToView) {
+                mViewTypeToView.put (0, Card.class);
             }
 
             @Override
-            public void onTouchBottom() {
-                if (!mIsLoading) {
-                    mContainer.setLoadingCard (View.VISIBLE);
-                    NetApi.getArtistOpus (mArtistName, ArtistActivity.this, "getArtistOpusSuccess", mSingleLoadSize, mLoadedSize);
-                    mIsLoading = true;
-                }
+            protected void requestData(int loadedSize, int singleLoadSize, LoadDataCallback callback) {
+                NetApi.getArtistOpus (mArtistName, singleLoadSize, loadedSize,callback);
+            }
+
+            @Override
+            protected void loadItem(CardBox cardBox, JSONObject obj) {
+                cardBox.addResource (new PictureResource (obj));
             }
         });
-        NetApi.getArtistOpus (mArtistName, this, "getArtistOpusSuccess", mSingleLoadSize, mLoadedSize);
     }
 
     private void initArtistInfo() {
@@ -144,15 +137,7 @@ public class ArtistActivity extends AppCompatActivity {
         artistNameTextView.setText (mArtistName);
     }
 
-    public void getArtistOpusSuccess(Network.Response response) {
-        Message message = mHandler.obtainMessage ( );
-        message.what = MyHandler.LOAD_ARTIST_INFO;
-        message.obj = response.content;
-        mHandler.sendMessage (message);
-    }
-
     static class MyHandler extends Handler {
-        static final int LOAD_ARTIST_INFO = 100;
         static final int CHANGE_ARTIST_INFO_FOCUS_STATUS = 101;
         private WeakReference <ArtistActivity> outClass;
 
@@ -164,18 +149,6 @@ public class ArtistActivity extends AppCompatActivity {
         public void handleMessage(Message msg) {
             ArtistActivity activity = outClass.get ( );
             switch (msg.what) {
-                case LOAD_ARTIST_INFO:
-                    JSONArray json = (JSONArray) msg.obj;
-                    List <MangaResource> opus = new ArrayList <> ( );
-                    for (int index = 0; index < json.length ( ); index++) {
-                        try {
-                            opus.add (new MangaResource (json.getJSONObject (index)));
-                        } catch (JSONException e) {
-                            e.printStackTrace ( );
-                        }
-                    }
-                    activity.addItem (opus);
-                    break;
                 case CHANGE_ARTIST_INFO_FOCUS_STATUS:
                     if (msg.arg1 == ARTIST_INFO_FOCUS_STATUS_FALSE) {
                         activity.mArtistInfoFocusButton.setText (activity.getText (R.string.string_cn_focus));
@@ -187,11 +160,4 @@ public class ArtistActivity extends AppCompatActivity {
         }
     }
 
-    private void addItem(List <MangaResource> opus) {
-        for (MangaResource opu : opus) {
-            mContainer.addCard (new MangaSelfCard (this, opu));
-        }
-        mLoadedSize += opus.size ( );
-        mIsLoading = false;
-    }
 }

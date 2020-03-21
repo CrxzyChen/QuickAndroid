@@ -24,7 +24,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.crxzy.centertainment.R;
-import com.example.crxzy.centertainment.models.MangaResource;
+import com.example.crxzy.centertainment.models.PictureResource;
 import com.example.crxzy.centertainment.models.NetApi;
 import com.example.crxzy.centertainment.system.MainApplication;
 import com.example.crxzy.centertainment.tools.Network;
@@ -45,7 +45,7 @@ public class PictureActivity extends AppCompatActivity {
     public final int IMAGE_ALL_DOWNLOADED = 4;
     public int SEARCH_CLOSE_DISTANCE = 100;
     PictureActivity mContext = this;
-    MangaResource mResource;
+    PictureResource mResource;
     ViewPager mImageBrowser;
     boolean mIsLoading = false;
     int mLoadedViewIndex = 0;
@@ -95,7 +95,7 @@ public class PictureActivity extends AppCompatActivity {
     private void loadsInfo() {
         Intent intent = getIntent ( );
         String infoString = intent.getStringExtra ("info");
-        mResource = new MangaResource (infoString);
+        mResource = new PictureResource (infoString);
     }
 
     private void onInitiation() {
@@ -620,12 +620,14 @@ public class PictureActivity extends AppCompatActivity {
         ImageView cover = findViewById (R.id.sub_picture_cover);
         TextView title = findViewById (R.id.sub_picture_title);
         android.widget.ImageView langFlag = findViewById (R.id.sub_picture_lang_flag);
-        if (mResource.Language.equals ("english")) {
-            langFlag.setImageDrawable (mContext.getDrawable (R.drawable.flag_en));
-        } else if (mResource.Language.equals ("chinese")) {
-            langFlag.setImageDrawable (mContext.getDrawable (R.drawable.flag_cn));
-        } else {
-            langFlag.setImageDrawable (mContext.getDrawable (R.drawable.flag_jp));
+        if(mResource.Language!=null){
+            if (mResource.Language.equals ("english")) {
+                langFlag.setImageDrawable (mContext.getDrawable (R.drawable.flag_en));
+            } else if (mResource.Language.equals ("chinese")) {
+                langFlag.setImageDrawable (mContext.getDrawable (R.drawable.flag_cn));
+            } else {
+                langFlag.setImageDrawable (mContext.getDrawable (R.drawable.flag_jp));
+            }
         }
         title.setText (mResource.Title);
         LabelBox artists = findViewById (R.id.sub_picture_artists);
@@ -750,7 +752,7 @@ public class PictureActivity extends AppCompatActivity {
                     final JSONArray recommends = (JSONArray) msg.obj;
                     for (int index = 0; index < recommends.length ( ); index++) {
                         final JSONObject recommend = recommends.getJSONObject (index);
-                        MangaResource resource = new MangaResource (recommend);
+                        PictureResource resource = new PictureResource (recommend);
 
                         RelativeLayout recommendInfo = new RelativeLayout (pictureActivity);
                         RelativeLayout.LayoutParams recommendInfoParam = new RelativeLayout.LayoutParams (Tool.dip2px (pictureActivity, 100), LinearLayout.LayoutParams.MATCH_PARENT);

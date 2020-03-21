@@ -106,26 +106,21 @@ abstract public class PageBase {
             if (mPageModel.mChildPages.size ( ) != 0) {
                 Object controller = mPageModel.getChild (mPageModel.currentChildIndex).mController;
                 Method method = controller.getClass ( ).getMethod ("getHeader");
-                QuickPageModel.Page headerOwner = (QuickPageModel.Page) method.invoke (controller);
-
-                if (headerOwner != null) {
-                    return headerOwner;
-                } else if (mPageModel.mHeader != null) {
-                    return mPageModel;
-                } else {
-                    QuickPageModel.Page parents;
-                    parents = mPageModel;
-                    while (parents.mParent != null || parents.mHeaderModel == QuickPageModel.HEADER_MODEL_NONE) {
-                        parents = parents.mParent;
-                        if (Objects.requireNonNull (parents).mHeader != null) {
-                            headerOwner = parents;
-                            break;
-                        }
-                    }
-                    return headerOwner;
-                }
+                return (QuickPageModel.Page) method.invoke (controller);
+            } else if (mPageModel.mHeader != null) {
+                return mPageModel;
             } else {
-                return null;
+                QuickPageModel.Page headerOwner = null;
+                QuickPageModel.Page parents;
+                parents = mPageModel;
+                while (parents.mParent != null || parents.mHeaderModel == QuickPageModel.HEADER_MODEL_NONE) {
+                    parents = parents.mParent;
+                    if (Objects.requireNonNull (parents).mHeader != null) {
+                        headerOwner = parents;
+                        break;
+                    }
+                }
+                return headerOwner;
             }
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace ( );

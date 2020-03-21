@@ -3,6 +3,7 @@ package com.example.crxzy.centertainment.system;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 
 import com.example.crxzy.centertainment.R;
 
@@ -112,7 +113,7 @@ public class QuickPageModel {
             if (mPageName.equals ("index")) {
                 mView = mActivity.getWindow ( ).getDecorView ( );
             } else {
-                mView = LayoutInflater.from (mActivity).inflate (mResId, null);
+                mView = LayoutInflater.from (mActivity).inflate (mResId, (ViewGroup) mParent.mView, false);
             }
             for (String key : mChildPages.keySet ( )) {
                 Objects.requireNonNull (mChildPages.get (key)).loadView ( );

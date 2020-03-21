@@ -2,153 +2,61 @@ package com.example.crxzy.centertainment.views;
 
 import android.content.Context;
 import android.graphics.ImageDecoder;
-import android.graphics.Rect;
 import android.graphics.drawable.AnimatedImageDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Handler;
+import android.os.Message;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.TranslateAnimation;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.ScrollView;
+import android.widget.TextView;
 
 import com.example.crxzy.centertainment.R;
+import com.example.crxzy.centertainment.tools.Network;
 import com.example.crxzy.centertainment.tools.Tool;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
-public class CardBox extends ScrollView {
-    public float mRefreshIconDragMaxDistance = 40;
-    public int mRefreshIconSize = 50;
-    public float mRefreshIconTrigger = 0;
-    public Context mContext;
-    private boolean mBlackSpace = false;
-    public LinearLayout mContainer;
-    private OnTouchBottomListener mTouchBottomListener;
-    private OnActiveAreaChangedListener mActiveAreaChangedListener;
+import java.io.IOException;
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+public class CardBox extends RecyclerView {
+    public static final int SCROLL_SPEED_LIMIT = 80;
     public float mTouchBottomDistance = 0;
-    int mTopActiveElementIndex = 0;
-    int mBottomActiveElementIndex = 0;
-    Set <View> mActiveAreaElementSet = new HashSet <> ( );
-    float mTouchDownY = 0;
-    OnTopOverDragListener mTopOverDragListener;
-    private ImageView mRefreshIcon;
-    RelativeLayout.LayoutParams mRefreshIconParam;
+
     private boolean isOverDragStart = false;
     private float mLastY;
-    boolean mIsOpenTopOverDragListener = false;
-    OnOverDragRefreshListener mRefreshListener;
-    private int mActiveAreaMarginSize;
-    private LinearCard mLoadingCard;
+    private static boolean mIsOverSpeed = false;
+    private int mScrollSpeed;
+    private boolean mIsSpeedJump = false;
+    private CardBoxAdapt mAdapt;
 
-    public CardBox(Context context) {
-        super (context);
-        initCardBox (context);
-    }
+    float mTouchDownY = 0;
+    CardBox.OnOverDragRefreshListener mRefreshListener;
 
-    public CardBox(Context context, AttributeSet attrs) {
-        super (context, attrs);
-        initCardBox (context);
-    }
-
-    public CardBox(Context context, AttributeSet attrs, int defStyle) {
-        super (context, attrs, defStyle);
-        initCardBox (context);
-    }
-
-    private void initCardBox(Context context) {
-        mContext = context;
-
-        RelativeLayout mMainView = new RelativeLayout (mContext);
-        RelativeLayout.LayoutParams mMainViewParam = new RelativeLayout.LayoutParams (RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
-        mMainView.setPadding (Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), 0);
-        mRefreshIcon = new ImageView (mContext);
-        mRefreshIconSize = Tool.dip2px (mContext, mRefreshIconSize);
-        mRefreshIconDragMaxDistance = Tool.dip2px (mContext, mRefreshIconDragMaxDistance);
-        mRefreshIconTrigger = Tool.dip2px (mContext, mRefreshIconTrigger);
-
-        int x = Tool.getScreenWidth (mContext) / 2 - mRefreshIconSize / 2;
-        mRefreshIconParam = new RelativeLayout.LayoutParams (mRefreshIconSize, mRefreshIconSize);
-        mRefreshIconParam.leftMargin = x;
-        mRefreshIconParam.topMargin = -mRefreshIconSize;
-        mRefreshIconParam.addRule (RelativeLayout.ALIGN_PARENT_TOP);
-        mRefreshIcon.setImageDrawable (mContext.getDrawable (R.drawable.ic_launcher_foreground));
-        mRefreshIcon.setLayoutParams (mRefreshIconParam);
-
-        mContainer = new LinearLayout (mContext);
-        LinearLayout.LayoutParams mContainerParam = new LinearLayout.LayoutParams (ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        mContainer.setMinimumHeight (mRefreshIconSize + (int) mRefreshIconDragMaxDistance);
-        mContainer.setLayoutParams (mContainerParam);
-        mContainer.setOrientation (LinearLayout.VERTICAL);
-        mMainView.setLayoutParams (mMainViewParam);
-
-        mMainView.addView (mContainer);
-        mMainView.addView (mRefreshIcon);
-
-        addView (mMainView);
-        addLoadingCard ( );
-
-        setOnScrollChangeListener (new MyScrollChangeListener ( ));
-        setOnTopOverDragListener (new MyTopOverDragListener ( ));
-        setOnActiveAreaChangedListener (new MyActiveAreaChangedListener ( ));
-    }
-
-    private void addLoadingCard() {
-        mLoadingCard = new LinearCard (mContext);
-        RelativeLayout mLoadingBlank = new RelativeLayout (mContext);
-        mLoadingBlank.setBackground (mContext.getDrawable (R.drawable.cardbox_card));
-        mLoadingBlank.setGravity (Gravity.CENTER_HORIZONTAL);
-        RelativeLayout.LayoutParams mLoadingBlankParam = new RelativeLayout.LayoutParams (ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        ImageView loadingImage = new ImageView (mContext);
-        RelativeLayout.LayoutParams loadingImageParam = new RelativeLayout.LayoutParams (Tool.dip2px (mContext, 150), Tool.dip2px (mContext, 150));
-        loadingImage.setScaleType (android.widget.ImageView.ScaleType.CENTER_CROP);
-        loadingImage.setLayoutParams (loadingImageParam);
-        try {
-            Drawable decodedAnimation = ImageDecoder.decodeDrawable (ImageDecoder.createSource (getResources ( ), R.drawable.loading));
-            if (decodedAnimation instanceof AnimatedImageDrawable) {
-                // Prior to start(), the first frame is displayed.
-                ((AnimatedImageDrawable) decodedAnimation).start ( );
-            }
-            loadingImage.setImageDrawable (decodedAnimation);
-        } catch (IOException e) {
-            e.printStackTrace ( );
-        }
-        mLoadingBlank.addView (loadingImage);
-        mLoadingBlank.setMinimumHeight (Tool.dip2px (mContext, 150));
-        mLoadingBlank.setLayoutParams (mLoadingBlankParam);
-        mLoadingCard.setVisibility (GONE);
-        mLoadingCard.addView (mLoadingBlank);
-        addCard (mLoadingCard);
-    }
-
-    public void clearAll() {
-        mContainer.removeAllViews ( );
-        addLoadingCard ( );
-    }
-
-    public void setIsOpenTopOverDragListener(boolean status) {
-        mIsOpenTopOverDragListener = status;
-        if (mIsOpenTopOverDragListener) {
-            setOverScrollMode (OVER_SCROLL_NEVER);
-        } else {
-            setOverScrollMode (OVER_SCROLL_ALWAYS);
-        }
-    }
-
-    public void setLoadingCard(int visible) {
-        mLoadingCard.setVisibility (visible);
-    }
-
-    public enum LayoutStyle {
-        block, linearBlock
+    public void addResource(ResourceManager.ResourceBase resource) {
+        MyAdapter adapter = (MyAdapter) getAdapter ( );
+        assert adapter != null;
+        adapter.addItem (adapter.getItemCount ( ) - 1, resource);
     }
 
     @Override
@@ -158,347 +66,528 @@ public class CardBox extends ScrollView {
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        int action = ev.getAction ( );
-        float currentScrollY = getScrollY ( );
-        float currentY = ev.getRawY ( );
-        long intervalTime = ev.getEventTime ( );
-        float deltaY = currentY - mLastY;
-        float totalY = currentY - mTouchDownY;
-        if (mIsOpenTopOverDragListener && currentScrollY == 0 && totalY >= 0) {
-            switch (action) {
+        if (mAdapt.isListenerOverDragRefresh) {
+            switch (ev.getAction ( )) {
                 case MotionEvent.ACTION_MOVE:
-                    if (!isOverDragStart) {
-                        mLastY = mTouchDownY = ev.getRawY ( );
-                        mTopOverDragListener.OnOverDragStart ( );
-                        isOverDragStart = true;
-                    } else {
-                        mTopOverDragListener.OnOverDragDuration (deltaY, totalY, intervalTime);
-                        mLastY = currentY;
+                    if (mLastY == 0) {
+                        mLastY = ev.getRawY ( );
+                    }
+                    float deltaY = mLastY - ev.getRawY ( );
+                    mLastY = ev.getRawY ( );
+                    if (!canScrollVertically (-1) && deltaY < 0) {
+                        if (!isOverDragStart) {
+                            mTouchDownY = ev.getRawY ( );
+                            isOverDragStart = true;
+                        }
+                    }
+                    if (isOverDragStart) {
+                        float currentY = ev.getRawY ( );
+                        float totalY = currentY - mTouchDownY;
+
+                        CardBase card = ((MyAdapter.ViewHolder) Objects.requireNonNull (findViewHolderForAdapterPosition (0))).card;
+                        MarginLayoutParams cardParams = (MarginLayoutParams) card.getLayoutParams ( );
+
+                        if (Tool.dip2px (getContext ( ), 80) < totalY) {
+                            totalY = Tool.dip2px (getContext ( ), 80);
+                            mTouchDownY = ev.getRawY ( ) - totalY;
+                        }
+                        totalY = Math.max (totalY, 1);
+
+                        cardParams.topMargin = (int) (-Tool.dip2px (getContext ( ), 80) + totalY);
+                        card.setLayoutParams (cardParams);
+                        smoothScrollToPosition (0);
+                        if (deltaY > 0 && cardParams.topMargin == -Tool.dip2px (getContext ( ), 80) + 1) {
+                            isOverDragStart = false;
+                        }
+                        return true;
                     }
                     break;
                 case MotionEvent.ACTION_UP:
-                    isOverDragStart = false;
-                    mTopOverDragListener.OnOverDragEnd (ev.getRawY ( ) - mTouchDownY);
+                    if (isOverDragStart) {
+                        CardBase card = ((MyAdapter.ViewHolder) Objects.requireNonNull (findViewHolderForAdapterPosition (0))).card;
+                        MarginLayoutParams cardParams = (MarginLayoutParams) card.getLayoutParams ( );
+                        if (cardParams.topMargin > -Tool.dip2px (getContext ( ), 40)) {
+                            openRefreshNotify ( );
+                            mAdapt.onRefresh ( );
+                        } else {
+                            closeRefreshNotify ( );
+                        }
+                        isOverDragStart = false;
+                    }
                     mLastY = 0;
                     mTouchDownY = 0;
                     performClick ( );
                     break;
             }
-            return true;
         }
         return super.onTouchEvent (ev);
     }
 
-    private void updateTouchActiveArea() {
-        int scrollViewHeight = getHeight ( );
-        boolean isSetTopActiveElementIndex = false;
-        boolean isActiveAreaChanged = false;
-        Set <View> newActiveElementSet = new HashSet <> ( );
-        for (int index = 0; index < mContainer.getChildCount ( ) - 1; index++) {
-            ViewGroup viewGroup = (ViewGroup) mContainer.getChildAt (index);
-            Rect rect = new Rect ( );
-            viewGroup.getLocalVisibleRect (rect);
-            if (rect.top >= 0 - mActiveAreaMarginSize && rect.top < scrollViewHeight + mActiveAreaMarginSize) {
-                if (!isSetTopActiveElementIndex) {
-                    if (mTopActiveElementIndex != index) {
-                        mTopActiveElementIndex = index;
-                        isActiveAreaChanged = true;
-                    }
-                    isSetTopActiveElementIndex = true;
-                }
-                for (int index_2 = 0; index_2 < viewGroup.getChildCount ( ); index_2++) {
-                    newActiveElementSet.add (viewGroup.getChildAt (index_2));
-                }
-            }
-            if (rect.top > scrollViewHeight + mActiveAreaMarginSize) {
-                if (mTopActiveElementIndex != index) {
-                    mBottomActiveElementIndex = index;
-                    isActiveAreaChanged = true;
-                    break;
-                }
-            }
+    public void openRefreshNotify() {
+        MyAdapter.ViewHolder viewHolder = (MyAdapter.ViewHolder) findViewHolderForAdapterPosition (0);
+        if (null != viewHolder) {
+            CardBase card = viewHolder.card;
+            MarginLayoutParams cardParams = (MarginLayoutParams) card.getLayoutParams ( );
+            cardParams.topMargin = -Tool.dip2px (getContext ( ), 40);
+            card.setLayoutParams (cardParams);
         }
-        if (mActiveAreaElementSet.isEmpty ( )) {
-            mActiveAreaElementSet = newActiveElementSet;
-        } else {
-            if (isActiveAreaChanged) {
-                Set <View> resultSet = new HashSet <> (newActiveElementSet);
-                resultSet.removeAll (mActiveAreaElementSet);
-                mActiveAreaChangedListener.setActiveAreaOperation (resultSet);
-                resultSet.clear ( );
-                resultSet.addAll (mActiveAreaElementSet);
-                resultSet.removeAll (newActiveElementSet);
-                mActiveAreaChangedListener.setInActiveAreaOperation (resultSet);
-                mActiveAreaElementSet = newActiveElementSet;
-            }
-        }
-
     }
 
-    private abstract static class CardBase extends FrameLayout {
-        public FrameLayout.LayoutParams mItemLayoutParams = new FrameLayout.LayoutParams (0, 0);
-        public Context mContext;
+    public void closeRefreshNotify() {
+        MyAdapter.ViewHolder viewHolder = (MyAdapter.ViewHolder) findViewHolderForAdapterPosition (0);
+        if (null != viewHolder) {
+            CardBase card = viewHolder.card;
+            MarginLayoutParams cardParams = (MarginLayoutParams) card.getLayoutParams ( );
+            cardParams.topMargin = -Tool.dip2px (getContext ( ), 80) + 1;
+            card.setLayoutParams (cardParams);
+        }
+    }
 
-        CardBase(Context context) {
-            super (context);
-            mContext = context;
-            initLayoutParams ( );
+    public void clearAll() {
+        ResourceManager resourceManager = ((MyAdapter) Objects.requireNonNull (getAdapter ( ))).mResourceManager;
+        resourceManager.clearAll ( );
+        resourceManager.add (0, new HeaderResource ( ));
+        resourceManager.add (1, new FooterResource ( ));
+    }
+
+    abstract static public class ResourceManager {
+        Map <Integer, Class <?>> mViewTypeToTemplete = new HashMap <> ( );
+        List <ResourceBase> mResourceList = new ArrayList <> ( );
+
+        ResourceManager() {
+            mViewTypeToTemplete.put (MyAdapter.TYPE_HEADER, RefreshNotifyCard.class);
+            mViewTypeToTemplete.put (MyAdapter.TYPE_FOOTER, LoadNotifyCard.class);
+            initViewTypeToView (mViewTypeToTemplete);
         }
 
-        public void initLayoutParams() {
+        abstract protected void initViewTypeToView(Map <Integer, Class <?>> mViewTypeToView);
+
+        public void add(int position, ResourceBase resource) {
+            mResourceList.add (position, resource);
+        }
+
+        Class <?> getTemplete(int viewType) {
+            return mViewTypeToTemplete.get (viewType);
+        }
+
+        int getViewType(int position) {
+            return mResourceList.get (position).getViewType ( );
+        }
+
+        public ResourceBase get(int i) {
+            return mResourceList.get (i);
+        }
+
+        int size() {
+            return mResourceList.size ( );
+        }
+
+        void clearAll() {
+            mResourceList.clear ( );
+        }
+
+        public abstract static class ResourceBase {
+            public boolean isEmpty = true;
+
+            abstract public int getViewType();
+
+            abstract public int getSpanCount();
+        }
+    }
+
+    static class HeaderResource extends ResourceManager.ResourceBase {
+
+        @Override
+        public int getViewType() {
+            return MyAdapter.TYPE_HEADER;
+        }
+
+        @Override
+        public int getSpanCount() {
+            return 2;
+        }
+    }
+
+    static class RefreshNotifyCard extends CardBase {
+
+        public RefreshNotifyCard(Context context) {
+            super (context);
+            setBackgroundColor (getContext ( ).getColor (R.color.colorBackground));
+            ViewGroup.MarginLayoutParams layoutParams = new LinearLayout.LayoutParams (ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            layoutParams.height = Tool.dip2px (getContext ( ), 80);
+            layoutParams.topMargin = -Tool.dip2px (getContext ( ), 80) + 1;
+            setLayoutParams (layoutParams);
+            TextView info = new TextView (getContext ( ));
+            info.setHeight (Tool.dip2px (getContext ( ), 40));
+            info.setText ("下拉刷新");
+            info.setTextColor (getContext ( ).getColor (R.color.gray));
+            info.setGravity (Gravity.CENTER);
+            LayoutParams infoParams = new LayoutParams (ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            infoParams.gravity = Gravity.BOTTOM;
+            info.setLayoutParams (infoParams);
+            addView (info);
+        }
+
+        @Override
+        public void clear() {
+
+        }
+
+        @Override
+        public void loadResource(ResourceManager.ResourceBase resource) {
+
+        }
+    }
+
+    static class FooterResource extends ResourceManager.ResourceBase {
+        boolean isVisible = false;
+
+        @Override
+        public int getViewType() {
+            return MyAdapter.TYPE_FOOTER;
+        }
+
+        @Override
+        public int getSpanCount() {
+            return 2;
+        }
+    }
+
+    static class LoadNotifyCard extends CardBase {
+        public LoadNotifyCard(Context context) {
+            super (context);
+            RelativeLayout mLoadingBlank = new RelativeLayout (mContext);
+            mLoadingBlank.setBackground (mContext.getDrawable (R.drawable.cardbox_card));
+            mLoadingBlank.setGravity (Gravity.CENTER_HORIZONTAL);
+            RelativeLayout.LayoutParams mLoadingBlankParam = new RelativeLayout.LayoutParams (ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            ImageView loadingImage = new ImageView (mContext);
+            RelativeLayout.LayoutParams loadingImageParam = new RelativeLayout.LayoutParams (Tool.dip2px (mContext, 150), Tool.dip2px (mContext, 150));
+            loadingImage.setScaleType (android.widget.ImageView.ScaleType.CENTER_CROP);
+            loadingImage.setLayoutParams (loadingImageParam);
+            try {
+                Drawable decodedAnimation = ImageDecoder.decodeDrawable (ImageDecoder.createSource (getResources ( ), R.drawable.loading));
+                if (decodedAnimation instanceof AnimatedImageDrawable) {
+                    // Prior to start(), the first frame is displayed.
+                    ((AnimatedImageDrawable) decodedAnimation).start ( );
+                }
+                loadingImage.setImageDrawable (decodedAnimation);
+            } catch (IOException e) {
+                e.printStackTrace ( );
+            }
+            mLoadingBlank.addView (loadingImage);
+            mLoadingBlank.setMinimumHeight (Tool.dip2px (mContext, 150));
+            mLoadingBlank.setLayoutParams (mLoadingBlankParam);
+            addView (mLoadingBlank);
+        }
+
+        @Override
+        public void clear() {
+
+        }
+
+        @Override
+        public void loadResource(ResourceManager.ResourceBase resource) {
+            if (!((FooterResource) resource).isVisible) {
+                setVisibility (INVISIBLE);
+            }
+        }
+    }
+
+    public abstract static class CardBase extends FrameLayout {
+        public FrameLayout.LayoutParams mItemLayoutParams = new FrameLayout.LayoutParams (0, 0);
+        public Context mContext;
+        public boolean isEmpty = true;
+        public int resourceId = -1;
+
+        public CardBase(Context context) {
+            super (context);
+            mContext = context;
+            setCommonStyle ( );
+        }
+
+        public void setCommonStyle() {
             setBackgroundColor (mContext.getColor (R.color.colorPrimary));
             setBackground (mContext.getDrawable (R.drawable.roundrect_image));//设置圆角
             setElevation (Tool.dip2px (mContext, 5));//设置阴影
-            mItemLayoutParams.height = Tool.dip2px (mContext, 300);
-            mItemLayoutParams.setMargins (Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5));
-//            setOrientation (VERTICAL);
-            setLayoutParams (mItemLayoutParams);
         }
 
-        abstract public LayoutStyle setLayoutStyle();
+        abstract public void clear();
 
-        public void setWidth(int width) {
-            mItemLayoutParams.width = width;
-            setLayoutParams (mItemLayoutParams);
-        }
-
-        public void setHeight(int height) {
-            mItemLayoutParams.height = height;
-            setLayoutParams (mItemLayoutParams);
-        }
+        abstract public void loadResource(ResourceManager.ResourceBase resource);
     }
 
-    public static class BlockCard extends CardBase {
-        public BlockCard(Context context) {
-            super (context);
+    public CardBox(@NonNull Context context) {
+        super (context);
+        onInitiation ( );
+    }
+
+    public CardBox(@NonNull Context context, @Nullable AttributeSet attrs) {
+        super (context, attrs);
+        onInitiation ( );
+    }
+
+    public CardBox(@NonNull Context context, @Nullable AttributeSet attrs, int defStyle) {
+        super (context, attrs, defStyle);
+        onInitiation ( );
+    }
+
+    private void onInitiation() {
+        setPadding (Tool.dip2px (getContext ( ), 5), Tool.dip2px (getContext ( ), 5), Tool.dip2px (getContext ( ), 5), Tool.dip2px (getContext ( ), 5));
+        int mSpanCount = 2;
+        setLayoutManager (new GridLayoutManager (getContext ( ), mSpanCount, GridLayoutManager.VERTICAL, false));
+        setItemViewCacheSize (0);
+        addOnScrollListener (new MyOnScrollListener ( ));
+    }
+
+    class MyOnScrollListener extends OnScrollListener {
+        @Override
+        public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+            super.onScrolled (recyclerView, dx, dy);
+            mScrollSpeed = Math.abs (dy);
+            if (mScrollSpeed > Tool.dip2px (getContext ( ), SCROLL_SPEED_LIMIT)) {
+                mIsOverSpeed = true;
+                mIsSpeedJump = true;
+            } else {
+                mIsOverSpeed = false;
+            }
+            checkIsTouchBottom ( );
         }
 
         @Override
-        public LayoutStyle setLayoutStyle() {
-            return LayoutStyle.block;
-        }
-    }
-
-    public static class LinearCard extends CardBase {
-        public LinearCard(Context context) {
-            super (context);
-        }
-
-        public void initLayoutParams() {
-            mItemLayoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-            mItemLayoutParams.setMargins (Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5));
-            setLayoutParams (mItemLayoutParams);
-        }
-
-        @Override
-        public LayoutStyle setLayoutStyle() {
-            return LayoutStyle.linearBlock;
-        }
-    }
-
-
-    public void addCard(CardBase item) {
-        LayoutStyle layoutStyle = item.setLayoutStyle ( );
-        switch (layoutStyle) {
-            case block:
-                item.setWidth (Tool.getScreenWidth (mContext) / 2 - Tool.dip2px (mContext, 15));
-                if (mBlackSpace) {
-                    int childCount = mContainer.getChildCount ( );
-                    ((ViewGroup) mContainer.getChildAt (childCount - 2)).addView (item);
-                    mBlackSpace = false;
-                } else {
-                    LinearLayout linearLayout = new LinearLayout (mContext);
-                    linearLayout.addView (item);
-                    LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams (LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-                    mContainer.addView (linearLayout, mContainer.getChildCount ( ) - 1, layoutParams);
-                    mBlackSpace = true;
+        public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+            // SCROLL_STATE_IDLE:停止滚动；
+            // SCROLL_STATE_DRAGGING: 用户慢慢拖动
+            // SCROLL_STATE_SETTLING：惯性滚动
+            if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                if (mIsSpeedJump || mScrollSpeed > 5) {//judge whether scroll arrested
+                    int firstVisibleItemPosition = ((LinearLayoutManager) Objects.requireNonNull (getLayoutManager ( ))).findFirstVisibleItemPosition ( );
+                    int lastVisibleItemPosition = ((LinearLayoutManager) Objects.requireNonNull (getLayoutManager ( ))).findLastVisibleItemPosition ( );
+                    int firstPosition = firstVisibleItemPosition;
+                    while (findViewHolderForAdapterPosition (--firstPosition) != null) ;
+                    for (int index = firstPosition + 1; index < lastVisibleItemPosition + 1; index++) {
+                        if (((MyAdapter.ViewHolder) Objects.requireNonNull (findViewHolderForAdapterPosition (index))).card.resourceId != index) {
+                            Objects.requireNonNull (getAdapter ( )).notifyItemChanged (index);
+                        }
+                    }
                 }
-                break;
-            case linearBlock:
-                item.setWidth (Tool.getScreenWidth (mContext) - Tool.dip2px (mContext, 20));
-                mContainer.addView (item, -2);
-                mBlackSpace = false;
-                break;
+                mIsOverSpeed = false;
+                mIsSpeedJump = false;
+            }
+        }
+
+        private void checkIsTouchBottom() {
+            MyAdapter adapter = (MyAdapter) Objects.requireNonNull (CardBox.this.getAdapter ( ));
+
+            if (adapter.getItemCount ( ) > 2) {
+                int lastVisibleItemPosition = ((LinearLayoutManager) Objects.requireNonNull (getLayoutManager ( ))).findLastVisibleItemPosition ( );
+
+                if (lastVisibleItemPosition == Math.max (adapter.getItemCount ( ) - 1, 0)) {
+                    if (mAdapt.isListenerTouchBottom) {
+                        mAdapt.onTouchBottom ( );
+                    }
+                }
+            }
         }
     }
 
-    public void removeCard(View view) {
-        mContainer.removeView (view);
+    public void openLoadNotify() {
+        MyAdapter adapter = (MyAdapter) Objects.requireNonNull (CardBox.this.getAdapter ( ));
+        MyAdapter.ViewHolder holder = (MyAdapter.ViewHolder) findViewHolderForAdapterPosition (adapter.getItemCount ( ) - 1);
+        if (holder != null) {
+            ((FooterResource) adapter.mResourceManager.get (adapter.getItemCount ( ) - 1)).isVisible = true;
+            LoadNotifyCard card = (LoadNotifyCard) holder.card;
+            card.setVisibility (VISIBLE);
+        }
     }
 
-    public void setOnActiveAreaChangedListener(OnActiveAreaChangedListener listener) {
-        mActiveAreaChangedListener = listener;
-        mActiveAreaMarginSize = listener.setActiveAreaMarginSize (mActiveAreaMarginSize);
+    public void setResourceManager(ResourceManager manager) {
+        setAdapter (new MyAdapter (manager));
     }
 
-    public void setOnTopOverDragListener(OnTopOverDragListener listener) {
-        mTopOverDragListener = listener;
+    public void setCardBoxAdapt(final CardBoxAdapt adapt) {
+        mAdapt = adapt;
+        setResourceManager (new CardBox.ResourceManager ( ) {
+            @Override
+            protected void initViewTypeToView(Map <Integer, Class <?>> mViewTypeToView) {
+                adapt.initViewTypeToView (mViewTypeToView);
+            }
+        });
     }
 
-    public void setOnTouchBottomListener(OnTouchBottomListener listener) {
-        mTouchBottomDistance = listener.setDistance (mTouchBottomDistance);
-        mTouchBottomListener = listener;
+    static class MyAdapter extends RecyclerView.Adapter <MyAdapter.ViewHolder> {
+        static final int TYPE_HEADER = -1;
+        static final int TYPE_FOOTER = -2;
+        ResourceManager mResourceManager;
+
+        MyAdapter(ResourceManager resourceManager) {
+            mResourceManager = resourceManager;
+            mResourceManager.add (0, new HeaderResource ( ));
+            mResourceManager.add (1, new FooterResource ( ));
+        }
+
+        void addItem(int position, ResourceManager.ResourceBase resource) {
+            mResourceManager.add (position, resource);
+            notifyItemInserted (position);
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            if (position == 0) {
+                return TYPE_HEADER;
+            } else if (position == getItemCount ( ) - 1) {
+                return TYPE_FOOTER;
+            } else {
+                return mResourceManager.getViewType (position);
+            }
+        }
+
+        @NonNull
+        @Override
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
+            ViewHolder viewHolder = null;
+            try {
+                Constructor constructor = mResourceManager.getTemplete (i).getDeclaredConstructor (Context.class);
+                viewHolder = new ViewHolder ((View) constructor.newInstance (viewGroup.getContext ( )));
+            } catch (IllegalAccessException | InstantiationException | NoSuchMethodException | InvocationTargetException e) {
+                e.printStackTrace ( );
+            }
+            assert viewHolder != null;
+            return viewHolder;
+        }
+
+        @Override
+        public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
+            super.onAttachedToRecyclerView (recyclerView);
+            RecyclerView.LayoutManager manager = recyclerView.getLayoutManager ( );
+            if (manager instanceof GridLayoutManager) {
+                final GridLayoutManager g = (GridLayoutManager) manager;
+                g.setSpanSizeLookup (new GridLayoutManager.SpanSizeLookup ( ) {
+                    @Override
+                    public int getSpanSize(int position) {
+                        return mResourceManager.get (position).getSpanCount ( );
+                    }
+                });
+            }
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull ViewHolder viewHolder, int i) {
+            if (viewHolder.card.resourceId != i) {
+                if (!viewHolder.card.isEmpty) {
+                    viewHolder.card.clear ( );
+                    viewHolder.card.isEmpty = true;
+                }
+                if (!mIsOverSpeed) {
+                    viewHolder.card.resourceId = i;
+                    viewHolder.card.isEmpty = false;
+                    viewHolder.card.loadResource (mResourceManager.get (i));
+                }
+            }
+        }
+
+        @Override
+        public int getItemCount() {
+            return mResourceManager.size ( );
+        }
+
+        static class ViewHolder extends RecyclerView.ViewHolder {
+            CardBase card;
+
+            ViewHolder(@NonNull View itemView) {
+                super (itemView);
+                card = (CardBase) itemView;
+            }
+        }
+
     }
 
-    public void setOnOverDragRefreshListener(OnOverDragRefreshListener listener) {
-        setIsOpenTopOverDragListener (true);
-        mRefreshListener = listener;
-    }
+    static public abstract class CardBoxAdapt {
+        boolean isListenerTouchBottom = true;
+        boolean isListenerOverDragRefresh = true;
+        final int mSingleLoadSize = 10;
+        int mLoadedSize;
+        MyHandler mHandler;
+        boolean mIsLoading = false;
+        private LoadDataCallback mCallback;
+        CardBox mCardBox;
 
-    public interface OnTouchBottomListener {
-        float setDistance(float distance);
+        protected CardBoxAdapt(CardBox cardBox) {
+            mCardBox = cardBox;
+            mHandler = new MyHandler (cardBox, this);
+            mCallback = new LoadDataCallback ( );
+            requestData (mLoadedSize, mSingleLoadSize, mCallback);
+        }
 
-        void onTouchBottom();
-    }
+        void onRefresh() {
+            mCardBox.clearAll ( );
+            mLoadedSize = 0;
+            requestData (mLoadedSize, mSingleLoadSize, mCallback);
+        }
 
-    public interface OnTopOverDragListener {
-        void OnOverDragStart();
+        public class LoadDataCallback extends Network.Callback {
+            @Override
+            public void success(Network.Response response) {
+                Message message = mHandler.obtainMessage ( );
+                message.obj = response.content;
+                message.what = MyHandler.LOAD_ITEM;
+                mHandler.sendMessage (message);
+            }
 
-        void OnOverDragDuration(float deltaY, float totalY, long intervalTime);
+            @Override
+            public void error(Network.Response response) {
 
-        void OnOverDragEnd(float endY);
+            }
+        }
+
+        static class MyHandler extends Handler {
+            WeakReference <CardBox> mCardBoxReference;
+            WeakReference <CardBoxAdapt> mCardBoxAdaptReference;
+            static final int LOAD_ITEM = 100;
+
+            MyHandler(CardBox cardBox, CardBoxAdapt adapt) {
+                mCardBoxReference = new WeakReference <> (cardBox);
+                mCardBoxAdaptReference = new WeakReference <> (adapt);
+            }
+
+            @Override
+            public void handleMessage(Message msg) {
+                CardBox cardBox = mCardBoxReference.get ( );
+                CardBoxAdapt adapt = mCardBoxAdaptReference.get ( );
+                switch (msg.what) {
+                    case LOAD_ITEM:
+                        JSONArray jsonArray = (JSONArray) msg.obj;
+                        for (int index = 0; index < jsonArray.length ( ); index++) {
+                            try {
+                                JSONObject object = jsonArray.getJSONObject (index);
+                                adapt.loadItem (cardBox, object);
+                                cardBox.closeRefreshNotify ( );
+                            } catch (JSONException e) {
+                                e.printStackTrace ( );
+                            }
+                        }
+                        adapt.mLoadedSize += jsonArray.length ( );
+                        adapt.mIsLoading = false;
+                        break;
+                }
+            }
+        }
+
+        void onTouchBottom() {
+            if (!mIsLoading) {
+                requestData (mLoadedSize, mSingleLoadSize, mCallback);
+                mCardBox.openLoadNotify ( );
+                mIsLoading = true;
+            }
+        }
+
+        protected abstract void initViewTypeToView(Map <Integer, Class <?>> mViewTypeToView);
+
+        protected abstract void requestData(int loadedSize, int singleLoadSize, LoadDataCallback callback);
+
+        protected abstract void loadItem(CardBox cardBox, JSONObject obj);
     }
 
     public interface OnOverDragRefreshListener {
         void OnRefresh();
-    }
-
-    public interface OnActiveAreaChangedListener {
-        int setActiveAreaMarginSize(int mActiveAreaMarginSize);
-
-        void setActiveAreaOperation(Set <View> viewSet);
-
-        void setInActiveAreaOperation(Set <View> viewSet);
-    }
-
-    class MyRefreshListener implements OnOverDragRefreshListener {
-
-        @Override
-        public void OnRefresh() {
-            playEndRefreshAnimation ( );
-        }
-    }
-
-    class MyScrollChangeListener implements View.OnScrollChangeListener {
-        @Override
-        public void onScrollChange(View v, int scrollX, int scrollY, int oldScrollX, int oldScrollY) {
-            checkIsTouchBottom (scrollY);
-            if (mActiveAreaChangedListener != null) {
-                updateTouchActiveArea ( );
-            }
-        }
-
-        private void checkIsTouchBottom(int scrollY) {
-            int itemBoxHeight = mContainer.getHeight ( );
-            int scrollViewHeight = getHeight ( );
-
-            if ((itemBoxHeight - scrollViewHeight - scrollY <= mTouchBottomDistance)) {
-                if (mTouchBottomListener != null) {
-                    mTouchBottomListener.onTouchBottom ( );
-                }
-            }
-        }
-    }
-
-    class MyTopOverDragListener implements OnTopOverDragListener {
-        @Override
-        public void OnOverDragStart() {
-        }
-
-        @Override
-        public void OnOverDragDuration(float deltaY, float totalY, long intervalTime) {
-            if (mRefreshIconParam.topMargin < mRefreshIconDragMaxDistance) {
-                mRefreshIconParam.topMargin += deltaY * (1 - (mRefreshIconParam.topMargin + mRefreshIconSize) / (mRefreshIconSize + mRefreshIconDragMaxDistance));
-            } else {
-                return;
-            }
-            mRefreshIcon.setLayoutParams (mRefreshIconParam);
-            mRefreshIcon.invalidate ( );
-        }
-
-        @Override
-        public void OnOverDragEnd(float endY) {
-            if (mRefreshIconParam.topMargin > mRefreshIconTrigger) {
-                playRefreshingAnimation ( );
-                mRefreshListener.OnRefresh ( );
-            } else {
-                playEndRefreshAnimation ( );
-            }
-        }
-    }
-
-    static class MyActiveAreaChangedListener implements OnActiveAreaChangedListener {
-        @Override
-        public int setActiveAreaMarginSize(int mActiveAreaMarginSize) {
-            return 0;
-        }
-
-        @Override
-        public void setActiveAreaOperation(Set <View> viewSet) {
-
-        }
-
-        @Override
-        public void setInActiveAreaOperation(Set <View> viewSet) {
-
-        }
-    }
-
-    public void playEndRefreshAnimation() {
-        if (mRefreshIcon.getAnimation ( ) != null && !mRefreshIcon.getAnimation ( ).hasEnded ( )) {
-            mRefreshIcon.getAnimation ( ).getStartTime ( );
-            mRefreshIconParam.topMargin = (int) mRefreshIconTrigger;
-            mRefreshIcon.setLayoutParams (mRefreshIconParam);
-            mRefreshIcon.invalidate ( );
-        }
-        TranslateAnimation animation = new TranslateAnimation (0, 0, 0, -mRefreshIconParam.topMargin - mRefreshIconSize);
-        animation.setDuration (200);
-        animation.setAnimationListener (new Animation.AnimationListener ( ) {
-            @Override
-            public void onAnimationStart(Animation animation) {
-
-            }
-
-            @Override
-            public void onAnimationEnd(Animation animation) {
-                mRefreshIconParam.topMargin = -mRefreshIconSize;
-                mRefreshIcon.setLayoutParams (mRefreshIconParam);
-                mRefreshIcon.invalidate ( );
-                mRefreshIcon.clearAnimation ( );
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-
-            }
-        });
-        mRefreshIcon.startAnimation (animation);
-    }
-
-    public void playRefreshingAnimation() {
-        mRefreshIcon.clearAnimation ( );
-        TranslateAnimation animation = new TranslateAnimation (0, 0, 0, -mRefreshIconParam.topMargin + mRefreshIconTrigger);
-
-        animation.setDuration (200);
-        animation.setAnimationListener (new Animation.AnimationListener ( ) {
-            @Override
-            public void onAnimationStart(Animation animation) {
-
-            }
-
-            @Override
-            public void onAnimationEnd(Animation animation) {
-                mRefreshIconParam.topMargin = (int) mRefreshIconTrigger;
-                mRefreshIcon.setLayoutParams (mRefreshIconParam);
-                mRefreshIcon.invalidate ( );
-                mRefreshIcon.clearAnimation ( );
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-
-            }
-        });
-        mRefreshIcon.startAnimation (animation);
     }
 }

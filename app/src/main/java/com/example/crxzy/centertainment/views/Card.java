@@ -16,12 +16,12 @@ import android.widget.TextView;
 
 import com.example.crxzy.centertainment.R;
 import com.example.crxzy.centertainment.activities.PictureActivity;
-import com.example.crxzy.centertainment.models.MangaResource;
+import com.example.crxzy.centertainment.models.PictureResource;
 import com.example.crxzy.centertainment.models.NetApi;
 import com.example.crxzy.centertainment.system.MainApplication;
 import com.example.crxzy.centertainment.tools.Tool;
 
-public class MangaSelfCard extends CardBox.BlockCard {
+public class Card extends CardBox.CardBase {
     public RoundedImageView image;
     public TextView title;
     public TextView clickTime;
@@ -30,30 +30,46 @@ public class MangaSelfCard extends CardBox.BlockCard {
     public TextView statusTag;
     public ImageView langFlag;
 
-    public MangaSelfCard(Context context) {
+    public Card(Context context) {
         super (context);
         drawView (context);
     }
 
-    public MangaSelfCard(Context context, AttributeSet attributeSet) {
+    @Override
+    public void clear() {
+        title.setText (null);
+        clickTime.setText ("0");
+        pageCount.setText ("0");
+        sourceTag.setText (null);
+        statusTag.setText (null);
+        langFlag.setImageBitmap (null);
+        image.setImageResource (R.drawable.ic_launcher_foreground);
+    }
+
+    public Card(Context context, AttributeSet attributeSet) {
         super (context);
         drawView (context);
     }
 
-    public MangaSelfCard(Context context, MangaResource resource) {
+    public Card(Context context, PictureResource resource) {
         super (context);
         drawView (context);
+        loadResource (resource);
+    }
 
-        title.setText (resource.Title);
+    @Override
+    public void loadResource(CardBox.ResourceManager.ResourceBase resource) {
+        PictureResource mResource = (PictureResource) resource;
+        title.setText (mResource.Title);
 
-        if (resource.Language.equals ("english")) {
+        if (mResource.Language.equals ("english")) {
             langFlag.setImageDrawable (getContext ( ).getDrawable (R.drawable.flag_en));
-        } else if (resource.Language.equals ("chinese")) {
+        } else if (mResource.Language.equals ("chinese")) {
             langFlag.setImageDrawable (getContext ( ).getDrawable (R.drawable.flag_cn));
         } else {
             langFlag.setImageDrawable (getContext ( ).getDrawable (R.drawable.flag_jp));
         }
-        switch (resource.ThumbStatus) {
+        switch (mResource.ThumbStatus) {
             case 0:
                 statusTag.setText ("○");
                 break;
@@ -70,38 +86,44 @@ public class MangaSelfCard extends CardBox.BlockCard {
                 statusTag.setText ("●");
                 break;
         }
-        clickTime.setText ((String) Integer.toString (resource.clickedTimes));
-        final String tagsString = resource.Source + "." + resource.Language;
+        clickTime.setText ((String) Integer.toString (mResource.clickedTimes));
+        final String tagsString = mResource.Source + "." + mResource.Language;
         sourceTag.setText (tagsString);
-        pageCount.setText ((String) Integer.toString (resource.PageCount));
-        image.setImageURL ("http://10.0.0.2:4396/gallery/" + resource.ThumbId + "/" + resource.ImageNames.get (0) + "?height=480&width=360");
-        CardOnClickListener cardOnClickListener = new CardOnClickListener (resource);
+        pageCount.setText ((String) Integer.toString (mResource.PageCount));
+        image.setImageURL ("http://10.0.0.2:4396/gallery/" + mResource.ThumbId + "/" + mResource.ImageNames.get (0) + "?height=480&width=360");
+        CardOnClickListener cardOnClickListener = new CardOnClickListener (mResource);
         setOnClickListener (cardOnClickListener);
     }
 
-    class CardOnClickListener implements View.OnClickListener {
-        MangaResource mResource;
 
-        CardOnClickListener(MangaResource resource) {
+    class CardOnClickListener implements View.OnClickListener {
+        PictureResource mResource;
+
+        CardOnClickListener(PictureResource resource) {
             mResource = resource;
         }
 
         @Override
         public void onClick(View v) {
-            int uid = ((MainApplication) (((AppCompatActivity) MangaSelfCard.this.getContext ( )).getApplication ( ))).mUser.uid;
+            int uid = ((MainApplication) (((AppCompatActivity) v.getContext ( )).getApplication ( ))).mUser.uid;
             String resource_id = mResource.ResourceId;
             NetApi.addHistory (uid, resource_id);
-            NetApi.upClickedCount (resource_id);
-            int clickedTimes = Integer.parseInt ((String) MangaSelfCard.this.clickTime.getText ( )) + 1;
-            MangaSelfCard.this.clickTime.setText ((String) Integer.toString (clickedTimes));
+            NetApi.upClickedCount (resource_id, "manga");
+            int clickedTimes = Integer.parseInt ((String) clickTime.getText ( )) + 1;
+            clickTime.setText ((String) Integer.toString (clickedTimes));
             Intent intent = new Intent ( );
-            intent.setClass (MangaSelfCard.this.getContext ( ), PictureActivity.class);
-            intent.putExtra ("info", mResource.Resource.toString ());
-            getContext ().startActivity (intent);
+            intent.setClass (getContext ( ), PictureActivity.class);
+            intent.putExtra ("info", mResource.Resource.toString ( ));
+            getContext ( ).startActivity (intent);
         }
     }
 
     private void drawView(Context context) {
+        mItemLayoutParams.height = Tool.dip2px (mContext, 300);
+        mItemLayoutParams.width = LayoutParams.MATCH_PARENT;
+        mItemLayoutParams.setMargins (Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5));
+        setLayoutParams (mItemLayoutParams);
+
         LinearLayout mainLinerLayout = new LinearLayout (context);
         LinearLayout.LayoutParams mainLinerLayoutParams = new LinearLayout.LayoutParams (LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
         mainLinerLayout.setLayoutParams (mainLinerLayoutParams);
@@ -215,11 +237,5 @@ public class MangaSelfCard extends CardBox.BlockCard {
         mainLinerLayout.addView (tagsArea);
         addView (mainLinerLayout);
         addView (coverLayout);
-    }
-
-
-    @Override
-    public CardBox.LayoutStyle setLayoutStyle() {
-        return CardBox.LayoutStyle.block;
     }
 }
