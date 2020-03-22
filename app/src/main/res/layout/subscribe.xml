@@ -1,6 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.example.crxzy.centertainment.views.CardBox xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/subscribe_container"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"/>
+    android:layout_height="match_parent">
+
+    <com.example.crxzy.centertainment.views.CardBox
+        android:id="@+id/subscribe_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <Button
+        android:id="@+id/subscribe_back"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginEnd="20dp"
+        android:text="@string/icon_home"
+        android:textSize="20sp"
+        android:layout_marginBottom="100dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:background="@drawable/round_button" />
+</RelativeLayout>
+
 

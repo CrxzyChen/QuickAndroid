@@ -55,4 +55,5 @@
     <string name="string_artist_has_nothing_remained">Artist has nothing remained</string>
     <string name="string_artist_name">Artist Name</string>
     <string name="string_cn_unfocus">取消关注</string>
+    <string name="icon_home">⌂</string>
 </resources>

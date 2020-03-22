@@ -44,7 +44,7 @@ public class QuickPageModel {
         View mView;
         View mHeader;
         PageBase mController;
-        Page mParent;
+        public Page mParent;
         Map <String, Page> mChildPages = new HashMap <> ( );
         private Map <String, Integer> mKeyToIndex = new HashMap <> ( );
         private SparseArray <String> mIndexToKey = new SparseArray <> ( );

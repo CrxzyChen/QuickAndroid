@@ -1,5 +1,9 @@
 package com.example.crxzy.centertainment.controllers;
 
+import android.view.View;
+import android.widget.Button;
+
+import com.example.crxzy.centertainment.R;
 import com.example.crxzy.centertainment.models.NetApi;
 import com.example.crxzy.centertainment.models.PictureResource;
 import com.example.crxzy.centertainment.system.FirstPageBase;
@@ -21,7 +25,21 @@ public class Subscribe extends FirstPageBase {
 
     @Override
     public void onInitiation() {
-        mViewContainer = (CardBox) mView;
+        mViewContainer = mView.findViewById (R.id.subscribe_container);
+        Button mBackButton = mView.findViewById (R.id.subscribe_back);
+        mBackButton.setOnClickListener (new View.OnClickListener ( ) {
+            @Override
+            public void onClick(View v) {
+                mViewContainer.smoothScrollToPosition (0);
+            }
+        });
+        mBackButton.setOnLongClickListener (new View.OnLongClickListener ( ) {
+            @Override
+            public boolean onLongClick(View v) {
+                mPageModel.mParent.getController ( ).selectPage (mPageModel.mParent.getIndex ("main"));
+                return false;
+            }
+        });
         mViewContainer.setCardBoxAdapt (new CardBox.CardBoxAdapt (mViewContainer) {
             @Override
             protected void initViewTypeToView(Map <Integer, Class <?>> mViewTypeToView) {
