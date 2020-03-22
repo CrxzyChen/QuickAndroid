@@ -41,7 +41,6 @@ import java.util.Objects;
 
 public class CardBox extends RecyclerView {
     public static final int SCROLL_SPEED_LIMIT = 80;
-    public float mTouchBottomDistance = 0;
 
     private boolean isOverDragStart = false;
     private float mLastY;
@@ -51,7 +50,6 @@ public class CardBox extends RecyclerView {
     private CardBoxAdapt mAdapt;
 
     float mTouchDownY = 0;
-    CardBox.OnOverDragRefreshListener mRefreshListener;
 
     public void addResource(ResourceManager.ResourceBase resource) {
         MyAdapter adapter = (MyAdapter) getAdapter ( );
@@ -150,7 +148,7 @@ public class CardBox extends RecyclerView {
         resourceManager.add (1, new FooterResource ( ));
     }
 
-    abstract static public class ResourceManager {
+    public abstract static class ResourceManager {
         Map <Integer, Class <?>> mViewTypeToTemplete = new HashMap <> ( );
         List <ResourceBase> mResourceList = new ArrayList <> ( );
 
@@ -193,6 +191,29 @@ public class CardBox extends RecyclerView {
 
             abstract public int getSpanCount();
         }
+    }
+
+    public abstract static class CardBase extends FrameLayout {
+        public FrameLayout.LayoutParams mItemLayoutParams = new FrameLayout.LayoutParams (0, 0);
+        public Context mContext;
+        public boolean isEmpty = true;
+        public int resourceId = -1;
+
+        public CardBase(Context context) {
+            super (context);
+            mContext = context;
+            setCommonStyle ( );
+        }
+
+        public void setCommonStyle() {
+            setBackgroundColor (mContext.getColor (R.color.colorPrimary));
+            setBackground (mContext.getDrawable (R.drawable.roundrect_image));//设置圆角
+            setElevation (Tool.dip2px (mContext, 5));//设置阴影
+        }
+
+        abstract public void clear();
+
+        abstract public void loadResource(ResourceManager.ResourceBase resource);
     }
 
     static class HeaderResource extends ResourceManager.ResourceBase {
@@ -293,28 +314,6 @@ public class CardBox extends RecyclerView {
         }
     }
 
-    public abstract static class CardBase extends FrameLayout {
-        public FrameLayout.LayoutParams mItemLayoutParams = new FrameLayout.LayoutParams (0, 0);
-        public Context mContext;
-        public boolean isEmpty = true;
-        public int resourceId = -1;
-
-        public CardBase(Context context) {
-            super (context);
-            mContext = context;
-            setCommonStyle ( );
-        }
-
-        public void setCommonStyle() {
-            setBackgroundColor (mContext.getColor (R.color.colorPrimary));
-            setBackground (mContext.getDrawable (R.drawable.roundrect_image));//设置圆角
-            setElevation (Tool.dip2px (mContext, 5));//设置阴影
-        }
-
-        abstract public void clear();
-
-        abstract public void loadResource(ResourceManager.ResourceBase resource);
-    }
 
     public CardBox(@NonNull Context context) {
         super (context);
@@ -585,9 +584,5 @@ public class CardBox extends RecyclerView {
         protected abstract void requestData(int loadedSize, int singleLoadSize, LoadDataCallback callback);
 
         protected abstract void loadItem(CardBox cardBox, JSONObject obj);
-    }
-
-    public interface OnOverDragRefreshListener {
-        void OnRefresh();
     }
 }

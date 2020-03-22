@@ -15,6 +15,8 @@ import android.widget.AutoCompleteTextView;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -49,6 +51,7 @@ public class Main extends FirstPageBase {
     private LabelBox mPopupFilterContainer;
     private LabelBox mPopupMarkContainer;
     private ViewGroup mPopupLanguageSelector;
+    private RadioGroup mPopupSyasinnOrderSelector;
 
     public Main(MainActivity activity, QuickPageModel.Page pageModel) {
         super (activity, pageModel);
@@ -97,6 +100,13 @@ public class Main extends FirstPageBase {
                             for (int index = 0; index < filter.length ( ); index++) {
                                 mPopupFilterContainer.addLabel (new LabelBox.CancelAbleLabel (mActivity, filter.getString (index)));
                             }
+                            String syasinn_order = object.getString ("syasinn_order");
+                            for (int index = 0; index < mPopupSyasinnOrderSelector.getChildCount ( ); index++) {
+                                if (syasinn_order.equals ((String) ((RadioButton) mPopupSyasinnOrderSelector.getChildAt (index)).getText ( ))) {
+                                    ((RadioButton) mPopupSyasinnOrderSelector.getChildAt (index)).setChecked (true);
+                                    break;
+                                }
+                            }
                         } catch (JSONException e) {
                             e.printStackTrace ( );
                         }
@@ -116,6 +126,7 @@ public class Main extends FirstPageBase {
         mPopupFilterAutoComplete = mPopupView.findViewById (R.id.popup_picture_filter_auto_complete);
         mPopupFilterContainer = mPopupView.findViewById (R.id.popup_picture_filter_container);
         mPopupMarkContainer = mPopupView.findViewById (R.id.popup_picture_mark_container);
+        mPopupSyasinnOrderSelector = mPopupView.findViewById (R.id.popup_picture_syasinn_order_selector);
         mPopupWindow = new PopupWindow (mPopupView, (int) (Tool.getScreenWidth (mActivity) * 0.8), ViewGroup.LayoutParams.WRAP_CONTENT);
         mPopupWindow.setTouchable (true);
         mPopupWindow.setFocusable (true);
@@ -146,11 +157,22 @@ public class Main extends FirstPageBase {
                         language_labels.add (((String) checkBox.getText ( )).toLowerCase ( ));
                     }
                 }
+                String syasinn_order = null;
+                for (int index = 0; index < mPopupSyasinnOrderSelector.getChildCount ( ); index++) {
+                    if (((RadioButton) mPopupSyasinnOrderSelector.getChildAt (index)).isChecked ( )) {
+                        syasinn_order = (String) ((RadioButton) mPopupSyasinnOrderSelector.getChildAt (index)).getText ( );
+                        break;
+                    }
+                }
+                if (syasinn_order == null) {
+                    syasinn_order = "Asc";
+                }
                 JSONObject json = new JSONObject ( );
                 try {
                     json.put ("language", new JSONArray (language_labels));
                     json.put ("mark", new JSONArray (marked_labels));
                     json.put ("filter", new JSONArray (filter_labels));
+                    json.put ("syasinn_order", syasinn_order);
                     mApp.mUser.putConfig ("picture_common", json);
                     mPopupWindow.dismiss ( );
                     Toast.makeText (mActivity, "SAVED", Toast.LENGTH_SHORT).show ( );
