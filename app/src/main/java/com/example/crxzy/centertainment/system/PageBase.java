@@ -14,7 +14,7 @@ import java.util.Objects;
 
 abstract public class PageBase {
     public final MainActivity mActivity; //主Activity实列
-    protected View mView;//当前控制器对应一级页面视图
+    public View mView;//当前控制器对应一级页面视图
     public QuickPageModel.Page mPageModel;
     Map <String, String[]> mPageMap = new LinkedHashMap <> ( );
     public MainApplication mApp;

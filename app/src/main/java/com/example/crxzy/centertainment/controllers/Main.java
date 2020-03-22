@@ -29,6 +29,7 @@ import com.example.crxzy.centertainment.system.PageBase;
 import com.example.crxzy.centertainment.system.QuickPageModel;
 import com.example.crxzy.centertainment.tools.Network;
 import com.example.crxzy.centertainment.tools.Tool;
+import com.example.crxzy.centertainment.views.CardBox;
 import com.example.crxzy.centertainment.views.LabelBox;
 
 import org.json.JSONArray;
@@ -117,6 +118,17 @@ public class Main extends FirstPageBase {
                 }
             }
         });
+    }
+
+    @Override
+    public void selectPage(int index) {
+        if (mPageModel.mIsInitialize && mPageModel.getIndex ("picture") == index && index == mPageModel.currentChildIndex) {
+            QuickPageModel.Page child = mPageModel.getChild (index);
+            PageBase page = child.getChild (child.currentChildIndex).getController ( );
+            ((CardBox) page.mView).smoothScrollToPosition (0);
+        } else {
+            super.selectPage (index);
+        }
     }
 
     private void initCommonConfigPopup() {

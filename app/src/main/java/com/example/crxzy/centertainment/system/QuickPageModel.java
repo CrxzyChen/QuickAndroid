@@ -34,8 +34,8 @@ public class QuickPageModel {
         int mPageLevel;
         public int currentChildIndex = 0;
         int mHeaderModel = HEADER_MODEL_INHERIT;
-        boolean mIsInitialize = false;
-        boolean mIsHeaderInitialize = false;
+        public boolean mIsInitialize = false;
+        public boolean mIsHeaderInitialize = false;
         String mFileName;
         String mPageName;
         public String mAliasName;
