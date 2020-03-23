@@ -60,16 +60,20 @@ public class Card extends CardBox.CardBase {
     @Override
     public void loadResource(CardBox.ResourceManager.ResourceBase resource) {
         PictureResource mResource = (PictureResource) resource;
-        title.setText (mResource.Title);
+        title.setText (mResource.title);
 
-        if (mResource.Language.equals ("english")) {
-            langFlag.setImageDrawable (getContext ( ).getDrawable (R.drawable.flag_en));
-        } else if (mResource.Language.equals ("chinese")) {
-            langFlag.setImageDrawable (getContext ( ).getDrawable (R.drawable.flag_cn));
-        } else {
-            langFlag.setImageDrawable (getContext ( ).getDrawable (R.drawable.flag_jp));
+        if(mResource.language!=null){
+            if (mResource.language.equals ("english")) {
+                langFlag.setImageDrawable (getContext ( ).getDrawable (R.drawable.flag_en));
+            } else if (mResource.language.equals ("chinese")) {
+                langFlag.setImageDrawable (getContext ( ).getDrawable (R.drawable.flag_cn));
+            } else {
+                langFlag.setImageDrawable (getContext ( ).getDrawable (R.drawable.flag_jp));
+            }
+            final String tagsString = mResource.source + "." + mResource.language;
+            sourceTag.setText (tagsString);
         }
-        switch (mResource.ThumbStatus) {
+        switch (mResource.thumbStatus) {
             case 0:
                 statusTag.setText ("○");
                 break;
@@ -87,10 +91,8 @@ public class Card extends CardBox.CardBase {
                 break;
         }
         clickTime.setText ((String) Integer.toString (mResource.clickedTimes));
-        final String tagsString = mResource.Source + "." + mResource.Language;
-        sourceTag.setText (tagsString);
-        pageCount.setText ((String) Integer.toString (mResource.PageCount));
-        image.setImageURL ("http://10.0.0.2:4396/gallery/" + mResource.ThumbId + "/" + mResource.ImageNames.get (0) + "?height=480&width=360");
+        pageCount.setText ((String) Integer.toString (mResource.pageCount));
+        image.setImageURL ("http://10.0.0.2:4396/gallery/" + mResource.thumbId + "/" + mResource.imageNames.get (0) + "?height=480&width=360");
         CardOnClickListener cardOnClickListener = new CardOnClickListener (mResource);
         setOnClickListener (cardOnClickListener);
     }
@@ -106,14 +108,14 @@ public class Card extends CardBox.CardBase {
         @Override
         public void onClick(View v) {
             int uid = ((MainApplication) (((AppCompatActivity) v.getContext ( )).getApplication ( ))).mUser.uid;
-            String resource_id = mResource.ResourceId;
+            String resource_id = mResource.resourceId;
             NetApi.addHistory (uid, resource_id);
             NetApi.upClickedCount (resource_id, "manga");
             int clickedTimes = Integer.parseInt ((String) clickTime.getText ( )) + 1;
             clickTime.setText ((String) Integer.toString (clickedTimes));
             Intent intent = new Intent ( );
             intent.setClass (getContext ( ), PictureActivity.class);
-            intent.putExtra ("info", mResource.Resource.toString ( ));
+            intent.putExtra ("info", mResource.resource.toString ( ));
             getContext ( ).startActivity (intent);
         }
     }

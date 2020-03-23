@@ -1,7 +1,6 @@
 package com.example.crxzy.centertainment.controllers;
 
 import android.content.Context;
-import android.content.Intent;
 import android.os.Message;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -21,7 +20,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.crxzy.centertainment.R;
-import com.example.crxzy.centertainment.activities.SearchActivity;
 import com.example.crxzy.centertainment.models.NetApi;
 import com.example.crxzy.centertainment.system.FirstPageBase;
 import com.example.crxzy.centertainment.system.MainActivity;

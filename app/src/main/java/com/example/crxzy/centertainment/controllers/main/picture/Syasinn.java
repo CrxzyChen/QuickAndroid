@@ -5,8 +5,8 @@ import com.example.crxzy.centertainment.models.PictureResource;
 import com.example.crxzy.centertainment.system.MainActivity;
 import com.example.crxzy.centertainment.system.QuickPageModel;
 import com.example.crxzy.centertainment.system.ThirdPageBase;
+import com.example.crxzy.centertainment.views.Card;
 import com.example.crxzy.centertainment.views.CardBox;
-import com.example.crxzy.centertainment.views.SyasinnSelfCard;
 
 import org.json.JSONObject;
 
@@ -25,7 +25,7 @@ public class Syasinn extends ThirdPageBase {
         mContainer.setCardBoxAdapt (new CardBox.CardBoxAdapt (mContainer) {
             @Override
             protected void initViewTypeToView(Map <Integer, Class <?>> mViewTypeToView) {
-                mViewTypeToView.put (0, SyasinnSelfCard.class);
+                mViewTypeToView.put (0, Card.class);
             }
 
             @Override

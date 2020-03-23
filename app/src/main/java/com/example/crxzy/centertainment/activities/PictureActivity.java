@@ -150,7 +150,7 @@ public class PictureActivity extends AppCompatActivity {
         mLabelPopupWindowContainer.addView (searchMarked);
         mLabelPopupWindowContainer.addView (searchFilter);
 
-        mLabelPopupWindow = new PopupWindow (mLabelPopupWindowContainer, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);//参数为1.View 2.宽度 3.高度
+        mLabelPopupWindow = new PopupWindow (mLabelPopupWindowContainer, ViewGroup.LayoutParams.WRAP_CONTENT, Tool.dip2px (this, 150));//参数为1.View 2.宽度 3.高度
         mLabelPopupWindow.setBackgroundDrawable (getDrawable (R.drawable.label_popup_window));
         mLabelPopupWindow.setTouchable (true);
         mLabelPopupWindow.setOutsideTouchable (true);
@@ -195,7 +195,7 @@ public class PictureActivity extends AppCompatActivity {
     @NonNull
     private TextView getLabelPopupWindowItem(CharSequence content) {
         LinearLayout.LayoutParams itemParam = new LinearLayout.LayoutParams (ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        itemParam.setMargins (Tool.dip2px (mContext,5), Tool.dip2px (mContext,5), Tool.dip2px (mContext,5), Tool.dip2px (mContext,5));
+        itemParam.setMargins (Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5), Tool.dip2px (mContext, 5));
         TextView textView = new TextView (mContext);
         textView.setPadding (5, 5, 5, 5);
         textView.setLayoutParams (itemParam);
@@ -273,6 +273,7 @@ public class PictureActivity extends AppCompatActivity {
             json.put ("language", new JSONArray (language_labels));
             json.put ("mark", new JSONArray (marked_labels));
             json.put ("filter", new JSONArray (filter_labels));
+            json.put ("resource_kind", mResource.resourceKind);
             String jsonString = json.toString ( );
             Intent intent = new Intent ( );
             intent.setClass (mContext, SearchActivity.class);
@@ -449,17 +450,17 @@ public class PictureActivity extends AppCompatActivity {
         mRecommendContainer = findViewById (R.id.independ_picture_recommend_container);
         mRecommendContainer.setBackgroundColor (getColor (R.color.colorBackground));
 
-        if (mResource.Recommend.length ( ) == 0) {
+        if (mResource.recommend.length ( ) == 0) {
             mRecommendArea.setVisibility (View.GONE);
         } else {
-            NetApi.getResourceByIds (mResource.Recommend.toString ( ), this, "successGetRecommend");
+            NetApi.getResourceByIds (mResource.recommend.toString ( ), this, "successGetRecommend");
         }
     }
 
     private void initTagsArea() {
         mTagsArea = findViewById (R.id.sub_picture_tags);
 
-        for (String tab : mResource.Tags) {
+        for (String tab : mResource.tags) {
             final LabelBox.Label label = new LabelBox.Label (this, tab);
             label.setOnClickListener (new View.OnClickListener ( ) {
                 @Override
@@ -469,6 +470,7 @@ public class PictureActivity extends AppCompatActivity {
                         json.put ("mark", new JSONArray (new ArrayList <String> ( ) {{
                             add ((String) ((LabelBox.Label) v).mTextView.getText ( ));
                         }}));
+                        json.put ("resource_kind", mResource.resourceKind);
                         String jsonString = json.toString ( );
                         Intent intent = new Intent ( );
                         intent.setClass (mContext, SearchActivity.class);
@@ -560,7 +562,7 @@ public class PictureActivity extends AppCompatActivity {
 
     private void initImageBrowser() {
         mImageBrowser = findViewById (R.id.sub_picture_browser);
-        if (mResource.ThumbStatus == IMAGE_ALL_DOWNLOADED) {
+        if (mResource.thumbStatus == IMAGE_ALL_DOWNLOADED) {
             mLoadViewBatchSize = 10;
             mImageBrowser.addOnPageChangeListener (new SubPageChangeListener ( ));
         }
@@ -569,46 +571,51 @@ public class PictureActivity extends AppCompatActivity {
         mImageBrowser.setAdapter (mAdapter);
         mBrowserButtonLike = findViewById (R.id.sub_picture_button_like);
         mBrowserButtonSubScribe = findViewById (R.id.sub_picture_button_subscribe);
-        mBrowserButtonLike.setOnClickListener (new View.OnClickListener ( ) {
-            @Override
-            public void onClick(View v) {
-                if (!mIsLike) {
-                    NetApi.addLike (mApp.mUser.uid, mResource.ResourceId, mContext, "successLike");
-                    Toast.makeText (mContext, "已标记为喜欢", Toast.LENGTH_SHORT).show ( );
+        if (mResource.resourceKind.equals ("manga")) {
+            mBrowserButtonLike.setOnClickListener (new View.OnClickListener ( ) {
+                @Override
+                public void onClick(View v) {
+                    if (!mIsLike) {
+                        NetApi.addLike (mApp.mUser.uid, mResource.resourceId, mContext, "successLike");
+                        Toast.makeText (mContext, "已标记为喜欢", Toast.LENGTH_SHORT).show ( );
 
-                } else {
-                    NetApi.removeLike (mApp.mUser.uid, mResource.ResourceId, mContext, "successRemoveLike");
-                    Toast.makeText (mContext, "已标记为不喜欢", Toast.LENGTH_SHORT).show ( );
+                    } else {
+                        NetApi.removeLike (mApp.mUser.uid, mResource.resourceId, mContext, "successRemoveLike");
+                        Toast.makeText (mContext, "已标记为不喜欢", Toast.LENGTH_SHORT).show ( );
+                    }
                 }
-            }
-        });
-        mBrowserButtonSubScribe.setOnClickListener (new View.OnClickListener ( ) {
-            @Override
-            public void onClick(View v) {
-                if (!mIsSubscribe) {
-                    NetApi.addSubscribe (mApp.mUser.uid, mResource.ResourceId, mContext, "successSubscribe");
-                    Toast.makeText (mContext, "已发送订阅请求", Toast.LENGTH_SHORT).show ( );
-                } else {
-                    NetApi.removeSubscribe (mApp.mUser.uid, mResource.ResourceId, mContext, "successRemoveSubscribe");
-                    Toast.makeText (mContext, "已取消订阅", Toast.LENGTH_SHORT).show ( );
+            });
+            mBrowserButtonSubScribe.setOnClickListener (new View.OnClickListener ( ) {
+                @Override
+                public void onClick(View v) {
+                    if (!mIsSubscribe) {
+                        NetApi.addSubscribe (mApp.mUser.uid, mResource.resourceId, mContext, "successSubscribe");
+                        Toast.makeText (mContext, "已发送订阅请求", Toast.LENGTH_SHORT).show ( );
+                    } else {
+                        NetApi.removeSubscribe (mApp.mUser.uid, mResource.resourceId, mContext, "successRemoveSubscribe");
+                        Toast.makeText (mContext, "已取消订阅", Toast.LENGTH_SHORT).show ( );
+                    }
                 }
-            }
-        });
+            });
+        } else {
+            mBrowserButtonLike.setVisibility (View.GONE);
+            mBrowserButtonSubScribe.setVisibility (View.GONE);
+        }
 
-        NetApi.isLike (mApp.mUser.uid, mResource.ResourceId, mContext, "successIsLike");
-        NetApi.isSubscribe (mApp.mUser.uid, mResource.ResourceId, mContext, "successIsSubscribe");
+        NetApi.isLike (mApp.mUser.uid, mResource.resourceId, mContext, "successIsLike");
+        NetApi.isSubscribe (mApp.mUser.uid, mResource.resourceId, mContext, "successIsSubscribe");
     }
 
     private List <View> getViews() {
         List <View> viewLists = new ArrayList <> ( );
-        int endIndex = Math.min (mResource.ImageNames.size ( ), mLoadedViewIndex + mLoadViewBatchSize);
+        int endIndex = Math.min (mResource.imageNames.size ( ), mLoadedViewIndex + mLoadViewBatchSize);
         for (int index = mLoadedViewIndex; index < endIndex; index++) {
             ImageView imageView = new ImageView (this);
             imageView.setTag (index);
             SubPictureClickListener clickListener = new SubPictureClickListener ( );
             imageView.setOnClickListener (clickListener);
             imageView.setScaleType (android.widget.ImageView.ScaleType.FIT_CENTER);
-            imageView.setImageURL ("http://10.0.0.2:4396/gallery/" + mResource.ThumbId + "/" + mResource.ImageNames.get (index) + "?width=720");
+            imageView.setImageURL ("http://10.0.0.2:4396/gallery/" + mResource.thumbId + "/" + mResource.imageNames.get (index) + "?width=720");
             viewLists.add (imageView);
         }
         mIsLoading = false;
@@ -620,18 +627,18 @@ public class PictureActivity extends AppCompatActivity {
         ImageView cover = findViewById (R.id.sub_picture_cover);
         TextView title = findViewById (R.id.sub_picture_title);
         android.widget.ImageView langFlag = findViewById (R.id.sub_picture_lang_flag);
-        if(mResource.Language!=null){
-            if (mResource.Language.equals ("english")) {
+        if (mResource.language != null) {
+            if (mResource.language.equals ("english")) {
                 langFlag.setImageDrawable (mContext.getDrawable (R.drawable.flag_en));
-            } else if (mResource.Language.equals ("chinese")) {
+            } else if (mResource.language.equals ("chinese")) {
                 langFlag.setImageDrawable (mContext.getDrawable (R.drawable.flag_cn));
             } else {
                 langFlag.setImageDrawable (mContext.getDrawable (R.drawable.flag_jp));
             }
         }
-        title.setText (mResource.Title);
+        title.setText (mResource.title);
         LabelBox artists = findViewById (R.id.sub_picture_artists);
-        for (final String artist : mResource.Artists) {
+        for (final String artist : mResource.artists) {
             LabelBox.Label label = new LabelBox.Label (mContext, artist);
             label.setOnClickListener (new View.OnClickListener ( ) {
                 @Override
@@ -644,7 +651,7 @@ public class PictureActivity extends AppCompatActivity {
             });
             artists.addLabel (label);
         }
-        cover.setImageURL ("http://10.0.0.2:4396/gallery/" + mResource.ThumbId + "/" + mResource.ImageNames.get (0) + "?height=480&width=360");
+        cover.setImageURL ("http://10.0.0.2:4396/gallery/" + mResource.thumbId + "/" + mResource.imageNames.get (0) + "?height=480&width=360");
         cover.setScaleType (android.widget.ImageView.ScaleType.FIT_XY);
     }
 
@@ -653,9 +660,9 @@ public class PictureActivity extends AppCompatActivity {
         public void onClick(View v) {
             Intent intent = new Intent ( );
             intent.setClass (mContext, PicturePlayerActivity.class);
-            intent.putExtra ("imageNames", String.join (",", mResource.ImageNames));
-            intent.putExtra ("thumbId", mResource.ThumbId);
-            intent.putExtra ("thumbStatus", mResource.ThumbStatus);
+            intent.putExtra ("imageNames", String.join (",", mResource.imageNames));
+            intent.putExtra ("thumbId", mResource.thumbId);
+            intent.putExtra ("thumbStatus", mResource.thumbStatus);
             mContext.startActivity (intent);
         }
     }
@@ -768,9 +775,9 @@ public class PictureActivity extends AppCompatActivity {
 
                         langFlag.setImageDrawable (pictureActivity.mContext.getDrawable (R.drawable.flag_cn));
                         langFlag.setLayoutParams (langFlagParam);
-                        if (resource.Language.equals ("english")) {
+                        if (resource.language.equals ("english")) {
                             langFlag.setImageDrawable (pictureActivity.mContext.getDrawable (R.drawable.flag_en));
-                        } else if (resource.Language.equals ("chinese")) {
+                        } else if (resource.language.equals ("chinese")) {
                             langFlag.setImageDrawable (pictureActivity.mContext.getDrawable (R.drawable.flag_cn));
                         } else {
                             langFlag.setImageDrawable (pictureActivity.mContext.getDrawable (R.drawable.flag_jp));
@@ -778,7 +785,7 @@ public class PictureActivity extends AppCompatActivity {
                         RoundedImageView imageView = new RoundedImageView (pictureActivity);
                         RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams (RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
                         imageView.setCornerSize (Tool.dip2px (pictureActivity, 10));
-                        imageView.setImageURL ("http://10.0.0.2:4396/gallery/" + resource.ThumbId + "/" + resource.ImageNames.get (0) + "?height=480&width=360");
+                        imageView.setImageURL ("http://10.0.0.2:4396/gallery/" + resource.thumbId + "/" + resource.imageNames.get (0) + "?height=480&width=360");
                         imageView.setLayoutParams (layoutParams);
                         imageView.setTag (index);
                         imageView.setOnClickListener (new View.OnClickListener ( ) {

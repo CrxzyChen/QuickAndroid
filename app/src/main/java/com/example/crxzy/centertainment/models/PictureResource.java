@@ -10,31 +10,33 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PictureResource extends CardBox.ResourceManager.ResourceBase {
-    public JSONArray Recommend;
-    public int ThumbStatus;
-    public JSONObject Resource;
-    public JSONObject Thumb;
-    public List <String> ImageNames;
-    public List <String> Artists;
-    public List <String> Tags;
-    public String ThumbId;
-    public String Title;
-    public String ResourceId;
-    public String Language;
+    public JSONArray recommend;
+    public int thumbStatus;
+    public JSONObject resource;
+    public JSONObject thumb;
+    public List <String> imageNames;
+    public List <String> artists;
+    public List <String> tags;
+    public String thumbId;
+    public String title;
+    public String resourceId;
+    public String language;
     public Integer clickedTimes;
-    public String Source;
-    public int PageCount;
+    public String source;
+    public int pageCount;
+    public String thumbPath;
+    public String resourceKind;
 
     public PictureResource(JSONObject resource) {
         super ( );
-        Resource = resource;
+        this.resource = resource;
         initiation ( );
     }
 
     public PictureResource(String jsonString) {
         super ( );
         try {
-            Resource = new JSONObject (jsonString);
+            resource = new JSONObject (jsonString);
             initiation ( );
         } catch (JSONException e) {
             e.printStackTrace ( );
@@ -43,55 +45,57 @@ public class PictureResource extends CardBox.ResourceManager.ResourceBase {
 
     private void initiation() {
         try {
-            Recommend = new JSONArray ( );
-            ImageNames = new ArrayList <> ( );
-            Artists = new ArrayList <> ( );
-            Tags = new ArrayList <> ( );
-            Source = (String) getJsonValue (Resource, "source", "");
-            ResourceId = Resource.getJSONObject ("_id").getString ("$oid");
-            Thumb = Resource.getJSONObject ("thumb");
-            Title = Resource.getString ("name");
-            PageCount = Integer.parseInt (Resource.getString ("page_count"));
-            ThumbId = Thumb.getString ("thumb_id");
-            ThumbStatus = Thumb.getInt ("status");
-            if (Resource.has ("clicked")) {
-                clickedTimes = Resource.getInt ("clicked");
+            recommend = new JSONArray ( );
+            imageNames = new ArrayList <> ( );
+            artists = new ArrayList <> ( );
+            tags = new ArrayList <> ( );
+            source = (String) getJsonValue (resource, "source", "");
+            resourceId = resource.getJSONObject ("_id").getString ("$oid");
+            thumb = resource.getJSONObject ("thumb");
+            title = resource.getString ("name");
+            pageCount = Integer.parseInt (resource.getString ("page_count"));
+            thumbId = thumb.getString ("thumb_id");
+            thumbStatus = thumb.getInt ("status");
+            thumbPath = thumb.getString ("thumb_path");
+            resourceKind = thumbPath.split ("/")[0].toLowerCase ();
+            if (resource.has ("clicked")) {
+                clickedTimes = resource.getInt ("clicked");
             } else {
                 clickedTimes = 0;
             }
-            if (Resource.has ("languages")) {
-                JSONArray languages = Resource.getJSONArray ("languages");
+            if (resource.has ("languages")) {
+                JSONArray languages = resource.getJSONArray ("languages");
                 for (int index_2 = 0; index_2 < languages.length ( ); index_2++) {
-                    Language = (String) languages.get (index_2);
-                    if (!Language.equals ("translated")) {
+                    language = (String) languages.get (index_2);
+                    if (!language.equals ("translated")) {
                         break;
                     }
                 }
             }
 
             JSONArray recommends;
-            if (Resource.has ("recommend")) {
-                recommends = Resource.getJSONArray ("recommend");
+            if (resource.has ("recommend")) {
+                recommends = resource.getJSONArray ("recommend");
             } else {
                 recommends = new JSONArray ( );
             }
             for (int index = 0; index < recommends.length ( ); index++) {
                 JSONArray recommend = recommends.getJSONArray (index);
-                Recommend.put (recommend.getJSONObject (0).getString ("$oid"));
+                this.recommend.put (recommend.getJSONObject (0).getString ("$oid"));
             }
-            JSONArray imageNames = Thumb.getJSONArray ("image_names");
+            JSONArray imageNames = thumb.getJSONArray ("image_names");
             for (int index = 0; index < imageNames.length ( ); index++) {
-                ImageNames.add ((String) imageNames.get (index));
+                this.imageNames.add ((String) imageNames.get (index));
             }
-            if (Resource.has ("artists")) {
-                JSONArray artists = Resource.getJSONArray ("artists");
+            if (resource.has ("artists")) {
+                JSONArray artists = resource.getJSONArray ("artists");
                 for (int index = 0; index < artists.length ( ); index++) {
-                    Artists.add ((String) artists.get (index));
+                    this.artists.add ((String) artists.get (index));
                 }
             }
-            JSONArray tags = Resource.getJSONArray ("tags");
+            JSONArray tags = resource.getJSONArray ("tags");
             for (int index = 0; index < tags.length ( ); index++) {
-                Tags.add ((String) tags.get (index));
+                this.tags.add ((String) tags.get (index));
             }
         } catch (JSONException e) {
             e.printStackTrace ( );
