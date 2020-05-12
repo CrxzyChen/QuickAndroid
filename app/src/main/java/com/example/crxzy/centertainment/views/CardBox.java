@@ -148,6 +148,11 @@ public class CardBox extends RecyclerView {
         resourceManager.add (1, new FooterResource ( ));
     }
 
+    public void refresh() {
+        openRefreshNotify ( );
+        mAdapt.onRefresh ( );
+    }
+
     public abstract static class ResourceManager {
         Map <Integer, Class <?>> mViewTypeToTemplete = new HashMap <> ( );
         List <ResourceBase> mResourceList = new ArrayList <> ( );
