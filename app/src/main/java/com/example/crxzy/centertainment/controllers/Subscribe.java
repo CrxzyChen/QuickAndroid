@@ -34,33 +34,35 @@ public class Subscribe extends FirstPageBase {
             }
         });
         Switch orderSwitch = header.findViewById (R.id.subscribe_order_switch);
+        try {
+            JSONObject config = (JSONObject) mApp.mUser.getConfig ("subscribe_common");
+            orderSwitch.setChecked (config.getBoolean ("is_ordered"));
+        } catch (JSONException e) {
+            e.printStackTrace ( );
+        }
         orderSwitch.setOnCheckedChangeListener (new CompoundButton.OnCheckedChangeListener ( ) {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (mApp.mUser.isUserConfigLoaded) {
-                    if (isChecked) {
-                        Toast.makeText (mActivity, "checked", Toast.LENGTH_LONG).show ( );
-                        JSONObject json = new JSONObject ( );
-                        try {
-                            json.put ("is_ordered", true);
-                        } catch (JSONException e) {
-                            e.printStackTrace ( );
-                        }
-                        mApp.mUser.putConfig ("subscribe_common", json);
-                        mViewContainer.refresh ( );
-                    } else {
-                        Toast.makeText (mActivity, "unchecked", Toast.LENGTH_LONG).show ( );
-                        JSONObject json = new JSONObject ( );
-                        try {
-                            json.put ("is_ordered", false);
-                        } catch (JSONException e) {
-                            e.printStackTrace ( );
-                        }
-                        mApp.mUser.putConfig ("subscribe_common", json);
-                        mViewContainer.refresh ( );
+                if (isChecked) {
+                    Toast.makeText (mActivity, "checked", Toast.LENGTH_LONG).show ( );
+                    try {
+                        JSONObject config = new JSONObject ( );
+                        config.put ("is_ordered", true);
+                        mApp.mUser.putConfig ("subscribe_common", config);
+                    } catch (JSONException e) {
+                        e.printStackTrace ( );
                     }
+                    mViewContainer.refresh ( );
                 } else {
-                    Toast.makeText (mActivity, "正在加载用户设置，请稍候...", Toast.LENGTH_SHORT).show ( );
+                    Toast.makeText (mActivity, "unchecked", Toast.LENGTH_LONG).show ( );
+                    try {
+                        JSONObject config = new JSONObject ( );
+                        config.put ("is_ordered", false);
+                        mApp.mUser.putConfig ("subscribe_common", config);
+                    } catch (JSONException e) {
+                        e.printStackTrace ( );
+                    }
+                    mViewContainer.refresh ( );
                 }
             }
         });
